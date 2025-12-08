@@ -44,11 +44,14 @@ const EyeIcon = ({ size = 24, className = "" }) => (
 // --- SECURITY CONSTANTS ---
 const MAX_INPUT_LENGTH = 256; 
 const ILLEGAL_CHARS = /<script\b[^>]*>([\s\S]*?)<\/script>/gm; 
+// Utility commands allow users to look around or leave without triggering "Wrong Command" errors
+const UTILITY_COMMANDS = ['clear', 'help', 'ls', 'pwd', 'whoami', 'history', 'id', 'exit'];
 
 // --- DATA: Missions (Strict Validation) ---
 const MISSIONS = [
   {
     id: 1,
+    tool: "useradd",
     title: "User Management",
     desc: "Create a new user named 'student' with UID 2000.",
     lesson: "In RHEL, `useradd` creates new accounts. The `-u` flag specifies a custom UID. Managing UIDs is critical for NFS compatibility.",
@@ -57,6 +60,7 @@ const MISSIONS = [
   },
   {
     id: 2,
+    tool: "systemctl",
     title: "Service Check",
     desc: "Check the status of the 'httpd' service.",
     lesson: "`systemctl` controls systemd. `status` shows runtime info and recent logs.",
@@ -65,6 +69,7 @@ const MISSIONS = [
   },
   {
     id: 3,
+    tool: "tar",
     title: "Archiving",
     desc: "Create a gzip archive named 'backup.tar.gz' of the '/home' directory.",
     lesson: "`tar` flags: -c (create), -z (gzip), -v (verbose), -f (file).",
@@ -73,6 +78,7 @@ const MISSIONS = [
   },
   {
     id: 4,
+    tool: "chmod",
     title: "File Permissions",
     desc: "Set permissions on 'script.sh': User=All(7), Group=Read/Exec(5), Others=None(0).",
     lesson: "Octal math: Read=4, Write=2, Exec=1. User(4+2+1=7), Group(4+0+1=5), Other(0).",
@@ -81,6 +87,7 @@ const MISSIONS = [
   },
   {
     id: 5,
+    tool: "grep",
     title: "Text Search (Grep)",
     desc: "Search for lines starting with 'root' in '/etc/passwd'.",
     lesson: "The caret `^` is a regex anchor for 'start of line'.",
@@ -89,6 +96,7 @@ const MISSIONS = [
   },
   {
     id: 6,
+    tool: "ls",
     title: "SELinux Contexts",
     desc: "List SELinux contexts for files in the current directory.",
     lesson: "Use the `-Z` flag with `ls`, `ps`, or `id` to see security labels.",
@@ -97,6 +105,7 @@ const MISSIONS = [
   },
   {
     id: 7,
+    tool: "ln",
     title: "Soft Linking",
     desc: "Create a soft link named 'mylink' pointing to '/etc/hosts'.",
     lesson: "`ln -s` creates symbolic links. Without `-s`, it creates a hard link.",
@@ -105,6 +114,7 @@ const MISSIONS = [
   },
   {
     id: 8,
+    tool: "firewall-cmd",
     title: "Firewall Configuration",
     desc: "Permanently add the 'ftp' service to the firewall.",
     lesson: "Changes are lost on reboot unless you use `--permanent`. Reload afterwards.",
@@ -113,6 +123,7 @@ const MISSIONS = [
   },
   {
     id: 9,
+    tool: "pvcreate",
     title: "LVM: PV Creation",
     desc: "Initialize '/dev/vdb1' as a Physical Volume.",
     lesson: "`pvcreate` labels a partition for LVM use. It's the first step of the LVM chain.",
@@ -121,6 +132,7 @@ const MISSIONS = [
   },
   {
     id: 10,
+    tool: "tuned-adm",
     title: "System Tuning",
     desc: "Set the tuning profile to 'virtual-guest'.",
     lesson: "`tuned-adm` applies kernel presets optimized for specific workloads.",
@@ -129,6 +141,7 @@ const MISSIONS = [
   },
   {
     id: 11,
+    tool: "nmcli",
     title: "Networking",
     desc: "Add a new ethernet connection named 'static-eth0'.",
     lesson: "NetworkManager (nmcli) is the standard for RHEL networking.",
@@ -137,6 +150,7 @@ const MISSIONS = [
   },
   {
     id: 12,
+    tool: "ssh-keygen",
     title: "SSH Keys",
     desc: "Generate a new SSH key pair.",
     lesson: "`ssh-keygen` creates the public/private key pair for passwordless auth.",
@@ -145,6 +159,7 @@ const MISSIONS = [
   },
   {
     id: 13,
+    tool: "vgcreate",
     title: "LVM: Volume Group",
     desc: "Create a volume group named 'myvg' using '/dev/vdb1'.",
     lesson: "`vgcreate` pools Physical Volumes into a Volume Group. This is your pool of storage.",
@@ -153,6 +168,7 @@ const MISSIONS = [
   },
   {
     id: 14,
+    tool: "lvcreate",
     title: "LVM: Logical Volume",
     desc: "Create a 500MB Logical Volume named 'mylv' in 'myvg'.",
     lesson: "`lvcreate` carves usable space. Use `-L` for size (e.g., 500M) and `-n` for name.",
@@ -161,6 +177,7 @@ const MISSIONS = [
   },
   {
     id: 15,
+    tool: "mkfs.xfs",
     title: "Filesystem Creation",
     desc: "Format the logical volume '/dev/myvg/mylv' with the XFS filesystem.",
     lesson: "Before mounting, you must format. RHEL defaults to XFS (`mkfs.xfs`).",
@@ -169,6 +186,7 @@ const MISSIONS = [
   },
   {
     id: 16,
+    tool: "dnf",
     title: "Software Install",
     desc: "Install the 'httpd' package using DNF.",
     lesson: "`dnf` is the package manager (Dandified YUM). Use it to install, update, and remove software.",
@@ -177,6 +195,7 @@ const MISSIONS = [
   },
   {
     id: 17,
+    tool: "restorecon",
     title: "SELinux Restore",
     desc: "Restore default SELinux contexts on '/var/www/html'.",
     lesson: "`restorecon` reads the policy and resets file contexts to their defaults. Use `-R` for recursive.",
@@ -226,7 +245,7 @@ export default function App() {
   const [missionComplete, setMissionComplete] = useState(false);
   const [inputHistory, setInputHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
-  const [showHint, setShowHint] = useState(false); // State for hint visibility
+  const [showHint, setShowHint] = useState(false); 
   
   const terminalEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -264,8 +283,10 @@ export default function App() {
     const base = args[0];
 
     // Mission Logic
-    if (currentMissionId > 0 && !missionComplete) {
-      if (currentMission && currentMission.check(cleanCmd)) {
+    if (currentMissionId > 0 && !missionComplete && currentMission) {
+      
+      // 1. Success Check
+      if (currentMission.check(cleanCmd)) {
         addToTerm(`SUCCESS: Mission ${currentMissionId} Complete!`, 'success');
         if (currentMissionId < MISSIONS.length) {
           setTimeout(() => {
@@ -280,15 +301,34 @@ export default function App() {
         }
         return;
       } 
+      
+      // 2. Feedback: Correct Command, Wrong Arguments
+      if (cleanCmd.startsWith(currentMission.tool) && base === currentMission.tool) {
+          addToTerm(`> Correct command '${base}', but check your flags/arguments.`, 'error');
+          // Fall through to allow execution
+      } 
+      // 3. Feedback: Wrong Command
+      else if (!UTILITY_COMMANDS.includes(base) && base !== currentMission.tool) {
+          addToTerm(`> '${base}' is not the correct tool for this mission.`, 'error');
+      }
     }
 
     // Simulation Logic
     switch (base) {
       case 'help':
-        addToTerm("Available commands: help, clear, start, useradd, systemctl, nmcli, tar, ls, pwd, whoami, chmod, grep, ln, firewall-cmd, pvcreate, vgcreate, lvcreate, mkfs.xfs, dnf, restorecon, tuned-adm, ssh-keygen");
+        addToTerm("Available commands: help, clear, start, exit, useradd, systemctl, nmcli, tar, ls, pwd, whoami, chmod, grep, ln, firewall-cmd, pvcreate, vgcreate, lvcreate, mkfs.xfs, dnf, restorecon, tuned-adm, ssh-keygen, id");
         break;
       case 'clear':
         setTerminalHistory([]);
+        break;
+      case 'exit':
+        if (currentMissionId > 0 || missionComplete) {
+            addToTerm("Mission aborted. Returning to base...", 'system');
+            setCurrentMissionId(0);
+            setMissionComplete(false);
+        } else {
+            addToTerm("Logout (Simulated). Refresh to reset.", 'system');
+        }
         break;
       case 'start':
         setCurrentMissionId(1);
@@ -309,8 +349,11 @@ export default function App() {
       case 'whoami':
         addToTerm("root");
         break;
+      case 'id':
+        addToTerm("uid=0(root) gid=0(root) groups=0(root) context=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023");
+        break;
       case 'useradd':
-        addToTerm(currentMissionId === 1 && !cleanCmd.includes('2000') ? "User created, but did you check the UID?" : "Done.");
+        addToTerm(currentMissionId === 1 && !cleanCmd.includes('2000') ? "User created (Simulated). NOTE: UID was not set to 2000." : "User created (Simulated).");
         break;
       case 'vgcreate':
         addToTerm("Volume group \"myvg\" successfully created");
@@ -342,10 +385,15 @@ export default function App() {
         }
         break;
       default:
+        // Show command not found only if it wasn't already flagged as wrong tool
         if (['nmcli', 'tar', 'chown', 'chmod', 'ln', 'firewall-cmd', 'pvcreate', 'tuned-adm', 'ssh-keygen'].includes(base)) {
           addToTerm("Command executed (Simulation).");
         } else {
-          addToTerm(`bash: ${base}: command not found`, 'error');
+            if (UTILITY_COMMANDS.includes(base) || (currentMission && base === currentMission.tool)) {
+                // Do nothing
+            } else {
+                addToTerm(`bash: ${base}: command not found`, 'error');
+            }
         }
     }
   };
@@ -576,7 +624,7 @@ export default function App() {
                 className="flex-1 p-3 font-mono text-sm overflow-y-auto bg-slate-900" 
                 onClick={() => inputRef.current?.focus()}
               >
-                <div className="text-slate-400 mb-2">Welcome to the RHCSA Practice Terminal v1.5</div>
+                <div className="text-slate-400 mb-2">Welcome to the RHCSA Practice Terminal v1.6</div>
                 
                 {terminalHistory.map((line, i) => (
                   <div key={i} className={`whitespace-pre-wrap mb-1 break-words ${
@@ -665,4 +713,4 @@ export default function App() {
       </div>
     </div>
   );
-          }
+              }
