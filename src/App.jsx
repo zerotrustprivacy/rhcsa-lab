@@ -666,7 +666,7 @@ export default function App() {
                 </div>
                 <p className="text-xs text-slate-600 mb-3">
                   {currentMissionId === 0 
-                    ? <span>Type <span className="bg-slate-100 px-1 rounded text-red-500 font-bold">start</span> to begin.</span>
+                    ? <span>Type <span className="bg-slate-100 px-1 rounded text-red-500 font-bold">start</span> to begin or "exit" to leave the mission.</span>
                     : missionComplete
                       ? "All scenarios finished."
                       : (currentMission ? currentMission.desc : "")
