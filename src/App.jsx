@@ -44,11 +44,11 @@ const EyeIcon = ({ size = 24, className = "" }) => (
 // --- SECURITY CONSTANTS ---
 const MAX_INPUT_LENGTH = 256; 
 const ILLEGAL_CHARS = /<script\b[^>]*>([\s\S]*?)<\/script>/gm; 
-// Utility commands allow users to look around or leave without triggering "Wrong Command" errors
-const UTILITY_COMMANDS = ['clear', 'help', 'ls', 'pwd', 'whoami', 'history', 'id', 'exit'];
+const UTILITY_COMMANDS = ['clear', 'help', 'ls', 'pwd', 'whoami', 'history', 'id', 'exit', 'man'];
 
 // --- DATA: Missions (Strict Validation) ---
 const MISSIONS = [
+  // --- PILLAR 1: TOOLS & SCRIPTING ---
   {
     id: 1,
     tool: "useradd",
@@ -60,15 +60,24 @@ const MISSIONS = [
   },
   {
     id: 2,
-    tool: "systemctl",
-    title: "Service Check",
-    desc: "Check the status of the 'httpd' service.",
-    lesson: "`systemctl` controls systemd. `status` shows runtime info and recent logs.",
-    hint: "systemctl status httpd",
-    check: (cmd) => /^systemctl\s+status\s+httpd$/.test(cmd)
+    tool: "groupadd",
+    title: "Group Management",
+    desc: "Create a new group named 'devops' with GID 5000.",
+    lesson: "Groups allow permission sharing. `groupadd` creates them. `-g` specifies a static GID.",
+    hint: "groupadd -g 5000 devops",
+    check: (cmd) => /^groupadd\s+/.test(cmd) && /-g\s+5000/.test(cmd) && /\sdevops\b/.test(cmd)
   },
   {
     id: 3,
+    tool: "usermod",
+    title: "Modify User Group",
+    desc: "Add existing user 'student' to the 'devops' group.",
+    lesson: "`usermod` changes user properties. `-aG` (Append Groups) adds a secondary group without removing existing ones. Order matters: group first, then user.",
+    hint: "usermod -aG devops student",
+    check: (cmd) => /^usermod\s+/.test(cmd) && /-aG\s+devops/.test(cmd) && /\sstudent\b/.test(cmd)
+  },
+  {
+    id: 4,
     tool: "tar",
     title: "Archiving",
     desc: "Create a gzip archive named 'backup.tar.gz' of the '/home' directory.",
@@ -77,7 +86,7 @@ const MISSIONS = [
     check: (cmd) => /^tar\s+/.test(cmd) && /-[a-zA-Z]*z[a-zA-Z]*/.test(cmd) && /-[a-zA-Z]*c[a-zA-Z]*/.test(cmd) && /\sbackup\.tar\.gz\b/.test(cmd) && /\s\/home\b/.test(cmd)
   },
   {
-    id: 4,
+    id: 5,
     tool: "chmod",
     title: "File Permissions",
     desc: "Set permissions on 'script.sh': User=All(7), Group=Read/Exec(5), Others=None(0).",
@@ -86,22 +95,13 @@ const MISSIONS = [
     check: (cmd) => /^chmod\s+750\s+script\.sh$/.test(cmd)
   },
   {
-    id: 5,
+    id: 6,
     tool: "grep",
     title: "Text Search (Grep)",
     desc: "Search for lines starting with 'root' in '/etc/passwd'.",
     lesson: "The caret `^` is a regex anchor for 'start of line'.",
     hint: "grep \"^root\" /etc/passwd",
     check: (cmd) => /^grep\s+/.test(cmd) && (/["']\^root["']/.test(cmd) || /\^root/.test(cmd)) && /\s\/etc\/passwd$/.test(cmd)
-  },
-  {
-    id: 6,
-    tool: "ls",
-    title: "SELinux Contexts",
-    desc: "List SELinux contexts for files in the current directory.",
-    lesson: "Use the `-Z` flag with `ls`, `ps`, or `id` to see security labels.",
-    hint: "ls -Z",
-    check: (cmd) => /^ls\s+/.test(cmd) && /-[a-zA-Z]*Z/.test(cmd)
   },
   {
     id: 7,
@@ -114,24 +114,44 @@ const MISSIONS = [
   },
   {
     id: 8,
-    tool: "firewall-cmd",
-    title: "Firewall Configuration",
-    desc: "Permanently add the 'ftp' service to the firewall.",
-    lesson: "Changes are lost on reboot unless you use `--permanent`. Reload afterwards.",
-    hint: "firewall-cmd --add-service=ftp --permanent",
-    check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-service=ftp/.test(cmd) && /--permanent/.test(cmd)
+    tool: "find",
+    title: "Locating Files",
+    desc: "Find all files in '/etc' that end with '.conf'.",
+    lesson: "`find` searches directory trees. Use `-name` for filenames. Quotes around the pattern `*.conf` prevent shell expansion.",
+    hint: "find /etc -name \"*.conf\"",
+    check: (cmd) => /^find\s+\/etc\s+/.test(cmd) && /-name\s+["']\*\.conf["']/.test(cmd)
   },
   {
     id: 9,
-    tool: "pvcreate",
-    title: "LVM: PV Creation",
-    desc: "Initialize '/dev/vdb1' as a Physical Volume.",
-    lesson: "`pvcreate` labels a partition for LVM use. It's the first step of the LVM chain.",
-    hint: "pvcreate /dev/vdb1",
-    check: (cmd) => /^pvcreate\s+\/dev\/vdb1$/.test(cmd)
+    tool: "setfacl",
+    title: "Access Control Lists (ACLs)",
+    desc: "Grant user 'student' read-write access to 'file.txt' using ACLs.",
+    lesson: "`setfacl` allows fine-grained permissions beyond standard UGO. `-m` modifies the ACL. Syntax: `u:user:perms`.",
+    hint: "setfacl -m u:student:rw file.txt",
+    check: (cmd) => /^setfacl\s+/.test(cmd) && /-m\s+/.test(cmd) && /u:student:rw/.test(cmd) && /\sfile\.txt$/.test(cmd)
   },
+
+  // --- PILLAR 2: OPERATE RUNNING SYSTEMS ---
   {
     id: 10,
+    tool: "systemctl",
+    title: "Service Check",
+    desc: "Check the status of the 'httpd' service.",
+    lesson: "`systemctl` controls systemd. `status` shows runtime info and recent logs.",
+    hint: "systemctl status httpd",
+    check: (cmd) => /^systemctl\s+status\s+httpd$/.test(cmd)
+  },
+  {
+    id: 11,
+    tool: "systemctl",
+    title: "Set Default Target",
+    desc: "Configure the system to boot into text-only mode (multi-user.target) by default.",
+    lesson: "RHEL uses 'targets' instead of runlevels. `set-default` makes the change persistent across reboots.",
+    hint: "systemctl set-default multi-user.target",
+    check: (cmd) => /^systemctl\s+set-default\s+multi-user\.target$/.test(cmd)
+  },
+  {
+    id: 12,
     tool: "tuned-adm",
     title: "System Tuning",
     desc: "Set the tuning profile to 'virtual-guest'.",
@@ -140,25 +160,45 @@ const MISSIONS = [
     check: (cmd) => /^tuned-adm\s+profile\s+virtual-guest$/.test(cmd)
   },
   {
-    id: 11,
-    tool: "nmcli",
-    title: "Networking",
-    desc: "Add a new ethernet connection named 'static-eth0'.",
-    lesson: "NetworkManager (nmcli) is the standard for RHEL networking.",
-    hint: "nmcli con add con-name static-eth0 type ethernet ifname eth0",
-    check: (cmd) => /^nmcli\s+con\s+add\s+/.test(cmd) && /con-name\s+static-eth0/.test(cmd)
-  },
-  {
-    id: 12,
-    tool: "ssh-keygen",
-    title: "SSH Keys",
-    desc: "Generate a new SSH key pair.",
-    lesson: "`ssh-keygen` creates the public/private key pair for passwordless auth.",
-    hint: "ssh-keygen",
-    check: (cmd) => /^ssh-keygen\b/.test(cmd)
-  },
-  {
     id: 13,
+    tool: "nice",
+    title: "Process Priorities",
+    desc: "Start the 'tar' command with a nice value (priority) of 5.",
+    lesson: "`nice` sets the initial priority. Higher numbers (up to 19) are 'nicer' (lower priority). Lower numbers (down to -20) are higher priority.",
+    hint: "nice -n 5 tar",
+    check: (cmd) => /^nice\s+/.test(cmd) && /-n\s+5/.test(cmd) && /\star/.test(cmd)
+  },
+  {
+    id: 14,
+    tool: "chronyc",
+    title: "Time Synchronization",
+    desc: "Verify the list of NTP sources the system is using.",
+    lesson: "`chronyd` is the default time service. Use `chronyc sources` to see which servers you are syncing with.",
+    hint: "chronyc sources",
+    check: (cmd) => /^chronyc\s+sources\b/.test(cmd)
+  },
+  {
+    id: 15,
+    tool: "journalctl",
+    title: "System Logging",
+    desc: "Show all log entries for the 'sshd' service.",
+    lesson: "`journalctl` queries the systemd journal. Use `-u` (unit) to filter by a specific service.",
+    hint: "journalctl -u sshd",
+    check: (cmd) => /^journalctl\s+/.test(cmd) && /-u\s+sshd\b/.test(cmd)
+  },
+
+  // --- PILLAR 3: STORAGE ---
+  {
+    id: 16,
+    tool: "pvcreate",
+    title: "LVM: PV Creation",
+    desc: "Initialize '/dev/vdb1' as a Physical Volume.",
+    lesson: "`pvcreate` labels a partition for LVM use. It's the first step of the LVM chain.",
+    hint: "pvcreate /dev/vdb1",
+    check: (cmd) => /^pvcreate\s+\/dev\/vdb1$/.test(cmd)
+  },
+  {
+    id: 17,
     tool: "vgcreate",
     title: "LVM: Volume Group",
     desc: "Create a volume group named 'myvg' using '/dev/vdb1'.",
@@ -167,7 +207,7 @@ const MISSIONS = [
     check: (cmd) => /^vgcreate\s+myvg\s+\/dev\/vdb1$/.test(cmd)
   },
   {
-    id: 14,
+    id: 18,
     tool: "lvcreate",
     title: "LVM: Logical Volume",
     desc: "Create a 500MB Logical Volume named 'mylv' in 'myvg'.",
@@ -176,7 +216,16 @@ const MISSIONS = [
     check: (cmd) => /^lvcreate\s+/.test(cmd) && /-L\s+500M/.test(cmd) && /-n\s+mylv/.test(cmd) && /\smyvg\b/.test(cmd)
   },
   {
-    id: 15,
+    id: 19,
+    tool: "lvextend",
+    title: "LVM: Extend Volume",
+    desc: "Extend 'mylv' by adding 200MB and resize the filesystem in one step.",
+    lesson: "`lvextend` adds space. The `-r` (resizefs) flag is crucial—it automatically runs `xfs_growfs` or `resize2fs` for you.",
+    hint: "lvextend -L +200M -r /dev/myvg/mylv",
+    check: (cmd) => /^lvextend\s+/.test(cmd) && /-L\s+\+200M/.test(cmd) && /-r\b/.test(cmd) && /\/dev\/myvg\/mylv/.test(cmd)
+  },
+  {
+    id: 20,
     tool: "mkfs.xfs",
     title: "Filesystem Creation",
     desc: "Format the logical volume '/dev/myvg/mylv' with the XFS filesystem.",
@@ -185,7 +234,27 @@ const MISSIONS = [
     check: (cmd) => /^mkfs\.xfs\s+\/dev\/myvg\/mylv$/.test(cmd)
   },
   {
-    id: 16,
+    id: 21,
+    tool: "mkswap",
+    title: "Create Swap",
+    desc: "Format partition '/dev/vdb2' as swap space.",
+    lesson: "Swap is used when RAM is full. `mkswap` prepares the device.",
+    hint: "mkswap /dev/vdb2",
+    check: (cmd) => /^mkswap\s+\/dev\/vdb2$/.test(cmd)
+  },
+  {
+    id: 22,
+    tool: "mount",
+    title: "NFS Mounting",
+    desc: "Mount the NFS share 'server:/share' to '/mnt/data'.",
+    lesson: "Mounting connects a remote filesystem to your local tree. Syntax: `mount -t nfs [remote] [local]`.",
+    hint: "mount -t nfs server:/share /mnt/data",
+    check: (cmd) => /^mount\s+/.test(cmd) && /-t\s+nfs/.test(cmd) && /\sserver:\/share/.test(cmd) && /\s\/mnt\/data$/.test(cmd)
+  },
+
+  // --- PILLAR 4: DEPLOY & MAINTAIN ---
+  {
+    id: 23,
     tool: "dnf",
     title: "Software Install",
     desc: "Install the 'httpd' package using DNF.",
@@ -194,13 +263,69 @@ const MISSIONS = [
     check: (cmd) => /^dnf\s+install\s+httpd$/.test(cmd)
   },
   {
-    id: 17,
+    id: 24,
+    tool: "crontab",
+    title: "Scheduling Tasks",
+    desc: "List the current user's cron jobs.",
+    lesson: "`cron` schedules recurring tasks. `-e` edits, `-l` lists, `-r` removes. We use `-l` here to verify.",
+    hint: "crontab -l",
+    check: (cmd) => /^crontab\s+-l$/.test(cmd)
+  },
+
+  // --- PILLAR 5: USERS & SECURITY ---
+  {
+    id: 25,
+    tool: "nmcli",
+    title: "Networking",
+    desc: "Add a new ethernet connection named 'static-eth0'.",
+    lesson: "NetworkManager (nmcli) is the standard for RHEL networking.",
+    hint: "nmcli con add con-name static-eth0 type ethernet ifname eth0",
+    check: (cmd) => /^nmcli\s+con\s+add\s+/.test(cmd) && /con-name\s+static-eth0/.test(cmd)
+  },
+  {
+    id: 26,
+    tool: "firewall-cmd",
+    title: "Firewall Configuration",
+    desc: "Permanently add the 'ftp' service to the firewall.",
+    lesson: "Changes are lost on reboot unless you use `--permanent`. Reload afterwards.",
+    hint: "firewall-cmd --add-service=ftp --permanent",
+    check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-service=ftp/.test(cmd) && /--permanent/.test(cmd)
+  },
+  {
+    id: 27,
+    tool: "ssh-keygen",
+    title: "SSH Keys",
+    desc: "Generate a new SSH key pair.",
+    lesson: "`ssh-keygen` creates the public/private key pair for passwordless auth.",
+    hint: "ssh-keygen",
+    check: (cmd) => /^ssh-keygen\b/.test(cmd)
+  },
+  {
+    id: 28,
+    tool: "ls",
+    title: "SELinux Contexts",
+    desc: "List SELinux contexts for files in the current directory.",
+    lesson: "Use the `-Z` flag with `ls`, `ps`, or `id` to see security labels.",
+    hint: "ls -Z",
+    check: (cmd) => /^ls\s+/.test(cmd) && /-[a-zA-Z]*Z/.test(cmd)
+  },
+  {
+    id: 29,
     tool: "restorecon",
     title: "SELinux Restore",
     desc: "Restore default SELinux contexts on '/var/www/html'.",
     lesson: "`restorecon` reads the policy and resets file contexts to their defaults. Use `-R` for recursive.",
     hint: "restorecon -R /var/www/html",
     check: (cmd) => /^restorecon\s+/.test(cmd) && /-[a-zA-Z]*R/.test(cmd) && /\s\/var\/www\/html$/.test(cmd)
+  },
+  {
+    id: 30,
+    tool: "chage",
+    title: "Password Aging",
+    desc: "Set the maximum password age for user 'student' to 90 days.",
+    lesson: "`chage` (Change Age) manages password expiry. `-M` sets the max days before a password change is required.",
+    hint: "chage -M 90 student",
+    check: (cmd) => /^chage\s+/.test(cmd) && /-M\s+90/.test(cmd) && /\sstudent$/.test(cmd)
   }
 ];
 
@@ -316,7 +441,7 @@ export default function App() {
     // Simulation Logic
     switch (base) {
       case 'help':
-        addToTerm("Available commands: help, clear, start, exit, useradd, systemctl, nmcli, tar, ls, pwd, whoami, chmod, grep, ln, firewall-cmd, pvcreate, vgcreate, lvcreate, mkfs.xfs, dnf, restorecon, tuned-adm, ssh-keygen, id");
+        addToTerm("Available commands: help, clear, start, exit, useradd, groupadd, usermod, systemctl, nmcli, tar, ls, pwd, whoami, chmod, grep, ln, firewall-cmd, pvcreate, vgcreate, lvcreate, lvextend, mkfs.xfs, mkswap, mount, dnf, restorecon, tuned-adm, ssh-keygen, id, nice, chronyc, journalctl, find, setfacl, chage, crontab");
         break;
       case 'clear':
         setTerminalHistory([]);
@@ -352,23 +477,39 @@ export default function App() {
       case 'id':
         addToTerm("uid=0(root) gid=0(root) groups=0(root) context=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023");
         break;
-      case 'useradd':
-        addToTerm(currentMissionId === 1 && !cleanCmd.includes('2000') ? "User created (Simulated). NOTE: UID was not set to 2000." : "User created (Simulated).");
-        break;
       case 'vgcreate':
         addToTerm("Volume group \"myvg\" successfully created");
         break;
       case 'lvcreate':
         addToTerm("Logical volume \"mylv\" created.");
         break;
+      case 'lvextend':
+        if (cleanCmd.includes('-r')) addToTerm("Size of logical volume myvg/mylv changed from 500.00 MiB to 700.00 MiB.\nmeta-data=/dev/mapper/myvg-mylv ...\ndata blocks changed from 128000 to 179200");
+        else addToTerm("Size of logical volume myvg/mylv changed from 500.00 MiB to 700.00 MiB. (Filesystem NOT resized)");
+        break;
       case 'mkfs.xfs':
         addToTerm("meta-data=/dev/myvg/mylv   isize=512    agcount=4, agsize=32000 blks\ndata     =                       bsize=4096   blocks=128000, imaxpct=25");
         break;
+      case 'mkswap':
+        addToTerm("Setting up swapspace version 1, size = 1024 MiB (1073737728 bytes)\nno label, UUID=a1b2c3d4-e5f6-7890-1234-567890abcdef");
+        break;
+      case 'mount':
+        addToTerm("server:/share mounted on /mnt/data");
+        break;
       case 'dnf':
-        addToTerm("Dependencies resolved.\n================================================================================\n Package          Architecture    Version             Repository           Size\n================================================================================\nInstalling:\n httpd            x86_64          2.4.53-7.el9        appstream            47 k\n\nComplete!");
+        addToTerm("Dependencies resolved.\nInstalling: httpd  x86_64  2.4.53-7.el9  appstream  47 k\nComplete!");
         break;
       case 'restorecon':
         addToTerm("Relabeled /var/www/html from unconfined_u:object_r:var_t:s0 to unconfined_u:object_r:httpd_sys_content_t:s0");
+        break;
+      case 'journalctl':
+        addToTerm("-- Logs begin at Mon 2023-10-02 09:00:00 EDT --\nOct 02 09:00:01 server sshd[1234]: Server listening on 0.0.0.0 port 22.");
+        break;
+      case 'chronyc':
+        addToTerm("MS Name/IP address         Stratum Poll Reach LastRx Last sample\n^* 192.168.1.1                   2   6   377    25   +123ns[ +150ns] +/-   10ms");
+        break;
+      case 'crontab':
+        addToTerm("no crontab for root");
         break;
       case 'grep':
         if (cleanCmd.includes('^root')) {
@@ -379,14 +520,16 @@ export default function App() {
         break;
       case 'systemctl':
         if (args[1] === 'status') {
-          addToTerm(`● ${args[2] || 'service'} - The Apache HTTP Server\n   Loaded: loaded (/usr/lib/systemd/system/httpd.service; enabled; vendor preset: disabled)\n   Active: active (running) since Mon 2023-10-02 10:00:00 EDT; 1h ago`, 'success');
+          addToTerm(`● ${args[2] || 'service'} - The Apache HTTP Server\n   Loaded: loaded; enabled\n   Active: active (running)`, 'success');
+        } else if (args[1] === 'set-default') {
+          addToTerm(`Removed /etc/systemd/system/default.target.\nCreated symlink /etc/systemd/system/default.target -> /usr/lib/systemd/system/${args[2]}.`);
         } else {
           addToTerm("Command executed.");
         }
         break;
       default:
         // Show command not found only if it wasn't already flagged as wrong tool
-        if (['nmcli', 'tar', 'chown', 'chmod', 'ln', 'firewall-cmd', 'pvcreate', 'tuned-adm', 'ssh-keygen'].includes(base)) {
+        if (['nmcli', 'tar', 'chown', 'chmod', 'ln', 'firewall-cmd', 'pvcreate', 'useradd', 'groupadd', 'usermod', 'tuned-adm', 'ssh-keygen', 'nice', 'find', 'setfacl', 'chage'].includes(base)) {
           addToTerm("Command executed (Simulation).");
         } else {
             if (UTILITY_COMMANDS.includes(base) || (currentMission && base === currentMission.tool)) {
@@ -624,7 +767,7 @@ export default function App() {
                 className="flex-1 p-3 font-mono text-sm overflow-y-auto bg-slate-900" 
                 onClick={() => inputRef.current?.focus()}
               >
-                <div className="text-slate-400 mb-2">Welcome to the RHCSA Practice Terminal v1.6</div>
+                <div className="text-slate-400 mb-2">Welcome to the RHCSA Practice Terminal v2.0 (RHEL 10 Preview)</div>
                 
                 {terminalHistory.map((line, i) => (
                   <div key={i} className={`whitespace-pre-wrap mb-1 break-words ${
@@ -713,4 +856,4 @@ export default function App() {
       </div>
     </div>
   );
-              }
+      }
