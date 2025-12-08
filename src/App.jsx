@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-// --- ICONS (Inline SVGs to prevent dependency issues) ---
+// --- ICONS (Inline SVGs) ---
 const TerminalIcon = ({ size = 24, className = "" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
 );
@@ -139,6 +139,47 @@ const MISSIONS = [
     lesson: "`ssh-keygen` creates the public/private key pair for passwordless auth.",
     hint: "ssh-keygen",
     check: (cmd) => /^ssh-keygen\b/.test(cmd)
+  },
+  // --- NEW MISSIONS ---
+  {
+    id: 13,
+    title: "LVM: Volume Group",
+    desc: "Create a volume group named 'myvg' using '/dev/vdb1'.",
+    lesson: "`vgcreate` pools Physical Volumes into a Volume Group. This is your pool of storage.",
+    hint: "vgcreate myvg /dev/vdb1",
+    check: (cmd) => /^vgcreate\s+myvg\s+\/dev\/vdb1$/.test(cmd)
+  },
+  {
+    id: 14,
+    title: "LVM: Logical Volume",
+    desc: "Create a 500MB Logical Volume named 'mylv' in 'myvg'.",
+    lesson: "`lvcreate` carves usable space. Use `-L` for size (e.g., 500M) and `-n` for name.",
+    hint: "lvcreate -L 500M -n mylv myvg",
+    check: (cmd) => /^lvcreate\s+/.test(cmd) && /-L\s+500M/.test(cmd) && /-n\s+mylv/.test(cmd) && /\smyvg\b/.test(cmd)
+  },
+  {
+    id: 15,
+    title: "Filesystem Creation",
+    desc: "Format the logical volume '/dev/myvg/mylv' with the XFS filesystem.",
+    lesson: "Before mounting, you must format. RHEL defaults to XFS (`mkfs.xfs`).",
+    hint: "mkfs.xfs /dev/myvg/mylv",
+    check: (cmd) => /^mkfs\.xfs\s+\/dev\/myvg\/mylv$/.test(cmd)
+  },
+  {
+    id: 16,
+    title: "Software Install",
+    desc: "Install the 'httpd' package using DNF.",
+    lesson: "`dnf` is the package manager (Dandified YUM). Use it to install, update, and remove software.",
+    hint: "dnf install httpd",
+    check: (cmd) => /^dnf\s+install\s+httpd$/.test(cmd)
+  },
+  {
+    id: 17,
+    title: "SELinux Restore",
+    desc: "Restore default SELinux contexts on '/var/www/html'.",
+    lesson: "`restorecon` reads the policy and resets file contexts to their defaults. Use `-R` for recursive.",
+    hint: "restorecon -R /var/www/html",
+    check: (cmd) => /^restorecon\s+/.test(cmd) && /-[a-zA-Z]*R/.test(cmd) && /\s\/var\/www\/html$/.test(cmd)
   }
 ];
 
@@ -147,7 +188,6 @@ const CopyButton = ({ text }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    // Ensure text is string to avoid crashes if children is an object
     const textToCopy = typeof text === 'string' ? text : String(text);
     navigator.clipboard.writeText(textToCopy);
     setCopied(true);
@@ -190,33 +230,22 @@ export default function App() {
 
   const currentMission = MISSIONS.find(m => m.id === currentMissionId);
 
-  // Auto-scroll terminal
   useEffect(() => {
     terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [terminalHistory]);
 
   const addToTerm = (text, type = 'output') => {
-    // Check type of text to prevent Object errors
-    if (typeof text !== 'string') {
-        console.error("Attempted to render non-string in terminal:", text);
-        return;
-    }
+    if (typeof text !== 'string') return;
     setTerminalHistory(prev => [...prev, { text, type }]);
   };
 
-  // --- SECURITY: INPUT SANITIZATION ---
   const sanitizeInput = (input) => {
-    if (input.length > MAX_INPUT_LENGTH) {
-      return input.substring(0, MAX_INPUT_LENGTH);
-    }
-    // Remove script tags or dangerous html-like structures just in case
+    if (input.length > MAX_INPUT_LENGTH) return input.substring(0, MAX_INPUT_LENGTH);
     return input.replace(ILLEGAL_CHARS, "");
   };
 
   const processCommand = (cmd) => {
-    // 1. Sanitize
     const cleanCmd = sanitizeInput(cmd.trim());
-    
     if (!cleanCmd) return;
 
     addToTerm(`[root@server ~]# ${cleanCmd}`, 'input');
@@ -248,7 +277,7 @@ export default function App() {
     // Simulation Logic
     switch (base) {
       case 'help':
-        addToTerm("Available commands: help, clear, start, useradd, systemctl, nmcli, tar, ls, pwd, whoami, chmod, grep, ln, firewall-cmd, pvcreate, tuned-adm, ssh-keygen");
+        addToTerm("Available commands: help, clear, start, useradd, systemctl, nmcli, tar, ls, pwd, whoami, chmod, grep, ln, firewall-cmd, pvcreate, vgcreate, lvcreate, mkfs.xfs, dnf, restorecon, tuned-adm, ssh-keygen");
         break;
       case 'clear':
         setTerminalHistory([]);
@@ -274,6 +303,21 @@ export default function App() {
         break;
       case 'useradd':
         addToTerm(currentMissionId === 1 && !cleanCmd.includes('2000') ? "User created, but did you check the UID?" : "Done.");
+        break;
+      case 'vgcreate':
+        addToTerm("Volume group \"myvg\" successfully created");
+        break;
+      case 'lvcreate':
+        addToTerm("Logical volume \"mylv\" created.");
+        break;
+      case 'mkfs.xfs':
+        addToTerm("meta-data=/dev/myvg/mylv   isize=512    agcount=4, agsize=32000 blks\ndata     =                       bsize=4096   blocks=128000, imaxpct=25");
+        break;
+      case 'dnf':
+        addToTerm("Dependencies resolved.\n================================================================================\n Package          Architecture    Version             Repository           Size\n================================================================================\nInstalling:\n httpd            x86_64          2.4.53-7.el9        appstream            47 k\n\nComplete!");
+        break;
+      case 'restorecon':
+        addToTerm("Relabeled /var/www/html from unconfined_u:object_r:var_t:s0 to unconfined_u:object_r:httpd_sys_content_t:s0");
         break;
       case 'grep':
         if (cleanCmd.includes('^root')) {
@@ -373,7 +417,7 @@ export default function App() {
               className="p-4 h-[300px] overflow-y-auto font-mono text-sm bg-slate-900" 
               onClick={() => inputRef.current?.focus()}
             >
-              <div className="text-slate-400 mb-2">Welcome to the RHCSA Practice Terminal v1.3 (Hardened)</div>
+              <div className="text-slate-400 mb-2">Welcome to the RHCSA Practice Terminal v1.4 (Expanded)</div>
               <div className="text-slate-400 mb-4">Type <span className="text-white bg-slate-700 px-1 rounded">start</span> to begin.</div>
               
               {terminalHistory.map((line, i) => (
@@ -597,4 +641,4 @@ export default function App() {
       </main>
     </div>
   );
-             }
+                }
