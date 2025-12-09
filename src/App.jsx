@@ -364,50 +364,10 @@ const CodeBlock = ({ children, color = "blue" }) => {
 };
 
 // --- HELPER: Gemini API Call ---
-async function callGemini(prompt, systemInstruction = "") {
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          systemInstruction: { parts: [{ text: systemInstruction }] },
-          generationConfig: { responseMimeType: "application/json" }
-        }),
-      }
-    );
-    if (!response.ok) throw new Error("API Call failed");
-    const data = await response.json();
-    return JSON.parse(data.candidates[0].content.parts[0].text);
-  } catch (error) {
-    console.error("Gemini Error:", error);
-    return null;
-  }
-}
+
 
 // --- HELPER: Text-Only Gemini Call (For Explanations) ---
-async function callGeminiText(prompt) {
-    try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-          }),
-        }
-      );
-      if (!response.ok) throw new Error("API Call failed");
-      const data = await response.json();
-      return data.candidates[0].content.parts[0].text;
-    } catch (error) {
-      console.error("Gemini Error:", error);
-      return "Unable to contact headquarters. Please try again later.";
-    }
-  }
+
 
 // --- MAIN APP COMPONENT ---
 export default function App() {
@@ -447,62 +407,6 @@ export default function App() {
   };
 
   // --- FEATURE: AI Mission Generator ---
-  const handleGenerateMission = async () => {
-    setIsGenerating(true);
-    const prompt = `Generate a unique, hands-on RHEL 10 / RHCSA exam practice mission.
-    Return a JSON object with:
-    - title: Short title (e.g. "Configure Cron")
-    - desc: The instruction for the user (e.g. "Create a cron job that runs...")
-    - lesson: A brief 2-sentence explanation of the concept.
-    - hint: The exact command to solve it.
-    - tool: The primary command tool (e.g. "crontab", "nmcli").
-    - regex: A valid JavaScript RegExp string (escaped properly) to validate the user's answer. Example: "^crontab\\\\s+-e"`;
-    
-    const sysPrompt = "You are a Red Hat Certified Architect creating exam scenarios.";
-    
-    const newMissionData = await callGemini(prompt, sysPrompt);
-    
-    if (newMissionData) {
-        const newMission = {
-            id: missions.length + 1,
-            ...newMissionData,
-            // Hydrate the regex string back into a real RegExp object
-            check: (cmd) => new RegExp(newMissionData.regex).test(cmd)
-        };
-        setMissions(prev => [...prev, newMission]);
-        addToTerm(`\n✨ NEW MISSION RECEIVED: ${newMission.title}`, 'system');
-        // Auto-start the new mission if idle
-        if(currentMissionId === 0) {
-            setCurrentMissionId(newMission.id);
-            setMissionComplete(false);
-            addToTerm(`Objective: ${newMission.desc}`, 'system');
-        }
-    } else {
-        addToTerm("Failed to contact HQ for new orders.", 'error');
-    }
-    setIsGenerating(false);
-  };
-
-  // --- FEATURE: AI Explainer ---
-  const handleExplain = async () => {
-      if (!currentMission) return;
-      setIsExplaining(true);
-      const prompt = `Briefly explain the command and concept behind this RHCSA task: "${currentMission.desc}". Keep it under 50 words.`;
-      const explanation = await callGeminiText(prompt);
-      addToTerm(`\n[HQ INTELLIGENCE]: ${explanation}`, 'system');
-      setIsExplaining(false);
-  };
-
-  const processCommand = (cmd) => {
-    const cleanCmd = sanitizeInput(cmd.trim());
-    if (!cleanCmd) return;
-
-    addToTerm(`[root@server ~]# ${cleanCmd}`, 'input');
-    setInputHistory(prev => [...prev, cleanCmd]);
-    setHistoryIndex(-1);
-
-    const args = cleanCmd.split(' ');
-    const base = args[0];
 
     // Mission Logic
     if (currentMissionId > 0 && !missionComplete && currentMission) {
