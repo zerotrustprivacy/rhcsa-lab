@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-// --- ICONS (Inline SVGs) ---
+// --- 1. ICONS (Inline SVGs) ---
 const TerminalIcon = ({ size = 24, className = "" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
 );
@@ -43,18 +43,47 @@ const EyeIcon = ({ size = 24, className = "" }) => (
 const NetworkIcon = ({ size = 24, className = "" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
 );
-const SparklesIcon = ({ size = 24, className = "" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></svg>
-);
 
-// --- SECURITY & API ---
+// --- 2. COMPONENTS (Defined BEFORE App to prevent ReferenceError) ---
+
+const CopyButton = ({ text }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    // Safely handle text, defaulting to empty string if undefined/null
+    const textToCopy = text ? String(text) : "";
+    navigator.clipboard.writeText(textToCopy);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <button 
+      onClick={handleCopy} 
+      className="absolute top-2 right-2 p-1 bg-slate-700 hover:bg-slate-600 rounded text-white opacity-0 group-hover:opacity-100 transition-opacity"
+    >
+      {copied ? <CheckIcon size={14} /> : <CopyIcon size={14} />}
+    </button>
+  );
+};
+
+const CodeBlock = ({ children, color = "blue" }) => {
+  const textColor = color === "green" ? "text-green-300" : "text-blue-200";
+  return (
+    <div className={`bg-slate-900 rounded-lg p-3 text-xs ${textColor} font-mono relative group mb-2`}>
+      <CopyButton text={children} />
+      <pre>{children}</pre>
+    </div>
+  );
+};
+
+// --- 3. CONSTANTS & DATA ---
 const MAX_INPUT_LENGTH = 256; 
 const ILLEGAL_CHARS = /<script\b[^>]*>([\s\S]*?)<\/script>/gm; 
 const UTILITY_COMMANDS = ['clear', 'help', 'ls', 'pwd', 'whoami', 'history', 'id', 'exit', 'man'];
-const apiKey = ""; 
 
-// --- DATA: Initial Missions (Strict Validation) ---
-const INITIAL_MISSIONS = [
+// FULL MISSION LIST (RHEL 10 Focused)
+const MISSIONS = [
   // --- PILLAR 1: TOOLS & SCRIPTING ---
   {
     id: 1,
@@ -336,40 +365,7 @@ const INITIAL_MISSIONS = [
   }
 ];
 
-// --- COMPONENT: CopyButton ---
-const CopyButton = ({ text }) => {
-  const [copied, setCopied] = useState(false);
-  const handleCopy = () => {
-    const textToCopy = typeof text === 'string' ? text : String(text);
-    navigator.clipboard.writeText(textToCopy);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-  return (
-    <button onClick={handleCopy} className="absolute top-2 right-2 p-1 bg-slate-700 hover:bg-slate-600 rounded text-white opacity-0 group-hover:opacity-100 transition-opacity">
-      {copied ? <CheckIcon size={14} /> : <CopyIcon size={14} />}
-    </button>
-  );
-};
-
-// --- COMPONENT: CodeBlock ---
-const CodeBlock = ({ children, color = "blue" }) => {
-  const textColor = color === "green" ? "text-green-300" : "text-blue-200";
-  return (
-    <div className={`bg-slate-900 rounded-lg p-3 text-xs ${textColor} font-mono relative group mb-2`}>
-      <CopyButton text={children} />
-      <pre>{children}</pre>
-    </div>
-  );
-};
-
-// --- HELPER: Gemini API Call ---
-
-
-// --- HELPER: Text-Only Gemini Call (For Explanations) ---
-
-
-// --- MAIN APP COMPONENT ---
+// --- 4. MAIN APP COMPONENT ---
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [terminalHistory, setTerminalHistory] = useState([]);
@@ -379,14 +375,11 @@ export default function App() {
   const [inputHistory, setInputHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [showHint, setShowHint] = useState(false); 
-  const [missions, setMissions] = useState(INITIAL_MISSIONS);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [isExplaining, setIsExplaining] = useState(false);
   
   const terminalEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  const currentMission = missions.find(m => m.id === currentMissionId);
+  const currentMission = MISSIONS.find(m => m.id === currentMissionId);
 
   useEffect(() => {
     terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -406,7 +399,16 @@ export default function App() {
     return input.replace(ILLEGAL_CHARS, "");
   };
 
-  // --- FEATURE: AI Mission Generator ---
+  const processCommand = (cmd) => {
+    const cleanCmd = sanitizeInput(cmd.trim());
+    if (!cleanCmd) return;
+
+    addToTerm(`[root@server ~]# ${cleanCmd}`, 'input');
+    setInputHistory(prev => [...prev, cleanCmd]);
+    setHistoryIndex(-1);
+
+    const args = cleanCmd.split(' ');
+    const base = args[0];
 
     // Mission Logic
     if (currentMissionId > 0 && !missionComplete && currentMission) {
@@ -421,16 +423,16 @@ export default function App() {
 
       if (success) {
         addToTerm(`SUCCESS: Mission ${currentMissionId} Complete!`, 'success');
-        if (currentMissionId < missions.length) {
+        if (currentMissionId < MISSIONS.length) {
           setTimeout(() => {
             setCurrentMissionId(prev => prev + 1);
-            const nextMission = missions.find(m => m.id === currentMissionId + 1);
+            const nextMission = MISSIONS.find(m => m.id === currentMissionId + 1);
             addToTerm(`\n--- STARTING MISSION ${nextMission.id} ---`, 'system');
             addToTerm(`Objective: ${nextMission.desc}`, 'system');
           }, 1500);
         } else {
           setMissionComplete(true);
-          addToTerm("ALL MISSIONS COMPLETE! Use 'Generate Mission' for infinite practice.", 'success');
+          addToTerm("ALL MISSIONS COMPLETE! You are ready for the exam.", 'success');
         }
         return;
       } 
@@ -463,9 +465,77 @@ export default function App() {
         setCurrentMissionId(1);
         setMissionComplete(false);
         addToTerm(`\n--- STARTING MISSION 1 ---`, 'system');
-        addToTerm(`Objective: ${missions[0].desc}`, 'system');
+        addToTerm(`Objective: ${MISSIONS[0].desc}`, 'system');
         break;
-      // ... (Existing simulated command responses remain same) ...
+      case 'ls':
+        if (cleanCmd.includes('-Z')) {
+           addToTerm("-rw-r--r--. root root unconfined_u:object_r:admin_home_t:s0 anaconda-ks.cfg\ndrwxr-xr-x. root root unconfined_u:object_r:admin_home_t:s0 Documents");
+        } else {
+          addToTerm("anaconda-ks.cfg  original-ks.cfg  Documents  Downloads  script.sh");
+        }
+        break;
+      case 'pwd':
+        addToTerm("/root");
+        break;
+      case 'whoami':
+        addToTerm("root");
+        break;
+      case 'id':
+        addToTerm("uid=0(root) gid=0(root) groups=0(root) context=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023");
+        break;
+      case 'useradd':
+        addToTerm(currentMissionId === 1 && !cleanCmd.includes('2000') ? "User created (Simulated). NOTE: UID was not set to 2000." : "User created (Simulated).");
+        break;
+      case 'vgcreate':
+        addToTerm("Volume group \"myvg\" successfully created");
+        break;
+      case 'lvcreate':
+        addToTerm("Logical volume \"mylv\" created.");
+        break;
+      case 'lvextend':
+        if (cleanCmd.includes('-r')) addToTerm("Size of logical volume myvg/mylv changed from 500.00 MiB to 700.00 MiB.\nmeta-data=/dev/mapper/myvg-mylv ...\ndata blocks changed from 128000 to 179200");
+        else addToTerm("Size of logical volume myvg/mylv changed from 500.00 MiB to 700.00 MiB. (Filesystem NOT resized)");
+        break;
+      case 'mkfs.xfs':
+        addToTerm("meta-data=/dev/myvg/mylv   isize=512    agcount=4, agsize=32000 blks\ndata     =                       bsize=4096   blocks=128000, imaxpct=25");
+        break;
+      case 'mkswap':
+        addToTerm("Setting up swapspace version 1, size = 1024 MiB (1073737728 bytes)\nno label, UUID=a1b2c3d4-e5f6-7890-1234-567890abcdef");
+        break;
+      case 'mount':
+        addToTerm("server:/share mounted on /mnt/data");
+        break;
+      case 'dnf':
+        addToTerm("Dependencies resolved.\nInstalling: httpd  x86_64  2.4.53-7.el9  appstream  47 k\nComplete!");
+        break;
+      case 'restorecon':
+        addToTerm("Relabeled /var/www/html from unconfined_u:object_r:var_t:s0 to unconfined_u:object_r:httpd_sys_content_t:s0");
+        break;
+      case 'journalctl':
+        addToTerm("-- Logs begin at Mon 2023-10-02 09:00:00 EDT --\nOct 02 09:00:01 server sshd[1234]: Server listening on 0.0.0.0 port 22.");
+        break;
+      case 'chronyc':
+        addToTerm("MS Name/IP address         Stratum Poll Reach LastRx Last sample\n^* 192.168.1.1                   2   6   377    25   +123ns[ +150ns] +/-   10ms");
+        break;
+      case 'crontab':
+        addToTerm("no crontab for root");
+        break;
+      case 'grep':
+        if (cleanCmd.includes('^root')) {
+          addToTerm("root:x:0:0:root:/root:/bin/bash", 'error'); 
+        } else {
+          addToTerm("No matches found.");
+        }
+        break;
+      case 'systemctl':
+        if (args[1] === 'status') {
+          addToTerm(`● ${args[2] || 'service'} - The Apache HTTP Server\n   Loaded: loaded; enabled\n   Active: active (running)`, 'success');
+        } else if (args[1] === 'set-default') {
+          addToTerm(`Removed /etc/systemd/system/default.target.\nCreated symlink /etc/systemd/system/default.target -> /usr/lib/systemd/system/${args[2]}.`);
+        } else {
+          addToTerm("Command executed.");
+        }
+        break;
       default:
         if (['nmcli', 'tar', 'chown', 'chmod', 'ln', 'firewall-cmd', 'pvcreate', 'useradd', 'groupadd', 'usermod', 'tuned-adm', 'ssh-keygen', 'nice', 'find', 'setfacl', 'chage'].includes(base)) {
           addToTerm("Command executed (Simulation).");
@@ -505,15 +575,21 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-slate-50 font-sans text-slate-800">
-      {/* SIDEBAR ... (Same as before) ... */}
+      
+      {/* SIDEBAR */}
       <nav className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white transform transition-transform duration-300 md:relative md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-6">
           <h1 className="text-2xl font-bold text-red-500 mb-2">RHCSA<span className="text-white">Lab</span></h1>
           <p className="text-xs text-slate-400 uppercase tracking-wider mb-6">Interactive Study Guide</p>
+          
           <ul className="space-y-1">
             <li><button className="flex items-center gap-3 px-3 py-2 rounded-md bg-red-900/30 text-red-400 font-bold hover:bg-red-900/50 text-sm transition-colors border border-red-900/50 w-full text-left"><TerminalIcon size={16}/> Practice Lab</button></li>
             <div className="my-2 border-t border-slate-800"></div>
-            {/* ... Other links ... */}
+            <li><a href="#pillar-1" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors"><FileTextIcon size={16}/> Tools & Scripting</a></li>
+            <li><a href="#pillar-2" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors"><CpuIcon size={16}/> Running Systems</a></li>
+            <li><a href="#pillar-3" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors"><HardDriveIcon size={16}/> Storage</a></li>
+            <li><a href="#pillar-4" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors"><SettingsIcon size={16}/> Deploy & Maintain</a></li>
+            <li><a href="#pillar-5" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors"><ShieldIcon size={16}/> Users & Security</a></li>
           </ul>
         </div>
       </nav>
@@ -523,17 +599,19 @@ export default function App() {
         <MenuIcon size={24} />
       </button>
 
-      {/* MAIN LAYOUT */}
+      {/* MAIN LAYOUT WRAPPER */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         
-        {/* SCROLLABLE CONTENT (Pillars...) */}
+        {/* TOP SCROLLABLE CONTENT */}
         <main className="flex-1 overflow-y-auto p-6 scroll-smooth">
           <div className="max-w-5xl mx-auto pb-6">
-             <header className="mb-12">
-              <h1 className="text-4xl font-bold text-slate-900 mb-4">The RHCSA Blueprint</h1>
-              <p className="text-lg text-slate-600">Study the concepts, then use the AI-enhanced terminal below.</p>
-            </header>
             
+            {/* STATIC CONTENT HEADER */}
+            <header className="mb-12">
+              <h1 className="text-4xl font-bold text-slate-900 mb-4">The RHCSA Blueprint</h1>
+              <p className="text-lg text-slate-600">Study the concepts below, then test them in the terminal below.</p>
+            </header>
+
             {/* PILLAR 1 */}
             <section id="pillar-1" className="mb-16 scroll-mt-8">
               <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
@@ -843,7 +921,7 @@ export default function App() {
         <section id="practice-lab" className="shrink-0 bg-slate-200 border-t border-slate-300 p-4 shadow-[0_-4px_10px_rgba(0,0,0,0.1)]">
           <div className="max-w-5xl mx-auto flex gap-4 h-64">
             
-            {/* Terminal */}
+            {/* Terminal Container */}
             <div className="flex-1 bg-slate-900 rounded-lg overflow-hidden flex flex-col shadow-lg border border-slate-700">
               <div className="bg-slate-800 p-2 flex items-center justify-between border-b border-slate-700 shrink-0">
                 <div className="flex items-center gap-2">
@@ -857,32 +935,52 @@ export default function App() {
                    <span className="text-green-500 text-[10px] uppercase">SSH Active</span>
                 </div>
               </div>
+              
               <div 
                 className="flex-1 p-3 font-mono text-sm overflow-y-auto bg-slate-900" 
                 onClick={() => inputRef.current?.focus()}
               >
-                <div className="text-slate-400 mb-2">Welcome to the RHCSA AI Terminal v2.1</div>
+                <div className="text-slate-400 mb-2">Welcome to the RHCSA Practice Terminal v2.0 (RHEL 10 Preview)</div>
+                
                 {terminalHistory.map((line, i) => (
-                  <div key={i} className={`whitespace-pre-wrap mb-1 break-words ${line.type === 'input' ? 'text-white font-bold' : line.type === 'success' ? 'text-green-400 font-bold' : line.type === 'error' ? 'text-red-400' : line.type === 'system' ? 'text-yellow-400' : 'text-slate-300'}`}>{line.text}</div>
+                  <div key={i} className={`whitespace-pre-wrap mb-1 break-words ${
+                    line.type === 'input' ? 'text-white font-bold' : 
+                    line.type === 'success' ? 'text-green-400 font-bold' :
+                    line.type === 'error' ? 'text-red-400' : 
+                    line.type === 'system' ? 'text-yellow-400' : 'text-slate-300'
+                  }`}>
+                    {line.text}
+                  </div>
                 ))}
                 <div ref={terminalEndRef} />
+                
                 <div className="flex items-center text-green-400 mt-2">
                   <span className="mr-2">[root@server ~]#</span>
-                  <input ref={inputRef} type="text" value={inputVal} onChange={(e) => setInputVal(e.target.value)} onKeyDown={handleKeyDown} className="bg-transparent border-none outline-none flex-1 text-white" autoComplete="off" spellCheck="false" maxLength={MAX_INPUT_LENGTH} />
+                  <input 
+                    ref={inputRef}
+                    type="text" 
+                    value={inputVal}
+                    onChange={(e) => setInputVal(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="bg-transparent border-none outline-none flex-1 text-white" 
+                    autoComplete="off" 
+                    spellCheck="false"
+                    maxLength={MAX_INPUT_LENGTH}
+                  />
                 </div>
               </div>
             </div>
 
-            {/* AI Control Panel */}
+            {/* Mission/Lesson Side Panel */}
             <div className="w-80 flex flex-col gap-3 shrink-0">
-              <div className="bg-white p-4 rounded-lg border border-slate-300 shadow-sm flex-1 overflow-y-auto flex flex-col">
+              <div className="bg-white p-4 rounded-lg border border-slate-300 shadow-sm flex-1 overflow-y-auto">
                 <div className="flex items-center gap-2 mb-2">
                   <CrosshairIcon size={18} className="text-blue-600"/>
                   <h3 className="font-bold text-slate-800 text-sm">
                     {currentMissionId === 0 ? "Ready?" : `Mission ${currentMissionId}`}
                   </h3>
                 </div>
-                <p className="text-xs text-slate-600 mb-3 flex-1">
+                <p className="text-xs text-slate-600 mb-3">
                   {currentMissionId === 0 
                     ? <span>Type <span className="bg-slate-100 px-1 rounded text-red-500 font-bold">start</span> to begin.</span>
                     : missionComplete
@@ -891,43 +989,28 @@ export default function App() {
                   }
                 </p>
 
-                <div className="grid grid-cols-2 gap-2 mt-auto">
-                    {currentMissionId > 0 && !missionComplete && currentMission && (
-                    <button 
-                        onClick={() => setShowHint(true)} 
-                        className="flex items-center justify-center gap-1 text-xs text-slate-600 hover:text-blue-600 bg-slate-100 hover:bg-slate-200 py-2 rounded transition-colors"
-                        disabled={showHint}
-                    >
-                        <EyeIcon size={14} /> {showHint ? "Hint Active" : "Hint"}
-                    </button>
-                    )}
-                    
-                    <button 
-                        onClick={handleGenerateMission} 
-                        className="col-span-2 flex items-center justify-center gap-2 text-xs text-white bg-purple-600 hover:bg-purple-700 py-2 rounded transition-colors shadow-sm disabled:opacity-50"
-                        disabled={isGenerating}
-                    >
-                        {isGenerating ? "Generating..." : <><SparklesIcon size={14} /> Generate Mission</>}
-                    </button>
-                </div>
-                
-                {showHint && currentMission && (
-                    <p className="text-xs text-blue-600 italic bg-blue-50 p-2 rounded border border-blue-100 mt-2">
-                        Hint: {currentMission.hint}
-                    </p>
+                {/* HINT TOGGLE */}
+                {currentMissionId > 0 && !missionComplete && currentMission && (
+                   <div className="mt-2">
+                     {!showHint ? (
+                       <button 
+                         onClick={() => setShowHint(true)} 
+                         className="flex items-center gap-2 text-xs text-slate-500 hover:text-blue-600 transition-colors bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded w-full justify-center"
+                       >
+                         <EyeIcon size={12} /> Reveal Hint
+                       </button>
+                     ) : (
+                       <p className="text-xs text-blue-600 italic bg-blue-50 p-2 rounded border border-blue-100">
+                         Hint: {currentMission.hint}
+                       </p>
+                     )}
+                   </div>
                 )}
               </div>
               
-              <div className="bg-amber-50 p-3 rounded-lg border border-amber-200 shadow-sm h-24 overflow-y-auto relative">
-                <div className="flex items-center justify-between gap-2 mb-1">
-                    <div className="flex items-center gap-1 text-amber-700 font-bold text-[10px] uppercase tracking-wider">
-                        <BookOpenIcon size={10} /> Quick Lesson
-                    </div>
-                    {currentMissionId > 0 && (
-                        <button onClick={handleExplain} disabled={isExplaining} className="text-[10px] text-amber-600 hover:text-amber-800 underline flex items-center gap-1">
-                            {isExplaining ? "..." : <><SparklesIcon size={8} /> Explain</>}
-                        </button>
-                    )}
+              <div className="bg-amber-50 p-3 rounded-lg border border-amber-200 shadow-sm h-24 overflow-y-auto">
+                <div className="flex items-center gap-2 mb-1 text-amber-700 font-bold text-[10px] uppercase tracking-wider">
+                  <BookOpenIcon size={10} /> Quick Lesson
                 </div>
                 <p className="text-[10px] text-amber-900 leading-relaxed">
                   {currentMissionId === 0 
@@ -946,4 +1029,4 @@ export default function App() {
       </div>
     </div>
   );
-      }
+    }
