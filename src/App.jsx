@@ -46,6 +46,9 @@ const NetworkIcon = ({ size = 24, className = "" }) => (
 const TimerIcon = ({ size = 24, className = "" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
 );
+const BoxIcon = ({ size = 24, className = "" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+);
 
 // --- 2. COMPONENTS (Defined BEFORE App) ---
 
@@ -53,14 +56,12 @@ const CopyButton = ({ text }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    // Safely handle text, defaulting to empty string if undefined/null
     const textToCopy = text ? String(text) : "";
     try {
         await navigator.clipboard.writeText(textToCopy);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-        // Fallback for environments with strict clipboard policies
         try {
             const textArea = document.createElement("textarea");
             textArea.value = textToCopy;
@@ -112,7 +113,7 @@ const MAX_INPUT_LENGTH = 256;
 const ILLEGAL_CHARS = /<script\b[^>]*>([\s\S]*?)<\/script>/gm; 
 const UTILITY_COMMANDS = ['clear', 'help', 'ls', 'pwd', 'whoami', 'history', 'id', 'exit', 'man'];
 
-// FULL MISSION LIST (RHEL 10 Focused)
+// FULL MISSION LIST (RHEL 10 Focused + Flatpak)
 const MISSIONS = [
   // --- PILLAR 1: TOOLS & SCRIPTING ---
   { id: 1, tool: "useradd", title: "User Management", desc: "Create a new user named 'student' with UID 2000.", lesson: "In RHEL, `useradd` creates new accounts. The `-u` flag specifies a custom UID. Managing UIDs is critical for NFS compatibility.", hint: "useradd -u 2000 student", check: (cmd) => /^useradd\s+/.test(cmd) && /\s-u\s+2000\b/.test(cmd) && /\sstudent\b/.test(cmd) },
@@ -142,13 +143,14 @@ const MISSIONS = [
   // --- PILLAR 4: DEPLOY & MAINTAIN ---
   { id: 23, tool: "dnf", title: "Software Install", desc: "Install the 'httpd' package using DNF.", lesson: "`dnf` is the package manager (Dandified YUM). Use it to install, update, and remove software.", hint: "dnf install httpd", check: (cmd) => /^dnf\s+install\s+httpd$/.test(cmd) },
   { id: 24, tool: "crontab", title: "Scheduling Tasks", desc: "List the current user's cron jobs.", lesson: "`cron` schedules recurring tasks. `-e` edits, `-l` lists, `-r` removes. We use `-l` here to verify.", hint: "crontab -l", check: (cmd) => /^crontab\s+-l$/.test(cmd) },
+  { id: 25, tool: "flatpak", title: "Flatpak Management", desc: "Install 'gedit' from 'flathub' remote.", lesson: "Flatpak manages containerized desktop apps. Use `flatpak install [remote] [app]`.", hint: "flatpak install flathub org.gnome.gedit", check: (cmd) => /^flatpak\s+install\s+/.test(cmd) && /flathub/.test(cmd) && /gedit/.test(cmd) },
   // --- PILLAR 5: USERS & SECURITY ---
-  { id: 25, tool: "nmcli", title: "Networking", desc: "Add a new ethernet connection named 'static-eth0'.", lesson: "NetworkManager (nmcli) is the standard for RHEL networking.", hint: "nmcli con add con-name static-eth0 type ethernet ifname eth0", check: (cmd) => /^nmcli\s+con\s+add\s+/.test(cmd) && /con-name\s+static-eth0/.test(cmd) },
-  { id: 26, tool: "firewall-cmd", title: "Firewall Configuration", desc: "Permanently add the 'ftp' service to the firewall.", lesson: "Changes are lost on reboot unless you use `--permanent`. Reload afterwards.", hint: "firewall-cmd --add-service=ftp --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-service=ftp/.test(cmd) && /--permanent/.test(cmd) },
-  { id: 27, tool: "ssh-keygen", title: "SSH Keys", desc: "Generate a new SSH key pair.", lesson: "`ssh-keygen` creates the public/private key pair for passwordless auth.", hint: "ssh-keygen", check: (cmd) => /^ssh-keygen\b/.test(cmd) },
-  { id: 28, tool: "ls", title: "SELinux Contexts", desc: "List SELinux contexts for files in the current directory.", lesson: "Use the `-Z` flag with `ls`, `ps`, or `id` to see security labels.", hint: "ls -Z", check: (cmd) => /^ls\s+/.test(cmd) && /-[a-zA-Z]*Z/.test(cmd) },
-  { id: 29, tool: "restorecon", title: "SELinux Restore", desc: "Restore default SELinux contexts on '/var/www/html'.", lesson: "`restorecon` reads the policy and resets file contexts to their defaults. Use `-R` for recursive.", hint: "restorecon -R /var/www/html", check: (cmd) => /^restorecon\s+/.test(cmd) && /-[a-zA-Z]*R/.test(cmd) && /\s\/var\/www\/html$/.test(cmd) },
-  { id: 30, tool: "chage", title: "Password Aging", desc: "Set the maximum password age for user 'student' to 90 days.", lesson: "`chage` (Change Age) manages password expiry. `-M` sets the max days before a password change is required.", hint: "chage -M 90 student", check: (cmd) => /^chage\s+/.test(cmd) && /-M\s+90/.test(cmd) && /\sstudent$/.test(cmd) }
+  { id: 26, tool: "nmcli", title: "Networking", desc: "Add a new ethernet connection named 'static-eth0'.", lesson: "NetworkManager (nmcli) is the standard for RHEL networking.", hint: "nmcli con add con-name static-eth0 type ethernet ifname eth0", check: (cmd) => /^nmcli\s+con\s+add\s+/.test(cmd) && /con-name\s+static-eth0/.test(cmd) },
+  { id: 27, tool: "firewall-cmd", title: "Firewall Configuration", desc: "Permanently add the 'ftp' service to the firewall.", lesson: "Changes are lost on reboot unless you use `--permanent`. Reload afterwards.", hint: "firewall-cmd --add-service=ftp --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-service=ftp/.test(cmd) && /--permanent/.test(cmd) },
+  { id: 28, tool: "ssh-keygen", title: "SSH Keys", desc: "Generate a new SSH key pair.", lesson: "`ssh-keygen` creates the public/private key pair for passwordless auth.", hint: "ssh-keygen", check: (cmd) => /^ssh-keygen\b/.test(cmd) },
+  { id: 29, tool: "ls", title: "SELinux Contexts", desc: "List SELinux contexts for files in the current directory.", lesson: "Use the `-Z` flag with `ls`, `ps`, or `id` to see security labels.", hint: "ls -Z", check: (cmd) => /^ls\s+/.test(cmd) && /-[a-zA-Z]*Z/.test(cmd) },
+  { id: 30, tool: "restorecon", title: "SELinux Restore", desc: "Restore default SELinux contexts on '/var/www/html'.", lesson: "`restorecon` reads the policy and resets file contexts to their defaults. Use `-R` for recursive.", hint: "restorecon -R /var/www/html", check: (cmd) => /^restorecon\s+/.test(cmd) && /-[a-zA-Z]*R/.test(cmd) && /\s\/var\/www\/html$/.test(cmd) },
+  { id: 31, tool: "chage", title: "Password Aging", desc: "Set the maximum password age for user 'student' to 90 days.", lesson: "`chage` (Change Age) manages password expiry. `-M` sets the max days before a password change is required.", hint: "chage -M 90 student", check: (cmd) => /^chage\s+/.test(cmd) && /-M\s+90/.test(cmd) && /\sstudent$/.test(cmd) }
 ];
 
 // --- 4. MAIN APP COMPONENT ---
@@ -245,7 +247,6 @@ export default function App() {
     const base = args[0];
 
     // --- MISSION LOGIC ---
-    // If in exam mode, we find the mission in the examQuestions array
     const activeMissionList = examMode ? examQuestions : MISSIONS;
     const currentMission = activeMissionList.find(m => m.id === currentMissionId);
 
@@ -258,13 +259,12 @@ export default function App() {
       if (success) {
         addToTerm(`SUCCESS: Mission Complete!`, 'success');
         
-        // Save Progress (Only in normal mode to avoid cheating stats)
+        // Save Progress (Only in normal mode)
         if (!examMode && !completedMissions.includes(currentMission.id)) {
             setCompletedMissions(prev => [...prev, currentMission.id]);
         }
 
         // Logic for Next Mission
-        let nextIndex;
         if (examMode) {
             const currentIndex = examQuestions.findIndex(m => m.id === currentMissionId);
             if (currentIndex < examQuestions.length - 1) {
@@ -296,7 +296,7 @@ export default function App() {
         return;
       }
       
-      // 2. Feedback (Disabled in Exam Mode for realism)
+      // 2. Feedback
       if (!examMode) {
           if (cleanCmd.startsWith(currentMission.tool) && base === currentMission.tool) {
               addToTerm(`> Correct command '${base}', check flags.`, 'error');
@@ -308,7 +308,7 @@ export default function App() {
 
     // --- SIMULATION COMMANDS ---
     switch (base) {
-      case 'help': addToTerm("Commands: useradd, groupadd, usermod, tar, chmod, grep, ln, find, setfacl, systemctl, tuned-adm, nice, chronyc, journalctl, pvcreate, vgcreate, lvcreate, lvextend, mkfs.xfs, mkswap, mount, dnf, crontab, nmcli, firewall-cmd, ssh-keygen, restorecon, chage, ls, pwd, id, clear, exit"); break;
+      case 'help': addToTerm("Commands: useradd, groupadd, usermod, tar, chmod, grep, ln, find, setfacl, systemctl, tuned-adm, nice, chronyc, journalctl, pvcreate, vgcreate, lvcreate, lvextend, mkfs.xfs, mkswap, mount, dnf, flatpak, crontab, nmcli, firewall-cmd, ssh-keygen, restorecon, chage, ls, pwd, id, clear, exit"); break;
       case 'clear': setTerminalHistory([]); break;
       case 'exit': 
         if (examMode) {
@@ -329,7 +329,11 @@ export default function App() {
             addToTerm(`Objective: ${MISSIONS[0].desc}`, 'system');
         }
         break;
-      // ... Simulation responses ...
+      case 'flatpak':
+        if (args[1] === 'install') addToTerm("Installing: org.gnome.gedit... \n[####################] 100%\nComplete.");
+        else if (args[1] === 'remote-list') addToTerm("flathub  https://dl.flathub.org/repo/");
+        else addToTerm("flatpak: use 'install' or 'remote-list'");
+        break;
       case 'ls': if(cleanCmd.includes('-Z')) addToTerm("drwxr-xr-x. root root unconfined_u:object_r:admin_home_t:s0 Documents"); else addToTerm("anaconda-ks.cfg  Documents  Downloads  script.sh"); break;
       case 'pwd': addToTerm("/root"); break;
       case 'whoami': addToTerm("root"); break;
@@ -377,7 +381,6 @@ export default function App() {
     }
   };
 
-  // Helper for current mission display
   const activeMission = examMode 
     ? examQuestions.find(m => m.id === currentMissionId) 
     : MISSIONS.find(m => m.id === currentMissionId);
@@ -406,7 +409,6 @@ export default function App() {
           <ul className="space-y-1 overflow-y-auto flex-1 scrollbar-hide">
             <li><button onClick={() => { setExamMode(false); setCurrentMissionId(0); }} className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors w-full text-left"><TerminalIcon size={16}/> Practice Lab</button></li>
             <div className="my-2 border-t border-slate-800"></div>
-            {/* Scroll to sections links could go here */}
             <li className="text-xs text-slate-500 uppercase tracking-wider mt-4 mb-2 px-3">Quick Links</li>
             <li><a href="#pillar-1" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors"><FileTextIcon size={16}/> Tools & Scripting</a></li>
             <li><a href="#pillar-2" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors"><CpuIcon size={16}/> Running Systems</a></li>
@@ -433,305 +435,105 @@ export default function App() {
               <p className="text-lg text-slate-600">Study the concepts below, then test them in the terminal below.</p>
             </header>
 
-            {/* PILLARS CONTENT (Same as before, abbreviated for brevity) */}
+            {/* PILLARS CONTENT */}
             <section id="pillar-1" className="mb-16 scroll-mt-8">
               <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
                 <div className="p-3 bg-blue-100 text-blue-600 rounded-lg"><TerminalIcon size={24} /></div>
                 <div><h2 className="text-2xl font-bold text-slate-900">Pillar 1: Tools & Scripting</h2></div>
               </div>
               <div className="grid md:grid-cols-2 gap-6">
-                {/* PERMISSIONS */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><LockIcon size={16} className="text-blue-500"/> Permissions</h3>
-                  <div className="space-y-3">
-                    <div className="text-sm">
-                      <span className="font-bold text-slate-700">Special Bits:</span>
-                      <CodeBlock>chmod u+s file     # SUID (4)</CodeBlock>
-                      <CodeBlock>chmod g+s dir      # SGID (2)</CodeBlock>
-                      <CodeBlock>chmod 2770 dir     # Octal SGID</CodeBlock>
-                    </div>
-                  </div>
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                  <h3 className="font-bold text-lg mb-4 text-slate-800">Key Commands</h3>
+                  <CodeBlock>tar -czvf archive.tar.gz /path</CodeBlock>
+                  <CodeBlock>chmod 750 script.sh</CodeBlock>
                 </div>
-
-                {/* ARCHIVING & LINKS */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><FileTextIcon size={16} className="text-blue-500"/> Archiving & Links</h3>
-                  <div className="space-y-3">
-                    <div className="text-sm">
-                      <p className="text-xs text-slate-600 mb-1 font-bold">Tar:</p>
-                      <CodeBlock>tar -czvf archive.tar.gz /path</CodeBlock>
-                    </div>
-                    <div className="text-sm">
-                      <p className="text-xs text-slate-600 mb-1 font-bold">Soft Link:</p>
-                      <CodeBlock>ln -s /source /linkname</CodeBlock>
-                    </div>
-                  </div>
-                </div>
-
-                {/* IO REDIRECTION */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><FileTextIcon size={16} className="text-blue-500"/> I/O Redirection</h3>
-                  <div className="space-y-3">
-                    <div className="text-sm">
-                      <p className="text-xs text-slate-600 mb-1 font-bold">Standard Output:</p>
-                      <CodeBlock>ls &gt; file.txt      # Overwrite</CodeBlock>
-                      <CodeBlock>ls &gt;&gt; file.txt     # Append</CodeBlock>
-                    </div>
-                    <div className="text-sm">
-                      <p className="text-xs text-slate-600 mb-1 font-bold">Standard Error:</p>
-                      <CodeBlock>ls 2&gt; error.log   # Redirect stderr</CodeBlock>
-                    </div>
-                  </div>
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                  <h3 className="font-bold text-lg mb-4 text-slate-800">IO Redirection</h3>
+                  <CodeBlock>ls &gt; file.txt</CodeBlock>
+                  <CodeBlock>ls 2&gt; error.log</CodeBlock>
                 </div>
               </div>
             </section>
-
-            {/* PILLAR 2 */}
+            
             <section id="pillar-2" className="mb-16 scroll-mt-8">
               <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
                 <div className="p-3 bg-red-100 text-red-600 rounded-lg"><CpuIcon size={24} /></div>
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-900">Pillar 2: Operate Running Systems</h2>
-                </div>
+                <div><h2 className="text-2xl font-bold text-slate-900">Pillar 2: Operate Running Systems</h2></div>
               </div>
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                   <h3 className="font-bold text-lg mb-4 text-slate-800">Boot Targets</h3>
-                  <table className="w-full text-sm text-left">
-                      <thead className="bg-slate-50 text-slate-500">
-                        <tr><th className="p-2">Target</th><th className="p-2">Description</th></tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        <tr><td className="p-2 font-mono text-xs">multi-user.target</td><td className="p-2 text-xs">Text Mode</td></tr>
-                        <tr><td className="p-2 font-mono text-xs">graphical.target</td><td className="p-2 text-xs">GUI Mode</td></tr>
-                        <tr><td className="p-2 font-mono text-xs">emergency.target</td><td className="p-2 text-xs">Read-only root</td></tr>
-                      </tbody>
-                  </table>
-                  <div className="mt-4">
-                    <p className="text-xs font-bold mb-1">Isolate Target:</p>
-                    <CodeBlock>systemctl isolate multi-user.target</CodeBlock>
-                  </div>
+                  <CodeBlock>systemctl isolate multi-user.target</CodeBlock>
                 </div>
-                
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800">Tuned Profiles</h3>
-                  <ul className="space-y-2 font-mono text-xs">
-                    <li className="bg-slate-50 p-2 rounded flex justify-between"><span>List</span><span className="text-red-500">tuned-adm list</span></li>
-                    <li className="bg-slate-50 p-2 rounded flex justify-between"><span>Active</span><span className="text-red-500">tuned-adm active</span></li>
-                    <li className="bg-slate-50 p-2 rounded flex justify-between"><span>Set</span><span className="text-red-500">tuned-adm profile virtual-guest</span></li>
-                  </ul>
-                </div>
-
-                {/* PROCESS CONTROL */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><CpuIcon size={16} className="text-red-500"/> Process Control</h3>
-                  <div className="space-y-3">
-                    <div className="text-sm">
-                      <p className="text-xs text-slate-600 mb-1 font-bold">Killing Processes:</p>
-                      <CodeBlock>kill -9 1234       # Kill PID 1234</CodeBlock>
-                      <CodeBlock>pkill -u student   # Kill all user procs</CodeBlock>
-                    </div>
-                    <div className="text-sm">
-                      <p className="text-xs text-slate-600 mb-1 font-bold">Priorities:</p>
-                      <CodeBlock>nice -n 5 tar...   # Start with low prio</CodeBlock>
-                      <CodeBlock>renice -n -5 1234  # Change running prio</CodeBlock>
-                    </div>
-                  </div>
-                </div>
-
-                {/* BOOT RESET */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><SettingsIcon size={16} className="text-red-500"/> Root Password Reset</h3>
-                  <div className="space-y-1 text-xs text-slate-600">
-                    <ol className="list-decimal pl-4 space-y-1">
-                        <li>Interrupt GRUB boot.</li>
-                        <li>Append <code>rw init=/bin/bash</code> to linux line.</li>
-                        <li>Press <code>Ctrl+x</code> to boot.</li>
-                        <li><code>passwd</code></li>
-                        <li><code>touch /.autorelabel</code></li>
-                        <li><code>exec /sbin/init</code></li>
-                    </ol>
-                  </div>
+                   <h3 className="font-bold text-lg mb-4 text-slate-800">Root Password Reset</h3>
+                   <div className="text-xs text-slate-600 space-y-1">
+                      <p>1. Interrupt GRUB</p>
+                      <p>2. Add <code>rw init=/bin/bash</code> to linux line</p>
+                      <p>3. <code>passwd</code></p>
+                      <p>4. <code>touch /.autorelabel</code></p>
+                   </div>
                 </div>
               </div>
             </section>
 
-            {/* PILLAR 3 */}
-            <section id="pillar-3" className="mb-16 scroll-mt-8">
+             <section id="pillar-3" className="mb-16 scroll-mt-8">
               <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
                 <div className="p-3 bg-amber-100 text-amber-600 rounded-lg"><HardDriveIcon size={24} /></div>
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-900">Pillar 3: Storage</h2>
-                </div>
+                <div><h2 className="text-2xl font-bold text-slate-900">Pillar 3: Storage</h2></div>
               </div>
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800">FSTAB Anatomy</h3>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left border-collapse">
-                      <thead className="bg-slate-900 text-white">
-                        <tr>
-                          <th className="p-2 border border-slate-700">UUID/Device</th>
-                          <th className="p-2 border border-slate-700">Mount</th>
-                          <th className="p-2 border border-slate-700">Type</th>
-                        </tr>
-                      </thead>
-                      <tbody className="font-mono text-xs">
-                        <tr className="bg-amber-50">
-                          <td className="p-2 border border-amber-200">UUID="5b...a2"</td>
-                          <td className="p-2 border border-amber-200">/data</td>
-                          <td className="p-2 border border-amber-200">xfs</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+                  <h3 className="font-bold text-lg mb-4 text-slate-800">LVM Logic</h3>
+                   <div className="text-xs font-mono space-y-2">
+                        <div className="bg-slate-50 p-2 rounded border border-slate-200">1. Physical Volume (PV)</div>
+                        <div className="bg-slate-50 p-2 rounded border border-slate-200">2. Volume Group (VG)</div>
+                        <div className="bg-slate-50 p-2 rounded border border-slate-200">3. Logical Volume (LV)</div>
+                    </div>
                 </div>
-
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                    <h3 className="font-bold text-lg mb-4 text-slate-800">LVM Logic</h3>
-                    <div className="text-xs font-mono space-y-2">
-                        <div className="bg-slate-50 p-2 rounded border border-slate-200">
-                            <span className="font-bold text-slate-700">1. Physical Volume (PV)</span>
-                            <div className="text-slate-500">Raw partition initialization (pvcreate)</div>
-                        </div>
-                        <div className="flex justify-center text-slate-300">↓</div>
-                        <div className="bg-slate-50 p-2 rounded border border-slate-200">
-                            <span className="font-bold text-slate-700">2. Volume Group (VG)</span>
-                            <div className="text-slate-500">Pool of storage (vgcreate)</div>
-                        </div>
-                        <div className="flex justify-center text-slate-300">↓</div>
-                        <div className="bg-slate-50 p-2 rounded border border-slate-200">
-                            <span className="font-bold text-slate-700">3. Logical Volume (LV)</span>
-                            <div className="text-slate-500">Usable partition (lvcreate)</div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* AUTOFS */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><HardDriveIcon size={16} className="text-amber-500"/> AutoFS</h3>
-                  <div className="space-y-3">
-                    <div className="text-sm">
-                      <p className="text-xs text-slate-600 mb-1 font-bold">1. Master Map (/etc/auto.master):</p>
-                      <CodeBlock>/shares  /etc/auto.shares</CodeBlock>
-                    </div>
-                    <div className="text-sm">
-                      <p className="text-xs text-slate-600 mb-1 font-bold">2. Indirect Map (/etc/auto.shares):</p>
-                      <CodeBlock>work -rw,sync server:/path/work</CodeBlock>
-                    </div>
-                  </div>
+                   <h3 className="font-bold text-lg mb-4 text-slate-800">AutoFS</h3>
+                   <CodeBlock>/shares /etc/auto.shares</CodeBlock>
                 </div>
               </div>
             </section>
 
-            {/* PILLAR 4 (NEW) */}
-            <section id="pillar-4" className="mb-16 scroll-mt-8">
+             <section id="pillar-4" className="mb-16 scroll-mt-8">
               <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
                 <div className="p-3 bg-purple-100 text-purple-600 rounded-lg"><SettingsIcon size={24} /></div>
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-900">Pillar 4: Deploy & Maintain</h2>
-                </div>
+                <div><h2 className="text-2xl font-bold text-slate-900">Pillar 4: Deploy & Maintain</h2></div>
               </div>
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800">Software & Time</h3>
-                  <div className="space-y-3">
-                    <div className="text-sm">
-                      <p className="text-xs text-slate-600 mb-1 font-bold">DNF (Package Manager):</p>
-                      <CodeBlock>dnf install httpd</CodeBlock>
-                      <CodeBlock>dnf update</CodeBlock>
-                    </div>
-                    <div className="text-sm">
-                      <p className="text-xs text-slate-600 mb-1 font-bold">Chrony (NTP):</p>
-                      <CodeBlock>chronyc sources</CodeBlock>
-                    </div>
-                  </div>
+                  <h3 className="font-bold text-lg mb-4 text-slate-800">Containerized Apps</h3>
+                   <p className="text-xs text-slate-600 mb-2">Flatpak is used for desktop applications.</p>
+                   <CodeBlock>flatpak remote-add --if-not-exists flathub ...</CodeBlock>
+                   <CodeBlock>flatpak install flathub org.gnome.gedit</CodeBlock>
                 </div>
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800">Scheduling (Cron)</h3>
-                  <div className="text-xs text-slate-600 mb-2">Syntax: m h dom mon dow command</div>
-                  <div className="space-y-2">
-                    <div className="bg-slate-50 p-2 rounded border border-slate-100 font-mono text-xs">
-                        <span className="text-blue-600">*/5 * * * *</span> /path/script.sh
-                        <div className="text-slate-400 italic">Run every 5 minutes</div>
-                    </div>
-                    <div className="bg-slate-50 p-2 rounded border border-slate-100 font-mono text-xs">
-                        <span className="text-blue-600">0 2 * * *</span> /path/backup.sh
-                        <div className="text-slate-400 italic">Run daily at 2:00 AM</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* SHELL SCRIPTING */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><SettingsIcon size={16} className="text-purple-500"/> Shell Scripting</h3>
-                  <div className="space-y-3">
-                    <div className="text-sm">
-                      <p className="text-xs text-slate-600 mb-1 font-bold">Structure:</p>
-                      <CodeBlock>#!/bin/bash</CodeBlock>
-                      <CodeBlock>for i in $(cat list); do</CodeBlock>
-                      <CodeBlock>  echo "User: $i"</CodeBlock>
-                      <CodeBlock>done</CodeBlock>
-                    </div>
-                  </div>
+                   <h3 className="font-bold text-lg mb-4 text-slate-800">Cron</h3>
+                   <CodeBlock>*/5 * * * * /script.sh</CodeBlock>
                 </div>
               </div>
             </section>
 
-            {/* PILLAR 5 */}
-            <section id="pillar-5" className="mb-24 scroll-mt-8">
+             <section id="pillar-5" className="mb-24 scroll-mt-8">
               <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
                 <div className="p-3 bg-emerald-100 text-emerald-600 rounded-lg"><ShieldIcon size={24} /></div>
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-900">Pillar 5: Security & Networking</h2>
-                </div>
+                <div><h2 className="text-2xl font-bold text-slate-900">Pillar 5: Security</h2></div>
               </div>
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800">SELinux & Firewall</h3>
-                  <div className="space-y-2">
-                    <div>
-                        <p className="text-xs font-bold text-slate-600">Booleans:</p>
-                        <CodeBlock>setsebool -P httpd_enable_homedirs on</CodeBlock>
-                    </div>
-                    <div>
-                        <p className="text-xs font-bold text-slate-600">Firewall:</p>
-                        <CodeBlock>firewall-cmd --permanent --add-service=http</CodeBlock>
-                    </div>
-                  </div>
+                  <h3 className="font-bold text-lg mb-4 text-slate-800">SELinux</h3>
+                   <CodeBlock>restorecon -R /var/www/html</CodeBlock>
                 </div>
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800">Network & Identity</h3>
-                  <div className="space-y-3">
-                    <div className="text-sm">
-                        <p className="text-xs font-bold text-slate-600 mb-1 flex items-center gap-1"><NetworkIcon size={12}/> NetworkManager:</p>
-                        <CodeBlock>nmcli con add type ethernet con-name ...</CodeBlock>
-                    </div>
-                    <div className="text-sm">
-                        <p className="text-xs font-bold text-slate-600 mb-1">User Aging:</p>
-                        <CodeBlock>chage -M 90 user</CodeBlock>
-                    </div>
-                  </div>
-                </div>
-
-                {/* SSH HARDENING */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><LockIcon size={16} className="text-emerald-500"/> SSH Hardening</h3>
-                  <div className="space-y-3">
-                    <div className="text-sm">
-                      <p className="text-xs text-slate-600 mb-1 font-bold">/etc/ssh/sshd_config:</p>
-                      <CodeBlock>PermitRootLogin no</CodeBlock>
-                      <CodeBlock>PasswordAuthentication no</CodeBlock>
-                    </div>
-                    <div className="text-sm">
-                      <p className="text-xs text-slate-600 mb-1 font-bold">Apply:</p>
-                      <CodeBlock>systemctl reload sshd</CodeBlock>
-                    </div>
-                  </div>
+                   <h3 className="font-bold text-lg mb-4 text-slate-800">Firewall</h3>
+                   <CodeBlock>firewall-cmd --permanent --add-service=http</CodeBlock>
                 </div>
               </div>
             </section>
-
+            
           </div>
         </main>
 
@@ -859,4 +661,4 @@ export default function App() {
       </div>
     </div>
   );
-    }
+   }
