@@ -11,7 +11,7 @@ const HardDriveIcon = ({ size = 24, className = "" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="22" y1="12" x2="2" y2="12"></line><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path><line x1="6" y1="16" x2="6.01" y2="16"></line><line x1="10" y1="16" x2="10.01" y2="16"></line></svg>
 );
 const SettingsIcon = ({ size = 24, className = "" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
 );
 const ShieldIcon = ({ size = 24, className = "" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
@@ -113,7 +113,7 @@ const MAX_INPUT_LENGTH = 256;
 const ILLEGAL_CHARS = /<script\b[^>]*>([\s\S]*?)<\/script>/gm; 
 const UTILITY_COMMANDS = ['clear', 'help', 'ls', 'pwd', 'whoami', 'history', 'id', 'exit', 'man'];
 
-// FULL MISSION LIST (RHEL 10 Focused + Flatpak)
+// FULL MISSION LIST (RHEL 10 Focused)
 const MISSIONS = [
   // --- PILLAR 1: TOOLS & SCRIPTING ---
   { id: 1, tool: "useradd", title: "User Management", desc: "Create a new user named 'student' with UID 2000.", lesson: "In RHEL, `useradd` creates new accounts. The `-u` flag specifies a custom UID. Managing UIDs is critical for NFS compatibility.", hint: "useradd -u 2000 student", check: (cmd) => /^useradd\s+/.test(cmd) && /\s-u\s+2000\b/.test(cmd) && /\sstudent\b/.test(cmd) },
@@ -452,6 +452,24 @@ export default function App() {
                   <CodeBlock>ls &gt; file.txt</CodeBlock>
                   <CodeBlock>ls 2&gt; error.log</CodeBlock>
                 </div>
+                {/* NEW CARDS */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                   <h3 className="font-bold text-lg mb-4 text-slate-800">Shell Scripting</h3>
+                   <div className="text-xs text-slate-600 space-y-2">
+                       <CodeBlock>#!/bin/bash</CodeBlock>
+                       <CodeBlock>for i in $(cat list); do echo $i; done</CodeBlock>
+                       <CodeBlock>if [ -f file ]; then echo "Exists"; fi</CodeBlock>
+                   </div>
+                </div>
+                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                   <h3 className="font-bold text-lg mb-4 text-slate-800">Regular Expressions</h3>
+                   <div className="text-xs text-slate-600 space-y-2">
+                       <p><b>^</b> Start of line</p>
+                       <p><b>$</b> End of line</p>
+                       <p><b>.</b> Any single char</p>
+                       <CodeBlock>grep "^root" /etc/passwd</CodeBlock>
+                   </div>
+                </div>
               </div>
             </section>
             
@@ -474,6 +492,17 @@ export default function App() {
                       <p>4. <code>touch /.autorelabel</code></p>
                    </div>
                 </div>
+                 {/* NEW CARDS */}
+                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                   <h3 className="font-bold text-lg mb-4 text-slate-800">Systemd Units</h3>
+                   <CodeBlock>systemctl enable --now httpd</CodeBlock>
+                   <CodeBlock>systemctl list-units --type=service</CodeBlock>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                   <h3 className="font-bold text-lg mb-4 text-slate-800">Logging</h3>
+                   <CodeBlock>journalctl -u sshd</CodeBlock>
+                   <CodeBlock>journalctl --since "1 hour ago"</CodeBlock>
+                </div>
               </div>
             </section>
 
@@ -495,6 +524,19 @@ export default function App() {
                    <h3 className="font-bold text-lg mb-4 text-slate-800">AutoFS</h3>
                    <CodeBlock>/shares /etc/auto.shares</CodeBlock>
                 </div>
+                 {/* NEW CARDS */}
+                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                   <h3 className="font-bold text-lg mb-4 text-slate-800">Partitions</h3>
+                   <p className="text-xs text-slate-600 mb-2">Use <code>fdisk</code> or <code>parted</code> for GPT/MBR.</p>
+                   <CodeBlock>mkswap /dev/vdb2</CodeBlock>
+                   <CodeBlock>swapon /dev/vdb2</CodeBlock>
+                </div>
+                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                   <h3 className="font-bold text-lg mb-4 text-slate-800">Stratis & VDO</h3>
+                   <p className="text-xs text-slate-600 mb-2">Advanced storage layers.</p>
+                   <CodeBlock>stratis pool create mypool /dev/sdb</CodeBlock>
+                   <CodeBlock>stratis fs create mypool myfs</CodeBlock>
+                </div>
               </div>
             </section>
 
@@ -514,6 +556,14 @@ export default function App() {
                    <h3 className="font-bold text-lg mb-4 text-slate-800">Cron</h3>
                    <CodeBlock>*/5 * * * * /script.sh</CodeBlock>
                 </div>
+                 {/* NEW CARD */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                   <h3 className="font-bold text-lg mb-4 text-slate-800">Repositories</h3>
+                   <p className="text-xs text-slate-600 mb-2">Config in <code>/etc/yum.repos.d/</code></p>
+                   <CodeBlock>[repo_id]</CodeBlock>
+                   <CodeBlock>baseurl=http://server/repo</CodeBlock>
+                   <CodeBlock>gpgcheck=0</CodeBlock>
+                </div>
               </div>
             </section>
 
@@ -530,6 +580,17 @@ export default function App() {
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                    <h3 className="font-bold text-lg mb-4 text-slate-800">Firewall</h3>
                    <CodeBlock>firewall-cmd --permanent --add-service=http</CodeBlock>
+                </div>
+                 {/* NEW CARDS */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                   <h3 className="font-bold text-lg mb-4 text-slate-800">Access Control Lists</h3>
+                   <CodeBlock>setfacl -m u:student:rw file</CodeBlock>
+                   <CodeBlock>getfacl file</CodeBlock>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                   <h3 className="font-bold text-lg mb-4 text-slate-800">User Defaults</h3>
+                   <p className="text-xs text-slate-600 mb-2">Check <code>/etc/login.defs</code> and umask.</p>
+                   <CodeBlock>umask 027</CodeBlock>
                 </div>
               </div>
             </section>
@@ -661,4 +722,6 @@ export default function App() {
       </div>
     </div>
   );
-   }
+}
+
+
