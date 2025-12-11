@@ -46,9 +46,6 @@ const NetworkIcon = ({ size = 24, className = "" }) => (
 const TimerIcon = ({ size = 24, className = "" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
 );
-const BoxIcon = ({ size = 24, className = "" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-);
 
 // --- 2. COMPONENTS (Defined BEFORE App) ---
 
@@ -144,13 +141,15 @@ const MISSIONS = [
   { id: 23, tool: "dnf", title: "Software Install", desc: "Install the 'httpd' package using DNF.", lesson: "`dnf` is the package manager (Dandified YUM). Use it to install, update, and remove software.", hint: "dnf install httpd", check: (cmd) => /^dnf\s+install\s+httpd$/.test(cmd) },
   { id: 24, tool: "crontab", title: "Scheduling Tasks", desc: "List the current user's cron jobs.", lesson: "`cron` schedules recurring tasks. `-e` edits, `-l` lists, `-r` removes. We use `-l` here to verify.", hint: "crontab -l", check: (cmd) => /^crontab\s+-l$/.test(cmd) },
   { id: 25, tool: "flatpak", title: "Flatpak Management", desc: "Install 'gedit' from 'flathub' remote.", lesson: "Flatpak manages containerized desktop apps. Use `flatpak install [remote] [app]`.", hint: "flatpak install flathub org.gnome.gedit", check: (cmd) => /^flatpak\s+install\s+/.test(cmd) && /flathub/.test(cmd) && /gedit/.test(cmd) },
+  { id: 26, tool: "hostnamectl", title: "Hostname Config", desc: "Set the system hostname to 'server1.example.com'.", lesson: "`hostnamectl` manages the system name persistently.", hint: "hostnamectl set-hostname server1.example.com", check: (cmd) => /^hostnamectl\s+set-hostname\s+server1\.example\.com$/.test(cmd) },
+  { id: 27, tool: "dnf", title: "Repo Management", desc: "Add a new repository from 'http://repo.example.com/app.repo'.", lesson: "`dnf config-manager` is the easiest way to add repos.", hint: "dnf config-manager --add-repo http://repo.example.com/app.repo", check: (cmd) => /^dnf\s+config-manager\s+--add-repo\s+http:\/\/repo\.example\.com\/app\.repo$/.test(cmd) },
   // --- PILLAR 5: USERS & SECURITY ---
-  { id: 26, tool: "nmcli", title: "Networking", desc: "Add a new ethernet connection named 'static-eth0'.", lesson: "NetworkManager (nmcli) is the standard for RHEL networking.", hint: "nmcli con add con-name static-eth0 type ethernet ifname eth0", check: (cmd) => /^nmcli\s+con\s+add\s+/.test(cmd) && /con-name\s+static-eth0/.test(cmd) },
-  { id: 27, tool: "firewall-cmd", title: "Firewall Configuration", desc: "Permanently add the 'ftp' service to the firewall.", lesson: "Changes are lost on reboot unless you use `--permanent`. Reload afterwards.", hint: "firewall-cmd --add-service=ftp --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-service=ftp/.test(cmd) && /--permanent/.test(cmd) },
-  { id: 28, tool: "ssh-keygen", title: "SSH Keys", desc: "Generate a new SSH key pair.", lesson: "`ssh-keygen` creates the public/private key pair for passwordless auth.", hint: "ssh-keygen", check: (cmd) => /^ssh-keygen\b/.test(cmd) },
-  { id: 29, tool: "ls", title: "SELinux Contexts", desc: "List SELinux contexts for files in the current directory.", lesson: "Use the `-Z` flag with `ls`, `ps`, or `id` to see security labels.", hint: "ls -Z", check: (cmd) => /^ls\s+/.test(cmd) && /-[a-zA-Z]*Z/.test(cmd) },
-  { id: 30, tool: "restorecon", title: "SELinux Restore", desc: "Restore default SELinux contexts on '/var/www/html'.", lesson: "`restorecon` reads the policy and resets file contexts to their defaults. Use `-R` for recursive.", hint: "restorecon -R /var/www/html", check: (cmd) => /^restorecon\s+/.test(cmd) && /-[a-zA-Z]*R/.test(cmd) && /\s\/var\/www\/html$/.test(cmd) },
-  { id: 31, tool: "chage", title: "Password Aging", desc: "Set the maximum password age for user 'student' to 90 days.", lesson: "`chage` (Change Age) manages password expiry. `-M` sets the max days before a password change is required.", hint: "chage -M 90 student", check: (cmd) => /^chage\s+/.test(cmd) && /-M\s+90/.test(cmd) && /\sstudent$/.test(cmd) }
+  { id: 28, tool: "nmcli", title: "Networking", desc: "Add a new ethernet connection named 'static-eth0'.", lesson: "NetworkManager (nmcli) is the standard for RHEL networking.", hint: "nmcli con add con-name static-eth0 type ethernet ifname eth0", check: (cmd) => /^nmcli\s+con\s+add\s+/.test(cmd) && /con-name\s+static-eth0/.test(cmd) },
+  { id: 29, tool: "firewall-cmd", title: "Firewall Configuration", desc: "Permanently add the 'ftp' service to the firewall.", lesson: "Changes are lost on reboot unless you use `--permanent`. Reload afterwards.", hint: "firewall-cmd --add-service=ftp --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-service=ftp/.test(cmd) && /--permanent/.test(cmd) },
+  { id: 30, tool: "ssh-keygen", title: "SSH Keys", desc: "Generate a new SSH key pair.", lesson: "`ssh-keygen` creates the public/private key pair for passwordless auth.", hint: "ssh-keygen", check: (cmd) => /^ssh-keygen\b/.test(cmd) },
+  { id: 31, tool: "ls", title: "SELinux Contexts", desc: "List SELinux contexts for files in the current directory.", lesson: "Use the `-Z` flag with `ls`, `ps`, or `id` to see security labels.", hint: "ls -Z", check: (cmd) => /^ls\s+/.test(cmd) && /-[a-zA-Z]*Z/.test(cmd) },
+  { id: 32, tool: "restorecon", title: "SELinux Restore", desc: "Restore default SELinux contexts on '/var/www/html'.", lesson: "`restorecon` reads the policy and resets file contexts to their defaults. Use `-R` for recursive.", hint: "restorecon -R /var/www/html", check: (cmd) => /^restorecon\s+/.test(cmd) && /-[a-zA-Z]*R/.test(cmd) && /\s\/var\/www\/html$/.test(cmd) },
+  { id: 33, tool: "chage", title: "Password Aging", desc: "Set the maximum password age for user 'student' to 90 days.", lesson: "`chage` (Change Age) manages password expiry. `-M` sets the max days before a password change is required.", hint: "chage -M 90 student", check: (cmd) => /^chage\s+/.test(cmd) && /-M\s+90/.test(cmd) && /\sstudent$/.test(cmd) }
 ];
 
 // --- 4. MAIN APP COMPONENT ---
@@ -308,7 +307,7 @@ export default function App() {
 
     // --- SIMULATION COMMANDS ---
     switch (base) {
-      case 'help': addToTerm("Commands: useradd, groupadd, usermod, tar, chmod, grep, ln, find, setfacl, systemctl, tuned-adm, nice, chronyc, journalctl, pvcreate, vgcreate, lvcreate, lvextend, mkfs.xfs, mkswap, mount, dnf, flatpak, crontab, nmcli, firewall-cmd, ssh-keygen, restorecon, chage, ls, pwd, id, clear, exit"); break;
+      case 'help': addToTerm("Commands: useradd, groupadd, usermod, tar, chmod, grep, ln, find, setfacl, systemctl, tuned-adm, nice, chronyc, journalctl, pvcreate, vgcreate, lvcreate, lvextend, mkfs.xfs, mkswap, mount, dnf, flatpak, hostnamectl, crontab, nmcli, firewall-cmd, ssh-keygen, restorecon, chage, ls, pwd, id, clear, exit, nmtui"); break;
       case 'clear': setTerminalHistory([]); break;
       case 'exit': 
         if (examMode) {
@@ -329,10 +328,16 @@ export default function App() {
             addToTerm(`Objective: ${MISSIONS[0].desc}`, 'system');
         }
         break;
+      case 'nmtui':
+        addToTerm("Opening NetworkManager TUI... [Graphic Interface Simulated]", 'success');
+        break;
       case 'flatpak':
         if (args[1] === 'install') addToTerm("Installing: org.gnome.gedit... \n[####################] 100%\nComplete.");
         else if (args[1] === 'remote-list') addToTerm("flathub  https://dl.flathub.org/repo/");
         else addToTerm("flatpak: use 'install' or 'remote-list'");
+        break;
+      case 'hostnamectl':
+        addToTerm(`Static hostname: ${args[2] || "localhost.localdomain"}\nIcon name: computer-vm\nChassis: vm\nMachine ID: 123456789\nBoot ID: abcdef123456\nVirtualization: kvm\nOperating System: Red Hat Enterprise Linux 9.2 (Plow)`);
         break;
       case 'ls': if(cleanCmd.includes('-Z')) addToTerm("drwxr-xr-x. root root unconfined_u:object_r:admin_home_t:s0 Documents"); else addToTerm("anaconda-ks.cfg  Documents  Downloads  script.sh"); break;
       case 'pwd': addToTerm("/root"); break;
@@ -340,7 +345,10 @@ export default function App() {
       case 'id': addToTerm("uid=0(root) gid=0(root) groups=0(root)"); break;
       case 'nmcli': addToTerm("Connection 'static-eth0' successfully added."); break;
       case 'systemctl': addToTerm("Active: active (running)"); break;
-      case 'dnf': addToTerm("Complete!"); break;
+      case 'dnf': 
+        if (args[1] === 'config-manager') addToTerm("Adding repo from: http://repo.example.com/app.repo");
+        else addToTerm("Complete!"); 
+        break;
       case 'grep': if(cleanCmd.includes('^root')) addToTerm("root:x:0:0:root:/root:/bin/bash"); break;
       default: 
         if (!['useradd','groupadd','usermod','tar','chmod','ln','find','setfacl','tuned-adm','nice','chronyc','journalctl','pvcreate','vgcreate','lvcreate','lvextend','mkfs.xfs','mkswap','mount','crontab','firewall-cmd','ssh-keygen','restorecon','chage'].includes(base)) {
@@ -490,6 +498,7 @@ export default function App() {
                       <p>2. Add <code>rw init=/bin/bash</code> to linux line</p>
                       <p>3. <code>passwd</code></p>
                       <p>4. <code>touch /.autorelabel</code></p>
+                      <p>5. <code>exec /sbin/init</code></p>
                    </div>
                 </div>
                  {/* NEW CARDS */}
@@ -588,9 +597,29 @@ export default function App() {
                    <CodeBlock>getfacl file</CodeBlock>
                 </div>
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">User Defaults</h3>
-                   <p className="text-xs text-slate-600 mb-2">Check <code>/etc/login.defs</code> and umask.</p>
-                   <CodeBlock>umask 027</CodeBlock>
+                   <h3 className="font-bold text-lg mb-4 text-slate-800">System Identity</h3>
+                   <p className="text-xs text-slate-600 mb-2">Set hostname persistently.</p>
+                   <CodeBlock>hostnamectl set-hostname name</CodeBlock>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                   <h3 className="font-bold text-lg mb-4 text-slate-800">Privilege Escalation</h3>
+                   <p className="text-xs text-slate-600 mb-2">Configure sudo access.</p>
+                   <CodeBlock>/etc/sudoers.d/custom</CodeBlock>
+                   <CodeBlock>user ALL=(ALL) ALL</CodeBlock>
+                </div>
+                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                  <h3 className="font-bold text-lg mb-4 text-slate-800">Network & Identity</h3>
+                  <div className="space-y-3">
+                    <div className="text-sm">
+                        <p className="text-xs font-bold text-slate-600 mb-1 flex items-center gap-1"><NetworkIcon size={12}/> NetworkManager:</p>
+                        <CodeBlock>nmcli con add type ethernet con-name ...</CodeBlock>
+                        <p className="text-[10px] text-slate-500 mt-1">Tip: Use <code>nmtui</code> for a visual menu.</p>
+                    </div>
+                    <div className="text-sm">
+                        <p className="text-xs font-bold text-slate-600 mb-1">User Aging:</p>
+                        <CodeBlock>chage -M 90 user</CodeBlock>
+                    </div>
+                  </div>
                 </div>
               </div>
             </section>
