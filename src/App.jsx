@@ -43,18 +43,39 @@ const EyeIcon = ({ size = 24, className = "" }) => (
 const NetworkIcon = ({ size = 24, className = "" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
 );
+const TimerIcon = ({ size = 24, className = "" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+);
 
-// --- 2. COMPONENTS (Defined BEFORE App to prevent ReferenceError) ---
+// --- 2. COMPONENTS (Defined BEFORE App) ---
 
 const CopyButton = ({ text }) => {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     // Safely handle text, defaulting to empty string if undefined/null
     const textToCopy = text ? String(text) : "";
-    navigator.clipboard.writeText(textToCopy);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+        await navigator.clipboard.writeText(textToCopy);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+        // Fallback for environments with strict clipboard policies
+        try {
+            const textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+            textArea.style.position = "fixed";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (e) {
+            console.error("Copy failed", e);
+        }
+    }
   };
 
   return (
@@ -77,6 +98,15 @@ const CodeBlock = ({ children, color = "blue" }) => {
   );
 };
 
+const ProgressBar = ({ completed, total }) => {
+    const percentage = Math.round((completed / total) * 100) || 0;
+    return (
+        <div className="w-full bg-slate-700 rounded-full h-2.5 mb-4">
+            <div className="bg-green-500 h-2.5 rounded-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
+        </div>
+    );
+};
+
 // --- 3. CONSTANTS & DATA ---
 const MAX_INPUT_LENGTH = 256; 
 const ILLEGAL_CHARS = /<script\b[^>]*>([\s\S]*?)<\/script>/gm; 
@@ -85,284 +115,40 @@ const UTILITY_COMMANDS = ['clear', 'help', 'ls', 'pwd', 'whoami', 'history', 'id
 // FULL MISSION LIST (RHEL 10 Focused)
 const MISSIONS = [
   // --- PILLAR 1: TOOLS & SCRIPTING ---
-  {
-    id: 1,
-    tool: "useradd",
-    title: "User Management",
-    desc: "Create a new user named 'student' with UID 2000.",
-    lesson: "In RHEL, `useradd` creates new accounts. The `-u` flag specifies a custom UID. Managing UIDs is critical for NFS compatibility.",
-    hint: "useradd -u 2000 student",
-    check: (cmd) => /^useradd\s+/.test(cmd) && /\s-u\s+2000\b/.test(cmd) && /\sstudent\b/.test(cmd)
-  },
-  {
-    id: 2,
-    tool: "groupadd",
-    title: "Group Management",
-    desc: "Create a new group named 'devops' with GID 5000.",
-    lesson: "Groups allow permission sharing. `groupadd` creates them. `-g` specifies a static GID.",
-    hint: "groupadd -g 5000 devops",
-    check: (cmd) => /^groupadd\s+/.test(cmd) && /-g\s+5000/.test(cmd) && /\sdevops\b/.test(cmd)
-  },
-  {
-    id: 3,
-    tool: "usermod",
-    title: "Modify User Group",
-    desc: "Add existing user 'student' to the 'devops' group.",
-    lesson: "`usermod` changes user properties. `-aG` (Append Groups) adds a secondary group without removing existing ones. Order matters: group first, then user.",
-    hint: "usermod -aG devops student",
-    check: (cmd) => /^usermod\s+/.test(cmd) && /-aG\s+devops/.test(cmd) && /\sstudent\b/.test(cmd)
-  },
-  {
-    id: 4,
-    tool: "tar",
-    title: "Archiving",
-    desc: "Create a gzip archive named 'backup.tar.gz' of the '/home' directory.",
-    lesson: "`tar` flags: -c (create), -z (gzip), -v (verbose), -f (file).",
-    hint: "tar -czvf backup.tar.gz /home",
-    check: (cmd) => /^tar\s+/.test(cmd) && /-[a-zA-Z]*z[a-zA-Z]*/.test(cmd) && /-[a-zA-Z]*c[a-zA-Z]*/.test(cmd) && /\sbackup\.tar\.gz\b/.test(cmd) && /\s\/home\b/.test(cmd)
-  },
-  {
-    id: 5,
-    tool: "chmod",
-    title: "File Permissions",
-    desc: "Set permissions on 'script.sh': User=All(7), Group=Read/Exec(5), Others=None(0).",
-    lesson: "Octal math: Read=4, Write=2, Exec=1. User(4+2+1=7), Group(4+0+1=5), Other(0).",
-    hint: "chmod 750 script.sh",
-    check: (cmd) => /^chmod\s+750\s+script\.sh$/.test(cmd)
-  },
-  {
-    id: 6,
-    tool: "grep",
-    title: "Text Search (Grep)",
-    desc: "Search for lines starting with 'root' in '/etc/passwd'.",
-    lesson: "The caret `^` is a regex anchor for 'start of line'.",
-    hint: "grep \"^root\" /etc/passwd",
-    check: (cmd) => /^grep\s+/.test(cmd) && (/["']\^root["']/.test(cmd) || /\^root/.test(cmd)) && /\s\/etc\/passwd$/.test(cmd)
-  },
-  {
-    id: 7,
-    tool: "ln",
-    title: "Soft Linking",
-    desc: "Create a soft link named 'mylink' pointing to '/etc/hosts'.",
-    lesson: "`ln -s` creates symbolic links. Without `-s`, it creates a hard link.",
-    hint: "ln -s /etc/hosts mylink",
-    check: (cmd) => /^ln\s+/.test(cmd) && /\s-s\s/.test(cmd) && /\s\/etc\/hosts\s+mylink$/.test(cmd)
-  },
-  {
-    id: 8,
-    tool: "find",
-    title: "Locating Files",
-    desc: "Find all files in '/etc' that end with '.conf'.",
-    lesson: "`find` searches directory trees. Use `-name` for filenames. Quotes around the pattern `*.conf` prevent shell expansion.",
-    hint: "find /etc -name \"*.conf\"",
-    check: (cmd) => /^find\s+\/etc\s+/.test(cmd) && /-name\s+["']\*\.conf["']/.test(cmd)
-  },
-  {
-    id: 9,
-    tool: "setfacl",
-    title: "Access Control Lists (ACLs)",
-    desc: "Grant user 'student' read-write access to 'file.txt' using ACLs.",
-    lesson: "`setfacl` allows fine-grained permissions beyond standard UGO. `-m` modifies the ACL. Syntax: `u:user:perms`.",
-    hint: "setfacl -m u:student:rw file.txt",
-    check: (cmd) => /^setfacl\s+/.test(cmd) && /-m\s+/.test(cmd) && /u:student:rw/.test(cmd) && /\sfile\.txt$/.test(cmd)
-  },
-
+  { id: 1, tool: "useradd", title: "User Management", desc: "Create a new user named 'student' with UID 2000.", lesson: "In RHEL, `useradd` creates new accounts. The `-u` flag specifies a custom UID. Managing UIDs is critical for NFS compatibility.", hint: "useradd -u 2000 student", check: (cmd) => /^useradd\s+/.test(cmd) && /\s-u\s+2000\b/.test(cmd) && /\sstudent\b/.test(cmd) },
+  { id: 2, tool: "groupadd", title: "Group Management", desc: "Create a new group named 'devops' with GID 5000.", lesson: "Groups allow permission sharing. `groupadd` creates them. `-g` specifies a static GID.", hint: "groupadd -g 5000 devops", check: (cmd) => /^groupadd\s+/.test(cmd) && /-g\s+5000/.test(cmd) && /\sdevops\b/.test(cmd) },
+  { id: 3, tool: "usermod", title: "Modify User Group", desc: "Add existing user 'student' to the 'devops' group.", lesson: "`usermod` changes user properties. `-aG` (Append Groups) adds a secondary group without removing existing ones. Order matters: group first, then user.", hint: "usermod -aG devops student", check: (cmd) => /^usermod\s+/.test(cmd) && /-aG\s+devops/.test(cmd) && /\sstudent\b/.test(cmd) },
+  { id: 4, tool: "tar", title: "Archiving", desc: "Create a gzip archive named 'backup.tar.gz' of the '/home' directory.", lesson: "`tar` flags: -c (create), -z (gzip), -v (verbose), -f (file).", hint: "tar -czvf backup.tar.gz /home", check: (cmd) => /^tar\s+/.test(cmd) && /-[a-zA-Z]*z[a-zA-Z]*/.test(cmd) && /-[a-zA-Z]*c[a-zA-Z]*/.test(cmd) && /\sbackup\.tar\.gz\b/.test(cmd) && /\s\/home\b/.test(cmd) },
+  { id: 5, tool: "chmod", title: "File Permissions", desc: "Set permissions on 'script.sh': User=All(7), Group=Read/Exec(5), Others=None(0).", lesson: "Octal math: Read=4, Write=2, Exec=1. User(4+2+1=7), Group(4+0+1=5), Other(0).", hint: "chmod 750 script.sh", check: (cmd) => /^chmod\s+750\s+script\.sh$/.test(cmd) },
+  { id: 6, tool: "grep", title: "Text Search (Grep)", desc: "Search for lines starting with 'root' in '/etc/passwd'.", lesson: "The caret `^` is a regex anchor for 'start of line'.", hint: "grep \"^root\" /etc/passwd", check: (cmd) => /^grep\s+/.test(cmd) && (/["']\^root["']/.test(cmd) || /\^root/.test(cmd)) && /\s\/etc\/passwd$/.test(cmd) },
+  { id: 7, tool: "ln", title: "Soft Linking", desc: "Create a soft link named 'mylink' pointing to '/etc/hosts'.", lesson: "`ln -s` creates symbolic links. Without `-s`, it creates a hard link.", hint: "ln -s /etc/hosts mylink", check: (cmd) => /^ln\s+/.test(cmd) && /\s-s\s/.test(cmd) && /\s\/etc\/hosts\s+mylink$/.test(cmd) },
+  { id: 8, tool: "find", title: "Locating Files", desc: "Find all files in '/etc' that end with '.conf'.", lesson: "`find` searches directory trees. Use `-name` for filenames. Quotes around the pattern `*.conf` prevent shell expansion.", hint: "find /etc -name \"*.conf\"", check: (cmd) => /^find\s+\/etc\s+/.test(cmd) && /-name\s+["']\*\.conf["']/.test(cmd) },
+  { id: 9, tool: "setfacl", title: "Access Control Lists (ACLs)", desc: "Grant user 'student' read-write access to 'file.txt' using ACLs.", lesson: "`setfacl` allows fine-grained permissions beyond standard UGO. `-m` modifies the ACL. Syntax: `u:user:perms`.", hint: "setfacl -m u:student:rw file.txt", check: (cmd) => /^setfacl\s+/.test(cmd) && /-m\s+/.test(cmd) && /u:student:rw/.test(cmd) && /\sfile\.txt$/.test(cmd) },
   // --- PILLAR 2: OPERATE RUNNING SYSTEMS ---
-  {
-    id: 10,
-    tool: "systemctl",
-    title: "Service Check",
-    desc: "Check the status of the 'httpd' service.",
-    lesson: "`systemctl` controls systemd. `status` shows runtime info and recent logs.",
-    hint: "systemctl status httpd",
-    check: (cmd) => /^systemctl\s+status\s+httpd$/.test(cmd)
-  },
-  {
-    id: 11,
-    tool: "systemctl",
-    title: "Set Default Target",
-    desc: "Configure the system to boot into text-only mode (multi-user.target) by default.",
-    lesson: "RHEL uses 'targets' instead of runlevels. `set-default` makes the change persistent across reboots.",
-    hint: "systemctl set-default multi-user.target",
-    check: (cmd) => /^systemctl\s+set-default\s+multi-user\.target$/.test(cmd)
-  },
-  {
-    id: 12,
-    tool: "tuned-adm",
-    title: "System Tuning",
-    desc: "Set the tuning profile to 'virtual-guest'.",
-    lesson: "`tuned-adm` applies kernel presets optimized for specific workloads.",
-    hint: "tuned-adm profile virtual-guest",
-    check: (cmd) => /^tuned-adm\s+profile\s+virtual-guest$/.test(cmd)
-  },
-  {
-    id: 13,
-    tool: "nice",
-    title: "Process Priorities",
-    desc: "Start the 'tar' command with a nice value (priority) of 5.",
-    lesson: "`nice` sets the initial priority. Higher numbers (up to 19) are 'nicer' (lower priority). Lower numbers (down to -20) are higher priority.",
-    hint: "nice -n 5 tar",
-    check: (cmd) => /^nice\s+/.test(cmd) && /-n\s+5/.test(cmd) && /\star/.test(cmd)
-  },
-  {
-    id: 14,
-    tool: "chronyc",
-    title: "Time Synchronization",
-    desc: "Verify the list of NTP sources the system is using.",
-    lesson: "`chronyd` is the default time service. Use `chronyc sources` to see which servers you are syncing with.",
-    hint: "chronyc sources",
-    check: (cmd) => /^chronyc\s+sources\b/.test(cmd)
-  },
-  {
-    id: 15,
-    tool: "journalctl",
-    title: "System Logging",
-    desc: "Show all log entries for the 'sshd' service.",
-    lesson: "`journalctl` queries the systemd journal. Use `-u` (unit) to filter by a specific service.",
-    hint: "journalctl -u sshd",
-    check: (cmd) => /^journalctl\s+/.test(cmd) && /-u\s+sshd\b/.test(cmd)
-  },
-
+  { id: 10, tool: "systemctl", title: "Service Check", desc: "Check the status of the 'httpd' service.", lesson: "`systemctl` controls systemd. `status` shows runtime info and recent logs.", hint: "systemctl status httpd", check: (cmd) => /^systemctl\s+status\s+httpd$/.test(cmd) },
+  { id: 11, tool: "systemctl", title: "Set Default Target", desc: "Configure the system to boot into text-only mode (multi-user.target) by default.", lesson: "RHEL uses 'targets' instead of runlevels. `set-default` makes the change persistent across reboots.", hint: "systemctl set-default multi-user.target", check: (cmd) => /^systemctl\s+set-default\s+multi-user\.target$/.test(cmd) },
+  { id: 12, tool: "tuned-adm", title: "System Tuning", desc: "Set the tuning profile to 'virtual-guest'.", lesson: "`tuned-adm` applies kernel presets optimized for specific workloads.", hint: "tuned-adm profile virtual-guest", check: (cmd) => /^tuned-adm\s+profile\s+virtual-guest$/.test(cmd) },
+  { id: 13, tool: "nice", title: "Process Priorities", desc: "Start the 'tar' command with a nice value (priority) of 5.", lesson: "`nice` sets the initial priority. Higher numbers (up to 19) are 'nicer' (lower priority). Lower numbers (down to -20) are higher priority.", hint: "nice -n 5 tar", check: (cmd) => /^nice\s+/.test(cmd) && /-n\s+5/.test(cmd) && /\star/.test(cmd) },
+  { id: 14, tool: "chronyc", title: "Time Synchronization", desc: "Verify the list of NTP sources the system is using.", lesson: "`chronyd` is the default time service. Use `chronyc sources` to see which servers you are syncing with.", hint: "chronyc sources", check: (cmd) => /^chronyc\s+sources\b/.test(cmd) },
+  { id: 15, tool: "journalctl", title: "System Logging", desc: "Show all log entries for the 'sshd' service.", lesson: "`journalctl` queries the systemd journal. Use `-u` (unit) to filter by a specific service.", hint: "journalctl -u sshd", check: (cmd) => /^journalctl\s+/.test(cmd) && /-u\s+sshd\b/.test(cmd) },
   // --- PILLAR 3: STORAGE ---
-  {
-    id: 16,
-    tool: "pvcreate",
-    title: "LVM: PV Creation",
-    desc: "Initialize '/dev/vdb1' as a Physical Volume.",
-    lesson: "`pvcreate` labels a partition for LVM use. It's the first step of the LVM chain.",
-    hint: "pvcreate /dev/vdb1",
-    check: (cmd) => /^pvcreate\s+\/dev\/vdb1$/.test(cmd)
-  },
-  {
-    id: 17,
-    tool: "vgcreate",
-    title: "LVM: Volume Group",
-    desc: "Create a volume group named 'myvg' using '/dev/vdb1'.",
-    lesson: "`vgcreate` pools Physical Volumes into a Volume Group. This is your pool of storage.",
-    hint: "vgcreate myvg /dev/vdb1",
-    check: (cmd) => /^vgcreate\s+myvg\s+\/dev\/vdb1$/.test(cmd)
-  },
-  {
-    id: 18,
-    tool: "lvcreate",
-    title: "LVM: Logical Volume",
-    desc: "Create a 500MB Logical Volume named 'mylv' in 'myvg'.",
-    lesson: "`lvcreate` carves usable space. Use `-L` for size (e.g., 500M) and `-n` for name.",
-    hint: "lvcreate -L 500M -n mylv myvg",
-    check: (cmd) => /^lvcreate\s+/.test(cmd) && /-L\s+500M/.test(cmd) && /-n\s+mylv/.test(cmd) && /\smyvg\b/.test(cmd)
-  },
-  {
-    id: 19,
-    tool: "lvextend",
-    title: "LVM: Extend Volume",
-    desc: "Extend 'mylv' by adding 200MB and resize the filesystem in one step.",
-    lesson: "`lvextend` adds space. The `-r` (resizefs) flag is crucial—it automatically runs `xfs_growfs` or `resize2fs` for you.",
-    hint: "lvextend -L +200M -r /dev/myvg/mylv",
-    check: (cmd) => /^lvextend\s+/.test(cmd) && /-L\s+\+200M/.test(cmd) && /-r\b/.test(cmd) && /\/dev\/myvg\/mylv/.test(cmd)
-  },
-  {
-    id: 20,
-    tool: "mkfs.xfs",
-    title: "Filesystem Creation",
-    desc: "Format the logical volume '/dev/myvg/mylv' with the XFS filesystem.",
-    lesson: "Before mounting, you must format. RHEL defaults to XFS (`mkfs.xfs`).",
-    hint: "mkfs.xfs /dev/myvg/mylv",
-    check: (cmd) => /^mkfs\.xfs\s+\/dev\/myvg\/mylv$/.test(cmd)
-  },
-  {
-    id: 21,
-    tool: "mkswap",
-    title: "Create Swap",
-    desc: "Format partition '/dev/vdb2' as swap space.",
-    lesson: "Swap is used when RAM is full. `mkswap` prepares the device.",
-    hint: "mkswap /dev/vdb2",
-    check: (cmd) => /^mkswap\s+\/dev\/vdb2$/.test(cmd)
-  },
-  {
-    id: 22,
-    tool: "mount",
-    title: "NFS Mounting",
-    desc: "Mount the NFS share 'server:/share' to '/mnt/data'.",
-    lesson: "Mounting connects a remote filesystem to your local tree. Syntax: `mount -t nfs [remote] [local]`.",
-    hint: "mount -t nfs server:/share /mnt/data",
-    check: (cmd) => /^mount\s+/.test(cmd) && /-t\s+nfs/.test(cmd) && /\sserver:\/share/.test(cmd) && /\s\/mnt\/data$/.test(cmd)
-  },
-
+  { id: 16, tool: "pvcreate", title: "LVM: PV Creation", desc: "Initialize '/dev/vdb1' as a Physical Volume.", lesson: "`pvcreate` labels a partition for LVM use. It's the first step of the LVM chain.", hint: "pvcreate /dev/vdb1", check: (cmd) => /^pvcreate\s+\/dev\/vdb1$/.test(cmd) },
+  { id: 17, tool: "vgcreate", title: "LVM: Volume Group", desc: "Create a volume group named 'myvg' using '/dev/vdb1'.", lesson: "`vgcreate` pools Physical Volumes into a Volume Group. This is your pool of storage.", hint: "vgcreate myvg /dev/vdb1", check: (cmd) => /^vgcreate\s+myvg\s+\/dev\/vdb1$/.test(cmd) },
+  { id: 18, tool: "lvcreate", title: "LVM: Logical Volume", desc: "Create a 500MB Logical Volume named 'mylv' in 'myvg'.", lesson: "`lvcreate` carves usable space. Use `-L` for size (e.g., 500M) and `-n` for name.", hint: "lvcreate -L 500M -n mylv myvg", check: (cmd) => /^lvcreate\s+/.test(cmd) && /-L\s+500M/.test(cmd) && /-n\s+mylv/.test(cmd) && /\smyvg\b/.test(cmd) },
+  { id: 19, tool: "lvextend", title: "LVM: Extend Volume", desc: "Extend 'mylv' by adding 200MB and resize the filesystem in one step.", lesson: "`lvextend` adds space. The `-r` (resizefs) flag is crucial—it automatically runs `xfs_growfs` or `resize2fs` for you.", hint: "lvextend -L +200M -r /dev/myvg/mylv", check: (cmd) => /^lvextend\s+/.test(cmd) && /-L\s+\+200M/.test(cmd) && /-r\b/.test(cmd) && /\/dev\/myvg\/mylv/.test(cmd) },
+  { id: 20, tool: "mkfs.xfs", title: "Filesystem Creation", desc: "Format the logical volume '/dev/myvg/mylv' with the XFS filesystem.", lesson: "Before mounting, you must format. RHEL defaults to XFS (`mkfs.xfs`).", hint: "mkfs.xfs /dev/myvg/mylv", check: (cmd) => /^mkfs\.xfs\s+\/dev\/myvg\/mylv$/.test(cmd) },
+  { id: 21, tool: "mkswap", title: "Create Swap", desc: "Format partition '/dev/vdb2' as swap space.", lesson: "Swap is used when RAM is full. `mkswap` prepares the device.", hint: "mkswap /dev/vdb2", check: (cmd) => /^mkswap\s+\/dev\/vdb2$/.test(cmd) },
+  { id: 22, tool: "mount", title: "NFS Mounting", desc: "Mount the NFS share 'server:/share' to '/mnt/data'.", lesson: "Mounting connects a remote filesystem to your local tree. Syntax: `mount -t nfs [remote] [local]`.", hint: "mount -t nfs server:/share /mnt/data", check: (cmd) => /^mount\s+/.test(cmd) && /-t\s+nfs/.test(cmd) && /\sserver:\/share/.test(cmd) && /\s\/mnt\/data$/.test(cmd) },
   // --- PILLAR 4: DEPLOY & MAINTAIN ---
-  {
-    id: 23,
-    tool: "dnf",
-    title: "Software Install",
-    desc: "Install the 'httpd' package using DNF.",
-    lesson: "`dnf` is the package manager (Dandified YUM). Use it to install, update, and remove software.",
-    hint: "dnf install httpd",
-    check: (cmd) => /^dnf\s+install\s+httpd$/.test(cmd)
-  },
-  {
-    id: 24,
-    tool: "crontab",
-    title: "Scheduling Tasks",
-    desc: "List the current user's cron jobs.",
-    lesson: "`cron` schedules recurring tasks. `-e` edits, `-l` lists, `-r` removes. We use `-l` here to verify.",
-    hint: "crontab -l",
-    check: (cmd) => /^crontab\s+-l$/.test(cmd)
-  },
-
+  { id: 23, tool: "dnf", title: "Software Install", desc: "Install the 'httpd' package using DNF.", lesson: "`dnf` is the package manager (Dandified YUM). Use it to install, update, and remove software.", hint: "dnf install httpd", check: (cmd) => /^dnf\s+install\s+httpd$/.test(cmd) },
+  { id: 24, tool: "crontab", title: "Scheduling Tasks", desc: "List the current user's cron jobs.", lesson: "`cron` schedules recurring tasks. `-e` edits, `-l` lists, `-r` removes. We use `-l` here to verify.", hint: "crontab -l", check: (cmd) => /^crontab\s+-l$/.test(cmd) },
   // --- PILLAR 5: USERS & SECURITY ---
-  {
-    id: 25,
-    tool: "nmcli",
-    title: "Networking",
-    desc: "Add a new ethernet connection named 'static-eth0'.",
-    lesson: "NetworkManager (nmcli) is the standard for RHEL networking.",
-    hint: "nmcli con add con-name static-eth0 type ethernet ifname eth0",
-    check: (cmd) => /^nmcli\s+con\s+add\s+/.test(cmd) && /con-name\s+static-eth0/.test(cmd)
-  },
-  {
-    id: 26,
-    tool: "firewall-cmd",
-    title: "Firewall Configuration",
-    desc: "Permanently add the 'ftp' service to the firewall.",
-    lesson: "Changes are lost on reboot unless you use `--permanent`. Reload afterwards.",
-    hint: "firewall-cmd --add-service=ftp --permanent",
-    check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-service=ftp/.test(cmd) && /--permanent/.test(cmd)
-  },
-  {
-    id: 27,
-    tool: "ssh-keygen",
-    title: "SSH Keys",
-    desc: "Generate a new SSH key pair.",
-    lesson: "`ssh-keygen` creates the public/private key pair for passwordless auth.",
-    hint: "ssh-keygen",
-    check: (cmd) => /^ssh-keygen\b/.test(cmd)
-  },
-  {
-    id: 28,
-    tool: "ls",
-    title: "SELinux Contexts",
-    desc: "List SELinux contexts for files in the current directory.",
-    lesson: "Use the `-Z` flag with `ls`, `ps`, or `id` to see security labels.",
-    hint: "ls -Z",
-    check: (cmd) => /^ls\s+/.test(cmd) && /-[a-zA-Z]*Z/.test(cmd)
-  },
-  {
-    id: 29,
-    tool: "restorecon",
-    title: "SELinux Restore",
-    desc: "Restore default SELinux contexts on '/var/www/html'.",
-    lesson: "`restorecon` reads the policy and resets file contexts to their defaults. Use `-R` for recursive.",
-    hint: "restorecon -R /var/www/html",
-    check: (cmd) => /^restorecon\s+/.test(cmd) && /-[a-zA-Z]*R/.test(cmd) && /\s\/var\/www\/html$/.test(cmd)
-  },
-  {
-    id: 30,
-    tool: "chage",
-    title: "Password Aging",
-    desc: "Set the maximum password age for user 'student' to 90 days.",
-    lesson: "`chage` (Change Age) manages password expiry. `-M` sets the max days before a password change is required.",
-    hint: "chage -M 90 student",
-    check: (cmd) => /^chage\s+/.test(cmd) && /-M\s+90/.test(cmd) && /\sstudent$/.test(cmd)
-  }
+  { id: 25, tool: "nmcli", title: "Networking", desc: "Add a new ethernet connection named 'static-eth0'.", lesson: "NetworkManager (nmcli) is the standard for RHEL networking.", hint: "nmcli con add con-name static-eth0 type ethernet ifname eth0", check: (cmd) => /^nmcli\s+con\s+add\s+/.test(cmd) && /con-name\s+static-eth0/.test(cmd) },
+  { id: 26, tool: "firewall-cmd", title: "Firewall Configuration", desc: "Permanently add the 'ftp' service to the firewall.", lesson: "Changes are lost on reboot unless you use `--permanent`. Reload afterwards.", hint: "firewall-cmd --add-service=ftp --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-service=ftp/.test(cmd) && /--permanent/.test(cmd) },
+  { id: 27, tool: "ssh-keygen", title: "SSH Keys", desc: "Generate a new SSH key pair.", lesson: "`ssh-keygen` creates the public/private key pair for passwordless auth.", hint: "ssh-keygen", check: (cmd) => /^ssh-keygen\b/.test(cmd) },
+  { id: 28, tool: "ls", title: "SELinux Contexts", desc: "List SELinux contexts for files in the current directory.", lesson: "Use the `-Z` flag with `ls`, `ps`, or `id` to see security labels.", hint: "ls -Z", check: (cmd) => /^ls\s+/.test(cmd) && /-[a-zA-Z]*Z/.test(cmd) },
+  { id: 29, tool: "restorecon", title: "SELinux Restore", desc: "Restore default SELinux contexts on '/var/www/html'.", lesson: "`restorecon` reads the policy and resets file contexts to their defaults. Use `-R` for recursive.", hint: "restorecon -R /var/www/html", check: (cmd) => /^restorecon\s+/.test(cmd) && /-[a-zA-Z]*R/.test(cmd) && /\s\/var\/www\/html$/.test(cmd) },
+  { id: 30, tool: "chage", title: "Password Aging", desc: "Set the maximum password age for user 'student' to 90 days.", lesson: "`chage` (Change Age) manages password expiry. `-M` sets the max days before a password change is required.", hint: "chage -M 90 student", check: (cmd) => /^chage\s+/.test(cmd) && /-M\s+90/.test(cmd) && /\sstudent$/.test(cmd) }
 ];
 
 // --- 4. MAIN APP COMPONENT ---
@@ -375,16 +161,49 @@ export default function App() {
   const [inputHistory, setInputHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [showHint, setShowHint] = useState(false); 
+  const [missions] = useState(MISSIONS);
+  
+  // --- STATES FOR PRO FEATURES ---
+  const [completedMissions, setCompletedMissions] = useState([]);
+  const [examMode, setExamMode] = useState(false);
+  const [examTimeLeft, setExamTimeLeft] = useState(0);
+  const [examQuestions, setExamQuestions] = useState([]);
   
   const terminalEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  const currentMission = MISSIONS.find(m => m.id === currentMissionId);
+  // Load progress on mount
+  useEffect(() => {
+      const saved = localStorage.getItem('rhcsa_progress');
+      if (saved) setCompletedMissions(JSON.parse(saved));
+  }, []);
 
+  // Save progress on update
+  useEffect(() => {
+      localStorage.setItem('rhcsa_progress', JSON.stringify(completedMissions));
+  }, [completedMissions]);
+
+  // Exam Timer
+  useEffect(() => {
+      let interval;
+      if (examMode && examTimeLeft > 0) {
+          interval = setInterval(() => {
+              setExamTimeLeft((prev) => prev - 1);
+          }, 1000);
+      } else if (examMode && examTimeLeft === 0) {
+          setExamMode(false);
+          addToTerm("TIME'S UP! Exam finished.", 'error');
+          setCurrentMissionId(0);
+      }
+      return () => clearInterval(interval);
+  }, [examMode, examTimeLeft]);
+
+  // Auto-scroll terminal
   useEffect(() => {
     terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [terminalHistory]);
 
+  // Reset hint when mission changes
   useEffect(() => {
     setShowHint(false);
   }, [currentMissionId]);
@@ -399,6 +218,21 @@ export default function App() {
     return input.replace(ILLEGAL_CHARS, "");
   };
 
+  const startExamMode = () => {
+      // Pick 15 random missions
+      const shuffled = [...MISSIONS].sort(() => 0.5 - Math.random());
+      const selected = shuffled.slice(0, 15);
+      
+      setExamQuestions(selected);
+      setExamMode(true);
+      setExamTimeLeft(20 * 60); // 20 minutes
+      setCurrentMissionId(selected[0].id);
+      setTerminalHistory([]);
+      addToTerm("--- MOCK EXAM STARTED ---", 'system');
+      addToTerm("You have 20 minutes to complete 15 random tasks.", 'system');
+      addToTerm(`Objective 1: ${selected[0].desc}`, 'system');
+  };
+
   const processCommand = (cmd) => {
     const cleanCmd = sanitizeInput(cmd.trim());
     if (!cleanCmd) return;
@@ -410,181 +244,170 @@ export default function App() {
     const args = cleanCmd.split(' ');
     const base = args[0];
 
-    // Mission Logic
-    if (currentMissionId > 0 && !missionComplete && currentMission) {
+    // --- MISSION LOGIC ---
+    // If in exam mode, we find the mission in the examQuestions array
+    const activeMissionList = examMode ? examQuestions : MISSIONS;
+    const currentMission = activeMissionList.find(m => m.id === currentMissionId);
+
+    if (currentMissionId > 0 && currentMission) {
       
-      // 1. Success Check
+      // 1. Check Success
       let success = false;
-      try {
-          success = currentMission.check(cleanCmd);
-      } catch (e) {
-          console.error("Regex check failed", e);
-      }
+      try { success = currentMission.check(cleanCmd); } catch(e) {}
 
       if (success) {
-        addToTerm(`SUCCESS: Mission ${currentMissionId} Complete!`, 'success');
-        if (currentMissionId < MISSIONS.length) {
-          setTimeout(() => {
-            setCurrentMissionId(prev => prev + 1);
-            const nextMission = MISSIONS.find(m => m.id === currentMissionId + 1);
-            addToTerm(`\n--- STARTING MISSION ${nextMission.id} ---`, 'system');
-            addToTerm(`Objective: ${nextMission.desc}`, 'system');
-          }, 1500);
+        addToTerm(`SUCCESS: Mission Complete!`, 'success');
+        
+        // Save Progress (Only in normal mode to avoid cheating stats)
+        if (!examMode && !completedMissions.includes(currentMission.id)) {
+            setCompletedMissions(prev => [...prev, currentMission.id]);
+        }
+
+        // Logic for Next Mission
+        let nextIndex;
+        if (examMode) {
+            const currentIndex = examQuestions.findIndex(m => m.id === currentMissionId);
+            if (currentIndex < examQuestions.length - 1) {
+                const nextMission = examQuestions[currentIndex + 1];
+                setCurrentMissionId(nextMission.id);
+                setTimeout(() => {
+                    addToTerm(`\n--- EXAM TASK ${currentIndex + 2}/${examQuestions.length} ---`, 'system');
+                    addToTerm(`Objective: ${nextMission.desc}`, 'system');
+                }, 1000);
+            } else {
+                setExamMode(false);
+                addToTerm("CONGRATULATIONS! You passed the mock exam.", 'success');
+                setCurrentMissionId(0);
+            }
         } else {
-          setMissionComplete(true);
-          addToTerm("ALL MISSIONS COMPLETE! You are ready for the exam.", 'success');
+            // Normal Mode
+            if (currentMissionId < MISSIONS.length) {
+                setTimeout(() => {
+                    setCurrentMissionId(prev => prev + 1);
+                    const nextMission = MISSIONS.find(m => m.id === currentMissionId + 1);
+                    addToTerm(`\n--- MISSION ${nextMission.id} ---`, 'system');
+                    addToTerm(`Objective: ${nextMission.desc}`, 'system');
+                }, 1500);
+            } else {
+                setMissionComplete(true);
+                addToTerm("ALL MISSIONS COMPLETE!", 'success');
+            }
         }
         return;
-      } 
+      }
       
-      // 2. Feedback
-      if (cleanCmd.startsWith(currentMission.tool) && base === currentMission.tool) {
-          addToTerm(`> Correct command '${base}', but check your flags/arguments.`, 'error');
-      } 
-      else if (!UTILITY_COMMANDS.includes(base) && base !== currentMission.tool) {
-          addToTerm(`> '${base}' is not the correct tool for this mission.`, 'error');
+      // 2. Feedback (Disabled in Exam Mode for realism)
+      if (!examMode) {
+          if (cleanCmd.startsWith(currentMission.tool) && base === currentMission.tool) {
+              addToTerm(`> Correct command '${base}', check flags.`, 'error');
+          } else if (!UTILITY_COMMANDS.includes(base) && base !== currentMission.tool) {
+              addToTerm(`> Wrong tool. Try again.`, 'error');
+          }
       }
     }
 
-    // Simulation Logic (Standard Responses)
+    // --- SIMULATION COMMANDS ---
     switch (base) {
-      case 'help':
-        addToTerm("Available commands: help, clear, start, exit, useradd, groupadd, usermod, systemctl, nmcli, tar, ls, pwd, whoami, chmod, grep, ln, firewall-cmd, pvcreate, vgcreate, lvcreate, lvextend, mkfs.xfs, mkswap, mount, dnf, restorecon, tuned-adm, ssh-keygen, id, nice, chronyc, journalctl, find, setfacl, chage, crontab");
-        break;
+      case 'help': addToTerm("Commands: useradd, groupadd, usermod, tar, chmod, grep, ln, find, setfacl, systemctl, tuned-adm, nice, chronyc, journalctl, pvcreate, vgcreate, lvcreate, lvextend, mkfs.xfs, mkswap, mount, dnf, crontab, nmcli, firewall-cmd, ssh-keygen, restorecon, chage, ls, pwd, id, clear, exit"); break;
       case 'clear': setTerminalHistory([]); break;
-      case 'exit':
-        if (currentMissionId > 0 || missionComplete) {
-            addToTerm("Mission aborted. Returning to base...", 'system');
+      case 'exit': 
+        if (examMode) {
+            setExamMode(false);
+            addToTerm("Exam aborted.", 'error');
+            setCurrentMissionId(0);
+        } else {
             setCurrentMissionId(0);
             setMissionComplete(false);
-        } else {
-            addToTerm("Logout (Simulated). Refresh to reset.", 'system');
+            addToTerm("Session reset.", 'system');
         }
         break;
       case 'start':
-        setCurrentMissionId(1);
-        setMissionComplete(false);
-        addToTerm(`\n--- STARTING MISSION 1 ---`, 'system');
-        addToTerm(`Objective: ${MISSIONS[0].desc}`, 'system');
-        break;
-      case 'ls':
-        if (cleanCmd.includes('-Z')) {
-           addToTerm("-rw-r--r--. root root unconfined_u:object_r:admin_home_t:s0 anaconda-ks.cfg\ndrwxr-xr-x. root root unconfined_u:object_r:admin_home_t:s0 Documents");
-        } else {
-          addToTerm("anaconda-ks.cfg  original-ks.cfg  Documents  Downloads  script.sh");
+        if (!examMode) {
+            setCurrentMissionId(1);
+            setMissionComplete(false);
+            addToTerm(`\n--- MISSION 1 ---`, 'system');
+            addToTerm(`Objective: ${MISSIONS[0].desc}`, 'system');
         }
         break;
-      case 'pwd':
-        addToTerm("/root");
-        break;
-      case 'whoami':
-        addToTerm("root");
-        break;
-      case 'id':
-        addToTerm("uid=0(root) gid=0(root) groups=0(root) context=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023");
-        break;
-      case 'useradd':
-        addToTerm(currentMissionId === 1 && !cleanCmd.includes('2000') ? "User created (Simulated). NOTE: UID was not set to 2000." : "User created (Simulated).");
-        break;
-      case 'vgcreate':
-        addToTerm("Volume group \"myvg\" successfully created");
-        break;
-      case 'lvcreate':
-        addToTerm("Logical volume \"mylv\" created.");
-        break;
-      case 'lvextend':
-        if (cleanCmd.includes('-r')) addToTerm("Size of logical volume myvg/mylv changed from 500.00 MiB to 700.00 MiB.\nmeta-data=/dev/mapper/myvg-mylv ...\ndata blocks changed from 128000 to 179200");
-        else addToTerm("Size of logical volume myvg/mylv changed from 500.00 MiB to 700.00 MiB. (Filesystem NOT resized)");
-        break;
-      case 'mkfs.xfs':
-        addToTerm("meta-data=/dev/myvg/mylv   isize=512    agcount=4, agsize=32000 blks\ndata     =                       bsize=4096   blocks=128000, imaxpct=25");
-        break;
-      case 'mkswap':
-        addToTerm("Setting up swapspace version 1, size = 1024 MiB (1073737728 bytes)\nno label, UUID=a1b2c3d4-e5f6-7890-1234-567890abcdef");
-        break;
-      case 'mount':
-        addToTerm("server:/share mounted on /mnt/data");
-        break;
-      case 'dnf':
-        addToTerm("Dependencies resolved.\nInstalling: httpd  x86_64  2.4.53-7.el9  appstream  47 k\nComplete!");
-        break;
-      case 'restorecon':
-        addToTerm("Relabeled /var/www/html from unconfined_u:object_r:var_t:s0 to unconfined_u:object_r:httpd_sys_content_t:s0");
-        break;
-      case 'journalctl':
-        addToTerm("-- Logs begin at Mon 2023-10-02 09:00:00 EDT --\nOct 02 09:00:01 server sshd[1234]: Server listening on 0.0.0.0 port 22.");
-        break;
-      case 'chronyc':
-        addToTerm("MS Name/IP address         Stratum Poll Reach LastRx Last sample\n^* 192.168.1.1                   2   6   377    25   +123ns[ +150ns] +/-   10ms");
-        break;
-      case 'crontab':
-        addToTerm("no crontab for root");
-        break;
-      case 'grep':
-        if (cleanCmd.includes('^root')) {
-          addToTerm("root:x:0:0:root:/root:/bin/bash", 'error'); 
+      // ... Simulation responses ...
+      case 'ls': if(cleanCmd.includes('-Z')) addToTerm("drwxr-xr-x. root root unconfined_u:object_r:admin_home_t:s0 Documents"); else addToTerm("anaconda-ks.cfg  Documents  Downloads  script.sh"); break;
+      case 'pwd': addToTerm("/root"); break;
+      case 'whoami': addToTerm("root"); break;
+      case 'id': addToTerm("uid=0(root) gid=0(root) groups=0(root)"); break;
+      case 'nmcli': addToTerm("Connection 'static-eth0' successfully added."); break;
+      case 'systemctl': addToTerm("Active: active (running)"); break;
+      case 'dnf': addToTerm("Complete!"); break;
+      case 'grep': if(cleanCmd.includes('^root')) addToTerm("root:x:0:0:root:/root:/bin/bash"); break;
+      default: 
+        if (!['useradd','groupadd','usermod','tar','chmod','ln','find','setfacl','tuned-adm','nice','chronyc','journalctl','pvcreate','vgcreate','lvcreate','lvextend','mkfs.xfs','mkswap','mount','crontab','firewall-cmd','ssh-keygen','restorecon','chage'].includes(base)) {
+             addToTerm(`bash: ${base}: command not found`, 'error');
         } else {
-          addToTerm("No matches found.");
-        }
-        break;
-      case 'systemctl':
-        if (args[1] === 'status') {
-          addToTerm(`● ${args[2] || 'service'} - The Apache HTTP Server\n   Loaded: loaded; enabled\n   Active: active (running)`, 'success');
-        } else if (args[1] === 'set-default') {
-          addToTerm(`Removed /etc/systemd/system/default.target.\nCreated symlink /etc/systemd/system/default.target -> /usr/lib/systemd/system/${args[2]}.`);
-        } else {
-          addToTerm("Command executed.");
-        }
-        break;
-      default:
-        if (['nmcli', 'tar', 'chown', 'chmod', 'ln', 'firewall-cmd', 'pvcreate', 'useradd', 'groupadd', 'usermod', 'tuned-adm', 'ssh-keygen', 'nice', 'find', 'setfacl', 'chage'].includes(base)) {
-          addToTerm("Command executed (Simulation).");
-        } else {
-            if (UTILITY_COMMANDS.includes(base) || (currentMission && base === currentMission.tool)) {
-                // Do nothing
-            } else {
-                addToTerm(`bash: ${base}: command not found`, 'error');
-            }
+             addToTerm("Command executed (Simulated).");
         }
     }
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      processCommand(inputVal);
-      setInputVal('');
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      const idx = historyIndex === -1 ? inputHistory.length - 1 : historyIndex - 1;
-      if (idx >= 0) {
-        setHistoryIndex(idx);
-        setInputVal(inputHistory[idx]);
-      }
-    } else if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      const idx = historyIndex + 1;
-      if (idx < inputHistory.length) {
-        setHistoryIndex(idx);
-        setInputVal(inputHistory[idx]);
-      } else {
-        setHistoryIndex(-1);
-        setInputVal('');
-      }
+    if (e.key === 'Enter') { 
+        processCommand(inputVal); 
+        setInputVal(''); 
+    } else if (e.key === 'ArrowUp') { 
+        e.preventDefault(); 
+        if (historyIndex === -1) {
+             const newIndex = inputHistory.length - 1;
+             if(newIndex >= 0) {
+                 setHistoryIndex(newIndex);
+                 setInputVal(inputHistory[newIndex]);
+             }
+        } else if (historyIndex > 0) {
+             const newIndex = historyIndex - 1;
+             setHistoryIndex(newIndex);
+             setInputVal(inputHistory[newIndex]);
+        }
+    } else if (e.key === 'ArrowDown') { 
+        e.preventDefault(); 
+        if (historyIndex !== -1 && historyIndex < inputHistory.length - 1) {
+            const newIndex = historyIndex + 1;
+            setHistoryIndex(newIndex);
+            setInputVal(inputHistory[newIndex]);
+        } else if (historyIndex === inputHistory.length - 1) {
+            setHistoryIndex(-1);
+            setInputVal('');
+        }
     }
   };
+
+  // Helper for current mission display
+  const activeMission = examMode 
+    ? examQuestions.find(m => m.id === currentMissionId) 
+    : MISSIONS.find(m => m.id === currentMissionId);
 
   return (
     <div className="flex h-screen bg-slate-50 font-sans text-slate-800">
       
       {/* SIDEBAR */}
       <nav className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white transform transition-transform duration-300 md:relative md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="p-6">
+        <div className="p-6 h-full flex flex-col">
           <h1 className="text-2xl font-bold text-red-500 mb-2">RHCSA<span className="text-white">Lab</span></h1>
           <p className="text-xs text-slate-400 uppercase tracking-wider mb-6">Interactive Study Guide</p>
           
-          <ul className="space-y-1">
-            <li><button className="flex items-center gap-3 px-3 py-2 rounded-md bg-red-900/30 text-red-400 font-bold hover:bg-red-900/50 text-sm transition-colors border border-red-900/50 w-full text-left"><TerminalIcon size={16}/> Practice Lab</button></li>
+          <div className="mb-6">
+             <div className="flex justify-between text-xs mb-1 text-slate-400">
+                 <span>Progress</span>
+                 <span>{completedMissions.length}/{MISSIONS.length}</span>
+             </div>
+             <ProgressBar completed={completedMissions.length} total={MISSIONS.length} />
+          </div>
+
+          <button onClick={startExamMode} disabled={examMode} className="w-full flex items-center justify-center gap-2 mb-6 px-3 py-2 rounded-md bg-red-600 text-white font-bold hover:bg-red-700 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+             <TimerIcon size={16}/> {examMode ? "Exam in Progress" : "Start Mock Exam"}
+          </button>
+
+          <ul className="space-y-1 overflow-y-auto flex-1 scrollbar-hide">
+            <li><button onClick={() => { setExamMode(false); setCurrentMissionId(0); }} className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors w-full text-left"><TerminalIcon size={16}/> Practice Lab</button></li>
             <div className="my-2 border-t border-slate-800"></div>
+            {/* Scroll to sections links could go here */}
+            <li className="text-xs text-slate-500 uppercase tracking-wider mt-4 mb-2 px-3">Quick Links</li>
             <li><a href="#pillar-1" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors"><FileTextIcon size={16}/> Tools & Scripting</a></li>
             <li><a href="#pillar-2" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors"><CpuIcon size={16}/> Running Systems</a></li>
             <li><a href="#pillar-3" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors"><HardDriveIcon size={16}/> Storage</a></li>
@@ -605,23 +428,17 @@ export default function App() {
         {/* TOP SCROLLABLE CONTENT */}
         <main className="flex-1 overflow-y-auto p-6 scroll-smooth">
           <div className="max-w-5xl mx-auto pb-6">
-            
-            {/* STATIC CONTENT HEADER */}
             <header className="mb-12">
               <h1 className="text-4xl font-bold text-slate-900 mb-4">The RHCSA Blueprint</h1>
               <p className="text-lg text-slate-600">Study the concepts below, then test them in the terminal below.</p>
             </header>
 
-            {/* PILLAR 1 */}
+            {/* PILLARS CONTENT (Same as before, abbreviated for brevity) */}
             <section id="pillar-1" className="mb-16 scroll-mt-8">
               <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
                 <div className="p-3 bg-blue-100 text-blue-600 rounded-lg"><TerminalIcon size={24} /></div>
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-900">Pillar 1: Tools & Scripting</h2>
-                  <p className="text-sm text-slate-500">File Manipulation & Scripts</p>
-                </div>
+                <div><h2 className="text-2xl font-bold text-slate-900">Pillar 1: Tools & Scripting</h2></div>
               </div>
-
               <div className="grid md:grid-cols-2 gap-6">
                 {/* PERMISSIONS */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
@@ -914,15 +731,23 @@ export default function App() {
                 </div>
               </div>
             </section>
+
           </div>
         </main>
 
-        {/* BOTTOM TERMINAL SECTION */}
+        {/* BOTTOM FIXED TERMINAL SECTION */}
         <section id="practice-lab" className="shrink-0 bg-slate-200 border-t border-slate-300 p-4 shadow-[0_-4px_10px_rgba(0,0,0,0.1)]">
           <div className="max-w-5xl mx-auto flex gap-4 h-64">
             
             {/* Terminal Container */}
-            <div className="flex-1 bg-slate-900 rounded-lg overflow-hidden flex flex-col shadow-lg border border-slate-700">
+            <div className="flex-1 bg-slate-900 rounded-lg overflow-hidden flex flex-col shadow-lg border border-slate-700 relative">
+              {/* Exam Timer Overlay */}
+              {examMode && (
+                  <div className="absolute top-2 right-2 bg-red-900/80 text-red-100 text-xs px-2 py-1 rounded font-mono z-10 border border-red-500 animate-pulse">
+                      TIME LEFT: {Math.floor(examTimeLeft / 60)}:{(examTimeLeft % 60).toString().padStart(2, '0')}
+                  </div>
+              )}
+
               <div className="bg-slate-800 p-2 flex items-center justify-between border-b border-slate-700 shrink-0">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
@@ -940,7 +765,7 @@ export default function App() {
                 className="flex-1 p-3 font-mono text-sm overflow-y-auto bg-slate-900" 
                 onClick={() => inputRef.current?.focus()}
               >
-                <div className="text-slate-400 mb-2">Welcome to the RHCSA Practice Terminal v2.0 (RHEL 10 Preview)</div>
+                <div className="text-slate-400 mb-2">Welcome to the RHCSA Practice Terminal v2.1</div>
                 
                 {terminalHistory.map((line, i) => (
                   <div key={i} className={`whitespace-pre-wrap mb-1 break-words ${
@@ -973,24 +798,29 @@ export default function App() {
 
             {/* Mission/Lesson Side Panel */}
             <div className="w-80 flex flex-col gap-3 shrink-0">
-              <div className="bg-white p-4 rounded-lg border border-slate-300 shadow-sm flex-1 overflow-y-auto">
+              <div className="bg-white p-4 rounded-lg border border-slate-300 shadow-sm flex-1 overflow-y-auto relative">
+                {/* Visual indicator for completed missions */}
+                {activeMission && completedMissions.includes(activeMission.id) && !examMode && (
+                    <div className="absolute top-2 right-2 text-green-500"><CheckIcon size={16} /></div>
+                )}
+
                 <div className="flex items-center gap-2 mb-2">
-                  <CrosshairIcon size={18} className="text-blue-600"/>
+                  <CrosshairIcon size={18} className={examMode ? "text-red-600 animate-pulse" : "text-blue-600"}/>
                   <h3 className="font-bold text-slate-800 text-sm">
-                    {currentMissionId === 0 ? "Ready?" : `Mission ${currentMissionId}`}
+                    {currentMissionId === 0 ? "Ready?" : examMode ? `Exam Task ${examQuestions.indexOf(activeMission) + 1}/15` : `Mission ${currentMissionId}`}
                   </h3>
                 </div>
                 <p className="text-xs text-slate-600 mb-3">
                   {currentMissionId === 0 
-                    ? <span>Type <span className="bg-slate-100 px-1 rounded text-red-500 font-bold">start</span> to begin.</span>
+                    ? <span>Type <span className="bg-slate-100 px-1 rounded text-red-500 font-bold">start</span> to begin or click Mock Exam.</span>
                     : missionComplete
                       ? "All scenarios finished."
-                      : (currentMission ? currentMission.desc : "")
+                      : (activeMission ? activeMission.desc : "")
                   }
                 </p>
 
-                {/* HINT TOGGLE */}
-                {currentMissionId > 0 && !missionComplete && currentMission && (
+                {/* HINT TOGGLE (Disabled in Exam Mode) */}
+                {currentMissionId > 0 && !missionComplete && activeMission && !examMode && (
                    <div className="mt-2">
                      {!showHint ? (
                        <button 
@@ -1001,7 +831,7 @@ export default function App() {
                        </button>
                      ) : (
                        <p className="text-xs text-blue-600 italic bg-blue-50 p-2 rounded border border-blue-100">
-                         Hint: {currentMission.hint}
+                         Hint: {activeMission.hint}
                        </p>
                      )}
                    </div>
@@ -1015,9 +845,9 @@ export default function App() {
                 <p className="text-[10px] text-amber-900 leading-relaxed">
                   {currentMissionId === 0 
                     ? "Lessons appear here." 
-                    : missionComplete 
-                      ? "Good luck!"
-                      : (currentMission ? currentMission.lesson : "")
+                    : examMode 
+                      ? "No lessons during exam mode!"
+                      : (activeMission ? activeMission.lesson : "")
                   }
                 </p>
               </div>
