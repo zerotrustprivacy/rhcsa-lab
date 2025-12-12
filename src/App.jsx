@@ -49,6 +49,21 @@ const TimerIcon = ({ size = 24, className = "" }) => (
 const ZapIcon = ({ size = 24, className = "" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
 );
+const PaletteIcon = ({ size = 24, className = "" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="13.5" cy="6.5" r=".5"></circle><circle cx="17.5" cy="10.5" r=".5"></circle><circle cx="8.5" cy="7.5" r=".5"></circle><circle cx="6.5" cy="12.5" r=".5"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg>
+);
+const AlertTriangleIcon = ({ size = 24, className = "" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+);
+const LinkIcon = ({ size = 24, className = "" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+);
+const UnlinkIcon = ({ size = 24, className = "" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m18.84 12.25 1.72-1.71h-.02a5.004 5.004 0 0 0-.12-7.07 5.006 5.006 0 0 0-6.95 0l-1.72 1.71"></path><path d="m5.17 11.75-1.71 1.71a5.004 5.004 0 0 0 .12 7.07 5.006 5.006 0 0 0 6.95 0l1.71-1.71"></path><line x1="8" y1="2" x2="8" y2="5"></line><line x1="2" y1="8" x2="5" y2="8"></line><line x1="16" y1="19" x2="16" y2="22"></line><line x1="19" y1="16" x2="22" y2="16"></line></svg>
+);
+const LayersIcon = ({ size = 24, className = "" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+);
 
 // --- 2. COMPONENTS (Defined BEFORE App) ---
 
@@ -56,6 +71,7 @@ const CopyButton = ({ text }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
+    // Safely handle text
     const textToCopy = text ? String(text) : "";
     try {
         await navigator.clipboard.writeText(textToCopy);
@@ -108,81 +124,120 @@ const ProgressBar = ({ completed, total }) => {
     );
 };
 
+const ReportCard = ({ results, total, onClose }) => {
+    const score = Math.round((results.filter(r => r.success).length / total) * 100);
+    const missed = results.filter(r => !r.success);
+    const missedCategories = missed.reduce((acc, curr) => {
+        acc[curr.category] = (acc[curr.category] || 0) + 1;
+        return acc;
+    }, {});
+
+    return (
+        <div className="absolute inset-0 bg-slate-900/95 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl border-4 border-slate-700 animate-in fade-in zoom-in duration-300">
+                <div className="text-center mb-6">
+                    <h2 className="text-3xl font-bold text-slate-800 mb-2">Exam Results</h2>
+                    <div className={`text-5xl font-mono font-bold ${score >= 70 ? 'text-green-600' : 'text-red-600'}`}>
+                        {score}%
+                    </div>
+                    <p className="text-slate-500 text-sm mt-2">
+                        {score >= 70 ? "PASSED! You're ready for the real deal." : "FAILED. Review the pillars below."}
+                    </p>
+                </div>
+                {Object.keys(missedCategories).length > 0 && (
+                    <div className="mb-6">
+                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                            <AlertTriangleIcon size={14} /> Weak Points Detected
+                        </h4>
+                        <div className="space-y-2">
+                            {Object.entries(missedCategories).map(([cat, count]) => (
+                                <div key={cat} className="flex justify-between items-center bg-red-50 p-2 rounded border border-red-100 text-sm">
+                                    <span className="font-semibold text-slate-700">{cat}</span>
+                                    <span className="bg-red-200 text-red-800 text-xs px-2 py-0.5 rounded-full">
+                                        Missed {count}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                <button onClick={onClose} className="w-full bg-slate-900 text-white font-bold py-3 rounded hover:bg-slate-800 transition-colors">
+                    Close Report
+                </button>
+            </div>
+        </div>
+    );
+};
+
 // --- 3. CONSTANTS & DATA ---
 const MAX_INPUT_LENGTH = 256; 
 const ILLEGAL_CHARS = /<script\b[^>]*>([\s\S]*?)<\/script>/gm; 
 const UTILITY_COMMANDS = ['clear', 'help', 'ls', 'pwd', 'whoami', 'history', 'id', 'exit', 'man', 'cat', 'touch', 'mkdir', 'rm', 'cd', 'cp', 'mv'];
 
-// --- MAN PAGES DATA ---
+const THEMES = [
+    { id: 'rhel', name: 'RHEL (Default)', bg: 'bg-slate-900', text: 'text-slate-300', prompt: 'text-green-400', cursor: 'bg-green-400' },
+    { id: 'matrix', name: 'Hacker Green', bg: 'bg-black', text: 'text-green-500', prompt: 'text-green-400', cursor: 'bg-green-500' },
+    { id: 'dracula', name: 'Dracula', bg: 'bg-[#282a36]', text: 'text-[#f8f8f2]', prompt: 'text-[#ff79c6]', cursor: 'bg-[#bd93f9]' },
+    { id: 'amber', name: 'Retro Amber', bg: 'bg-[#1a1200]', text: 'text-[#ffb000]', prompt: 'text-[#ffb000]', cursor: 'bg-[#ffb000]' }
+];
+
 const MAN_PAGES = {
-    useradd: "NAME\n  useradd - create a new user or update default new user information\n\nSYNOPSIS\n  useradd [options] LOGIN\n\nOPTIONS\n  -u, --uid UID\n      The numerical value of the user's ID.\n  -g, --gid GROUP\n      The group name or number of the user's initial login group.\n  -G, --groups GROUPS\n      A list of supplementary groups.",
-    groupadd: "NAME\n  groupadd - create a new group\n\nOPTIONS\n  -g, --gid GID\n      The numerical value of the group's ID.",
-    usermod: "NAME\n  usermod - modify a user account\n\nOPTIONS\n  -a, --append\n      Add the user to the supplementary groups. Use only with -G.\n  -G, --groups GROUPS\n      List of supplementary groups.",
-    tar: "NAME\n  tar - an archiving utility\n\nOPTIONS\n  -c  Create a new archive.\n  -x  Extract from an archive.\n  -f  Use archive file.\n  -v  Verbose output.\n  -z  Filter via gzip.\n  -j  Filter via bzip2.",
-    chmod: "NAME\n  chmod - change file mode bits\n\nEXAMPLES\n  chmod 755 file\n  chmod u+x file",
-    grep: "NAME\n  grep - print lines matching a pattern\n\nOPTIONS\n  -i  Ignore case.\n  -v  Invert match.\n  -r  Recursive.",
-    systemctl: "NAME\n  systemctl - Control the systemd system and service manager\n\nCOMMANDS\n  start [unit]\n  stop [unit]\n  restart [unit]\n  status [unit]\n  enable [unit]\n  disable [unit]",
-    nmcli: "NAME\n  nmcli - command-line tool for controlling NetworkManager\n\nEXAMPLES\n  nmcli con show\n  nmcli con add type ethernet con-name MyCon ifname eth0",
-    firewall_cmd: "NAME\n  firewall-cmd - firewalld command line client\n\nOPTIONS\n  --permanent    Make changes persistent\n  --add-service  Add a service\n  --reload       Reload firewall rules",
-    default: "No manual entry found. Try 'help' for a list of available commands."
+    useradd: "NAME\n  useradd - create a new user\nSYNOPSIS\n  useradd [options] LOGIN\nOPTIONS\n  -u UID\n  -g GID\n  -G GROUPS",
+    tar: "NAME\n  tar - archive utility\nOPTIONS\n  -c Create\n  -x Extract\n  -f File\n  -v Verbose\n  -z Gzip",
+    chmod: "NAME\n  chmod - change file mode bits\nEXAMPLES\n  chmod 755 file",
+    default: "No manual entry found. Try 'help'."
 };
 
-// --- INITIAL FILE SYSTEM STATE ---
 const INITIAL_FS = {
     '/root': { type: 'dir', children: { 'anaconda-ks.cfg': { type: 'file' }, 'original-ks.cfg': { type: 'file' } } },
     '/home': { type: 'dir', children: { 'student': { type: 'dir', children: {} } } },
     '/etc': { type: 'dir', children: { 'passwd': { type: 'file' }, 'hosts': { type: 'file' } } },
-    '/var': { type: 'dir', children: { 'www': { type: 'dir', children: { 'html': { type: 'dir', children: {} } } } } }
 };
 
-// FULL MISSION LIST (RHEL 10 Focused)
+// FULL MISSION LIST WITH CATEGORIES
 const MISSIONS = [
-  // ... (Keeping all previous missions)
-  { id: 1, tool: "useradd", title: "User Management", desc: "Create a new user named 'student' with UID 2000.", lesson: "In RHEL, `useradd` creates new accounts. The `-u` flag specifies a custom UID. Managing UIDs is critical for NFS compatibility.", hint: "useradd -u 2000 student", check: (cmd) => /^useradd\s+/.test(cmd) && /\s-u\s+2000\b/.test(cmd) && /\sstudent\b/.test(cmd) },
-  { id: 2, tool: "groupadd", title: "Group Management", desc: "Create a new group named 'devops' with GID 5000.", lesson: "Groups allow permission sharing. `groupadd` creates them. `-g` specifies a static GID.", hint: "groupadd -g 5000 devops", check: (cmd) => /^groupadd\s+/.test(cmd) && /-g\s+5000/.test(cmd) && /\sdevops\b/.test(cmd) },
-  { id: 3, tool: "usermod", title: "Modify User Group", desc: "Add existing user 'student' to the 'devops' group.", lesson: "`usermod` changes user properties. `-aG` (Append Groups) adds a secondary group without removing existing ones. Order matters: group first, then user.", hint: "usermod -aG devops student", check: (cmd) => /^usermod\s+/.test(cmd) && /-aG\s+devops/.test(cmd) && /\sstudent\b/.test(cmd) },
-  { id: 4, tool: "tar", title: "Archiving", desc: "Create a gzip archive named 'backup.tar.gz' of the '/home' directory.", lesson: "`tar` flags: -c (create), -z (gzip), -v (verbose), -f (file).", hint: "tar -czvf backup.tar.gz /home", check: (cmd) => /^tar\s+/.test(cmd) && /-[a-zA-Z]*z[a-zA-Z]*/.test(cmd) && /-[a-zA-Z]*c[a-zA-Z]*/.test(cmd) && /\sbackup\.tar\.gz\b/.test(cmd) && /\s\/home\b/.test(cmd) },
-  { id: 5, tool: "chmod", title: "File Permissions", desc: "Set permissions on 'script.sh': User=All(7), Group=Read/Exec(5), Others=None(0).", lesson: "Octal math: Read=4, Write=2, Exec=1. User(4+2+1=7), Group(4+0+1=5), Other(0).", hint: "chmod 750 script.sh", check: (cmd) => /^chmod\s+750\s+script\.sh$/.test(cmd) },
-  { id: 6, tool: "grep", title: "Text Search (Grep)", desc: "Search for lines starting with 'root' in '/etc/passwd'.", lesson: "The caret `^` is a regex anchor for 'start of line'.", hint: "grep \"^root\" /etc/passwd", check: (cmd) => /^grep\s+/.test(cmd) && (/["']\^root["']/.test(cmd) || /\^root/.test(cmd)) && /\s\/etc\/passwd$/.test(cmd) },
-  { id: 7, tool: "ln", title: "Soft Linking", desc: "Create a soft link named 'mylink' pointing to '/etc/hosts'.", lesson: "`ln -s` creates symbolic links. Without `-s`, it creates a hard link.", hint: "ln -s /etc/hosts mylink", check: (cmd) => /^ln\s+/.test(cmd) && /\s-s\s/.test(cmd) && /\s\/etc\/hosts\s+mylink$/.test(cmd) },
-  { id: 8, tool: "find", title: "Locating Files", desc: "Find all files in '/etc' that end with '.conf'.", lesson: "`find` searches directory trees. Use `-name` for filenames. Quotes around the pattern `*.conf` prevent shell expansion.", hint: "find /etc -name \"*.conf\"", check: (cmd) => /^find\s+\/etc\s+/.test(cmd) && /-name\s+["']\*\.conf["']/.test(cmd) },
-  { id: 9, tool: "setfacl", title: "Access Control Lists (ACLs)", desc: "Grant user 'student' read-write access to 'file.txt' using ACLs.", lesson: "`setfacl` allows fine-grained permissions beyond standard UGO. `-m` modifies the ACL. Syntax: `u:user:perms`.", hint: "setfacl -m u:student:rw file.txt", check: (cmd) => /^setfacl\s+/.test(cmd) && /-m\s+/.test(cmd) && /u:student:rw/.test(cmd) && /\sfile\.txt$/.test(cmd) },
-  { id: 10, tool: "systemctl", title: "Service Check", desc: "Check the status of the 'httpd' service.", lesson: "`systemctl` controls systemd. `status` shows runtime info and recent logs.", hint: "systemctl status httpd", check: (cmd) => /^systemctl\s+status\s+httpd$/.test(cmd) },
-  { id: 11, tool: "systemctl", title: "Set Default Target", desc: "Configure the system to boot into text-only mode (multi-user.target) by default.", lesson: "RHEL uses 'targets' instead of runlevels. `set-default` makes the change persistent across reboots.", hint: "systemctl set-default multi-user.target", check: (cmd) => /^systemctl\s+set-default\s+multi-user\.target$/.test(cmd) },
-  { id: 12, tool: "tuned-adm", title: "System Tuning", desc: "Set the tuning profile to 'virtual-guest'.", lesson: "`tuned-adm` applies kernel presets optimized for specific workloads.", hint: "tuned-adm profile virtual-guest", check: (cmd) => /^tuned-adm\s+profile\s+virtual-guest$/.test(cmd) },
-  { id: 13, tool: "nice", title: "Process Priorities", desc: "Start the 'tar' command with a nice value (priority) of 5.", lesson: "`nice` sets the initial priority. Higher numbers (up to 19) are 'nicer' (lower priority). Lower numbers (down to -20) are higher priority.", hint: "nice -n 5 tar", check: (cmd) => /^nice\s+/.test(cmd) && /-n\s+5/.test(cmd) && /\star/.test(cmd) },
-  { id: 14, tool: "chronyc", title: "Time Synchronization", desc: "Verify the list of NTP sources the system is using.", lesson: "`chronyd` is the default time service. Use `chronyc sources` to see which servers you are syncing with.", hint: "chronyc sources", check: (cmd) => /^chronyc\s+sources\b/.test(cmd) },
-  { id: 15, tool: "journalctl", title: "System Logging", desc: "Show all log entries for the 'sshd' service.", lesson: "`journalctl` queries the systemd journal. Use `-u` (unit) to filter by a specific service.", hint: "journalctl -u sshd", check: (cmd) => /^journalctl\s+/.test(cmd) && /-u\s+sshd\b/.test(cmd) },
-  { id: 16, tool: "pvcreate", title: "LVM: PV Creation", desc: "Initialize '/dev/vdb1' as a Physical Volume.", lesson: "`pvcreate` labels a partition for LVM use. It's the first step of the LVM chain.", hint: "pvcreate /dev/vdb1", check: (cmd) => /^pvcreate\s+\/dev\/vdb1$/.test(cmd) },
-  { id: 17, tool: "vgcreate", title: "LVM: Volume Group", desc: "Create a volume group named 'myvg' using '/dev/vdb1'.", lesson: "`vgcreate` pools Physical Volumes into a Volume Group. This is your pool of storage.", hint: "vgcreate myvg /dev/vdb1", check: (cmd) => /^vgcreate\s+myvg\s+\/dev\/vdb1$/.test(cmd) },
-  { id: 18, tool: "lvcreate", title: "LVM: Logical Volume", desc: "Create a 500MB Logical Volume named 'mylv' in 'myvg'.", lesson: "`lvcreate` carves usable space. Use `-L` for size (e.g., 500M) and `-n` for name.", hint: "lvcreate -L 500M -n mylv myvg", check: (cmd) => /^lvcreate\s+/.test(cmd) && /-L\s+500M/.test(cmd) && /-n\s+mylv/.test(cmd) && /\smyvg\b/.test(cmd) },
-  { id: 19, tool: "lvextend", title: "LVM: Extend Volume", desc: "Extend 'mylv' by adding 200MB and resize the filesystem in one step.", lesson: "`lvextend` adds space. The `-r` (resizefs) flag is crucial—it automatically runs `xfs_growfs` or `resize2fs` for you.", hint: "lvextend -L +200M -r /dev/myvg/mylv", check: (cmd) => /^lvextend\s+/.test(cmd) && /-L\s+\+200M/.test(cmd) && /-r\b/.test(cmd) && /\/dev\/myvg\/mylv/.test(cmd) },
-  { id: 20, tool: "mkfs.xfs", title: "Filesystem Creation", desc: "Format the logical volume '/dev/myvg/mylv' with the XFS filesystem.", lesson: "Before mounting, you must format. RHEL defaults to XFS (`mkfs.xfs`).", hint: "mkfs.xfs /dev/myvg/mylv", check: (cmd) => /^mkfs\.xfs\s+\/dev\/myvg\/mylv$/.test(cmd) },
-  { id: 21, tool: "mkswap", title: "Create Swap", desc: "Format partition '/dev/vdb2' as swap space.", lesson: "Swap is used when RAM is full. `mkswap` prepares the device.", hint: "mkswap /dev/vdb2", check: (cmd) => /^mkswap\s+\/dev\/vdb2$/.test(cmd) },
-  { id: 22, tool: "mount", title: "NFS Mounting", desc: "Mount the NFS share 'server:/share' to '/mnt/data'.", lesson: "Mounting connects a remote filesystem to your local tree. Syntax: `mount -t nfs [remote] [local]`.", hint: "mount -t nfs server:/share /mnt/data", check: (cmd) => /^mount\s+/.test(cmd) && /-t\s+nfs/.test(cmd) && /\sserver:\/share/.test(cmd) && /\s\/mnt\/data$/.test(cmd) },
-  { id: 23, tool: "dnf", title: "Software Install", desc: "Install the 'httpd' package using DNF.", lesson: "`dnf` is the package manager (Dandified YUM). Use it to install, update, and remove software.", hint: "dnf install httpd", check: (cmd) => /^dnf\s+install\s+httpd$/.test(cmd) },
-  { id: 24, tool: "crontab", title: "Scheduling Tasks", desc: "List the current user's cron jobs.", lesson: "`cron` schedules recurring tasks. `-e` edits, `-l` lists, `-r` removes. We use `-l` here to verify.", hint: "crontab -l", check: (cmd) => /^crontab\s+-l$/.test(cmd) },
-  { id: 25, tool: "flatpak", title: "Flatpak Management", desc: "Install 'gedit' from 'flathub' remote.", lesson: "Flatpak manages containerized desktop apps. Use `flatpak install [remote] [app]`.", hint: "flatpak install flathub org.gnome.gedit", check: (cmd) => /^flatpak\s+install\s+/.test(cmd) && /flathub/.test(cmd) && /gedit/.test(cmd) },
-  { id: 26, tool: "hostnamectl", title: "Hostname Config", desc: "Set the system hostname to 'server1.example.com'.", lesson: "`hostnamectl` manages the system name persistently.", hint: "hostnamectl set-hostname server1.example.com", check: (cmd) => /^hostnamectl\s+set-hostname\s+server1\.example\.com$/.test(cmd) },
-  { id: 27, tool: "dnf", title: "Repo Management", desc: "Add a new repository from 'http://repo.example.com/app.repo'.", lesson: "`dnf config-manager` is the easiest way to add repos.", hint: "dnf config-manager --add-repo http://repo.example.com/app.repo", check: (cmd) => /^dnf\s+config-manager\s+--add-repo\s+http:\/\/repo\.example\.com\/app\.repo$/.test(cmd) },
-  { id: 28, tool: "nmcli", title: "Networking", desc: "Add a new ethernet connection named 'static-eth0'.", lesson: "NetworkManager (nmcli) is the standard for RHEL networking.", hint: "nmcli con add con-name static-eth0 type ethernet ifname eth0", check: (cmd) => /^nmcli\s+con\s+add\s+/.test(cmd) && /con-name\s+static-eth0/.test(cmd) },
-  { id: 29, tool: "firewall-cmd", title: "Firewall Configuration", desc: "Permanently add the 'ftp' service to the firewall.", lesson: "Changes are lost on reboot unless you use `--permanent`. Reload afterwards.", hint: "firewall-cmd --add-service=ftp --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-service=ftp/.test(cmd) && /--permanent/.test(cmd) },
-  { id: 30, tool: "ssh-keygen", title: "SSH Keys", desc: "Generate a new SSH key pair.", lesson: "`ssh-keygen` creates the public/private key pair for passwordless auth.", hint: "ssh-keygen", check: (cmd) => /^ssh-keygen\b/.test(cmd) },
-  { id: 31, tool: "ls", title: "SELinux Contexts", desc: "List SELinux contexts for files in the current directory.", lesson: "Use the `-Z` flag with `ls`, `ps`, or `id` to see security labels.", hint: "ls -Z", check: (cmd) => /^ls\s+/.test(cmd) && /-[a-zA-Z]*Z/.test(cmd) },
-  { id: 32, tool: "restorecon", title: "SELinux Restore", desc: "Restore default SELinux contexts on '/var/www/html'.", lesson: "`restorecon` reads the policy and resets file contexts to their defaults. Use `-R` for recursive.", hint: "restorecon -R /var/www/html", check: (cmd) => /^restorecon\s+/.test(cmd) && /-[a-zA-Z]*R/.test(cmd) && /\s\/var\/www\/html$/.test(cmd) },
-  { id: 33, tool: "chage", title: "Password Aging", desc: "Set the maximum password age for user 'student' to 90 days.", lesson: "`chage` (Change Age) manages password expiry. `-M` sets the max days before a password change is required.", hint: "chage -M 90 student", check: (cmd) => /^chage\s+/.test(cmd) && /-M\s+90/.test(cmd) && /\sstudent$/.test(cmd) },
-  { id: 34, tool: "touch", title: "Create Shell Script", desc: "Create an empty shell script named 'backup.sh'.", lesson: "Scripts automate tasks. Start by creating the file.", hint: "touch backup.sh", check: (cmd) => /^touch\s+backup\.sh$/.test(cmd) },
-  { id: 35, tool: "usermod", title: "Sudo Access", desc: "Add user 'student' to the 'wheel' group for sudo privileges.", lesson: "The 'wheel' group allows users to run commands as root via sudo.", hint: "usermod -aG wheel student", check: (cmd) => /^usermod\s+/.test(cmd) && /-aG\s+wheel/.test(cmd) && /\sstudent\b/.test(cmd) },
-  { id: 36, tool: "umask", title: "Default Permissions", desc: "Set the current session umask to 027 (Owner:rwx, Group:rx, Other:none).", lesson: "`umask` subtracts permissions from the default (666 for files, 777 for dirs).", hint: "umask 027", check: (cmd) => /^umask\s+027$/.test(cmd) },
-  { id: 37, tool: "setsebool", title: "SELinux Boolean", desc: "Persistently enable the 'httpd_can_network_connect' boolean.", lesson: "Booleans allow/deny specific SELinux features. `-P` makes it persistent.", hint: "setsebool -P httpd_can_network_connect on", check: (cmd) => /^setsebool\s+/.test(cmd) && /-P\s+httpd_can_network_connect\s+(on|1)/.test(cmd) },
-  { id: 38, tool: "semanage", title: "SELinux Port", desc: "Add port 8081 to the http_port_t SELinux type.", lesson: "Services can only bind to permitted ports. Use `semanage` to add new ones.", hint: "semanage port -a -t http_port_t -p tcp 8081", check: (cmd) => /^semanage\s+port\s+/.test(cmd) && /-a/.test(cmd) && /-t\s+http_port_t/.test(cmd) && /-p\s+tcp\s+8081/.test(cmd) },
-  { id: 39, tool: "fdisk", title: "Manual Partitioning", desc: "Open the fdisk utility for device '/dev/vdb'.", lesson: "`fdisk` is used for MBR/GPT partitioning. Interactive tool.", hint: "fdisk /dev/vdb", check: (cmd) => /^fdisk\s+\/dev\/vdb$/.test(cmd) },
-  { id: 40, tool: "scp", title: "Secure Copy", desc: "Copy 'file.txt' to user 'admin' at '192.168.1.5' into '/tmp'.", lesson: "`scp` transfers files over SSH.", hint: "scp file.txt admin@192.168.1.5:/tmp", check: (cmd) => /^scp\s+file\.txt\s+admin@192\.168\.1\.5:\/tmp$/.test(cmd) },
-  { id: 41, tool: "kill", title: "Terminate Process", desc: "Force kill the process with PID 1234.", lesson: "`kill` sends signals. `-9` is SIGKILL (force).", hint: "kill -9 1234", check: (cmd) => /^kill\s+-9\s+1234$/.test(cmd) },
-  { id: 42, tool: "dnf", title: "Module Streams", desc: "Install the 'nodejs:18' module stream.", lesson: "AppStream allows different versions of software. Syntax: `module:stream`.", hint: "dnf module install nodejs:18", check: (cmd) => /^dnf\s+module\s+install\s+nodejs:18$/.test(cmd) },
-  { id: 43, tool: "dnf", title: "AutoFS Install", desc: "Install the 'autofs' package.", lesson: "AutoFS mounts shares on demand.", hint: "dnf install autofs", check: (cmd) => /^dnf\s+install\s+autofs$/.test(cmd) },
-  { id: 44, tool: "tuned-adm", title: "Recommended Tuning", desc: "Apply the recommended tuning profile for this system.", lesson: "`recommend` asks TuneD to detect the best profile.", hint: "tuned-adm recommend", check: (cmd) => /^tuned-adm\s+recommend$/.test(cmd) },
-  { id: 45, tool: "systemctl", title: "Get Default Target", desc: "Check which target the system boots into by default.", lesson: "Verifying the boot target is a common troubleshooting step.", hint: "systemctl get-default", check: (cmd) => /^systemctl\s+get-default$/.test(cmd) }
+  // PILLAR 1: TOOLS & SCRIPTING
+  { id: 1, category: "Tools", tool: "useradd", title: "User Management", desc: "Create user 'student' with UID 2000.", lesson: "RHEL user creation.", hint: "useradd -u 2000 student", check: (cmd) => /^useradd\s+/.test(cmd) && /\s-u\s+2000\b/.test(cmd) },
+  { id: 2, category: "Tools", tool: "groupadd", title: "Group Management", desc: "Create group 'devops' with GID 5000.", lesson: "Static GIDs.", hint: "groupadd -g 5000 devops", check: (cmd) => /^groupadd\s+/.test(cmd) && /-g\s+5000/.test(cmd) },
+  { id: 3, category: "Tools", tool: "usermod", title: "Modify User", desc: "Add 'student' to 'devops' group.", lesson: "Append groups.", hint: "usermod -aG devops student", check: (cmd) => /^usermod\s+/.test(cmd) && /-aG\s+devops/.test(cmd) },
+  { id: 4, category: "Tools", tool: "tar", title: "Archiving", desc: "Create gzip archive 'backup.tar.gz' of '/home'.", lesson: "Tar with gzip.", hint: "tar -czvf backup.tar.gz /home", check: (cmd) => /^tar\s+/.test(cmd) && /-[a-zA-Z]*z/.test(cmd) && /-[a-zA-Z]*c/.test(cmd) },
+  { id: 5, category: "Tools", tool: "chmod", title: "Permissions", desc: "Set 'script.sh' permissions: Owner=All, Group=RX, Other=None.", lesson: "Octal 750.", hint: "chmod 750 script.sh", check: (cmd) => /^chmod\s+750\s+script\.sh$/.test(cmd) },
+  { id: 6, category: "Tools", tool: "grep", title: "Grep", desc: "Search for lines starting with 'root' in '/etc/passwd'.", lesson: "Regex anchors.", hint: "grep \"^root\" /etc/passwd", check: (cmd) => /^grep\s+/.test(cmd) && /\^root/.test(cmd) },
+  { id: 7, category: "Tools", tool: "ln", title: "Soft Link", desc: "Create soft link 'mylink' to '/etc/hosts'.", lesson: "Symbolic links.", hint: "ln -s /etc/hosts mylink", check: (cmd) => /^ln\s+/.test(cmd) && /\s-s\s/.test(cmd) },
+  { id: 8, category: "Tools", tool: "find", title: "Find Files", desc: "Find files in '/etc' ending with '.conf'.", lesson: "Find by name.", hint: "find /etc -name \"*.conf\"", check: (cmd) => /^find\s+/.test(cmd) && /-name/.test(cmd) },
+  { id: 9, category: "Tools", tool: "setfacl", title: "ACLs", desc: "Grant 'student' RW access to 'file.txt' via ACL.", lesson: "Extended permissions.", hint: "setfacl -m u:student:rw file.txt", check: (cmd) => /^setfacl\s+/.test(cmd) && /-m/.test(cmd) },
+
+  // PILLAR 2: SYSTEMS
+  { id: 10, category: "Systems", tool: "systemctl", title: "Service Status", desc: "Check status of 'httpd'.", lesson: "Systemd control.", hint: "systemctl status httpd", check: (cmd) => /^systemctl\s+status\s+httpd$/.test(cmd) },
+  { id: 11, category: "Systems", tool: "systemctl", title: "Default Target", desc: "Set default boot to text-mode.", lesson: "Multi-user target.", hint: "systemctl set-default multi-user.target", check: (cmd) => /^systemctl\s+set-default\s+multi-user\.target$/.test(cmd) },
+  { id: 12, category: "Systems", tool: "tuned-adm", title: "Tuning", desc: "Set profile to 'virtual-guest'.", lesson: "Performance profiles.", hint: "tuned-adm profile virtual-guest", check: (cmd) => /^tuned-adm\s+profile\s+virtual-guest$/.test(cmd) },
+  { id: 13, category: "Systems", tool: "nice", title: "Process Priority", desc: "Start 'tar' with priority 5.", lesson: "Process niceness.", hint: "nice -n 5 tar", check: (cmd) => /^nice\s+/.test(cmd) && /-n\s+5/.test(cmd) },
+  { id: 14, category: "Systems", tool: "chronyc", title: "NTP", desc: "Verify NTP sources.", lesson: "Time sync.", hint: "chronyc sources", check: (cmd) => /^chronyc\s+sources/.test(cmd) },
+  { id: 15, category: "Systems", tool: "journalctl", title: "Logging", desc: "Show logs for 'sshd'.", lesson: "Systemd journal.", hint: "journalctl -u sshd", check: (cmd) => /^journalctl\s+/.test(cmd) && /-u\s+sshd/.test(cmd) },
+
+  // PILLAR 3: STORAGE
+  { id: 16, category: "Storage", tool: "pvcreate", title: "PV Creation", desc: "Init '/dev/vdb1' as PV.", lesson: "LVM Layer 1.", hint: "pvcreate /dev/vdb1", check: (cmd) => /^pvcreate\s+\/dev\/vdb1$/.test(cmd) },
+  { id: 17, category: "Storage", tool: "vgcreate", title: "VG Creation", desc: "Create VG 'myvg' using '/dev/vdb1'.", lesson: "LVM Layer 2.", hint: "vgcreate myvg /dev/vdb1", check: (cmd) => /^vgcreate\s+myvg\s+\/dev\/vdb1$/.test(cmd) },
+  { id: 18, category: "Storage", tool: "lvcreate", title: "LV Creation", desc: "Create 500MB LV 'mylv' in 'myvg'.", lesson: "LVM Layer 3.", hint: "lvcreate -L 500M -n mylv myvg", check: (cmd) => /^lvcreate\s+/.test(cmd) && /-L\s+500M/.test(cmd) },
+  { id: 19, category: "Storage", tool: "lvextend", title: "Extend LV", desc: "Add 200MB to 'mylv' and resize FS.", lesson: "Resize fs flag.", hint: "lvextend -L +200M -r /dev/myvg/mylv", check: (cmd) => /^lvextend\s+/.test(cmd) && /-r/.test(cmd) },
+  { id: 20, category: "Storage", tool: "mkfs.xfs", title: "Format FS", desc: "Format '/dev/myvg/mylv' as XFS.", lesson: "Filesystem creation.", hint: "mkfs.xfs /dev/myvg/mylv", check: (cmd) => /^mkfs\.xfs\s+/.test(cmd) },
+  { id: 21, category: "Storage", tool: "mkswap", title: "Swap", desc: "Format '/dev/vdb2' as swap.", lesson: "Swap space.", hint: "mkswap /dev/vdb2", check: (cmd) => /^mkswap\s+\/dev\/vdb2$/.test(cmd) },
+  { id: 22, category: "Storage", tool: "mount", title: "Mounting", desc: "Mount NFS share 'server:/share' to '/mnt'.", lesson: "Mount command.", hint: "mount -t nfs server:/share /mnt", check: (cmd) => /^mount\s+/.test(cmd) && /-t\s+nfs/.test(cmd) },
+
+  // PILLAR 4: DEPLOY
+  { id: 23, category: "Deploy", tool: "dnf", title: "Install Software", desc: "Install 'httpd'.", lesson: "Package manager.", hint: "dnf install httpd", check: (cmd) => /^dnf\s+install\s+httpd$/.test(cmd) },
+  { id: 24, category: "Deploy", tool: "crontab", title: "Cron", desc: "List current cron jobs.", lesson: "Scheduling.", hint: "crontab -l", check: (cmd) => /^crontab\s+-l$/.test(cmd) },
+  { id: 25, category: "Deploy", tool: "flatpak", title: "Flatpak", desc: "Install 'gedit' from flathub.", lesson: "Container apps.", hint: "flatpak install flathub org.gnome.gedit", check: (cmd) => /^flatpak\s+install/.test(cmd) },
+  { id: 26, category: "Deploy", tool: "hostnamectl", title: "Hostname", desc: "Set hostname to 'server1'.", lesson: "System identity.", hint: "hostnamectl set-hostname server1", check: (cmd) => /^hostnamectl\s+set-hostname\s+server1/.test(cmd) },
+  { id: 27, category: "Deploy", tool: "dnf", title: "Repos", desc: "Add repo 'http://repo.com/app.repo'.", lesson: "Repo management.", hint: "dnf config-manager --add-repo http://repo.com/app.repo", check: (cmd) => /^dnf\s+config-manager\s+--add-repo/.test(cmd) },
+
+  // PILLAR 5: SECURITY
+  { id: 28, category: "Security", tool: "nmcli", title: "Network", desc: "Add ethernet connection 'static-eth0'.", lesson: "NetworkManager.", hint: "nmcli con add con-name static-eth0 type ethernet ifname eth0", check: (cmd) => /^nmcli\s+con\s+add/.test(cmd) },
+  { id: 29, category: "Security", tool: "firewall-cmd", title: "Firewall", desc: "Permanently allow 'ftp'.", lesson: "Firewalld.", hint: "firewall-cmd --add-service=ftp --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--permanent/.test(cmd) },
+  { id: 30, category: "Security", tool: "ssh-keygen", title: "SSH", desc: "Generate SSH keys.", lesson: "Secure shell.", hint: "ssh-keygen", check: (cmd) => /^ssh-keygen/.test(cmd) },
+  { id: 31, category: "Security", tool: "ls", title: "SELinux List", desc: "List file contexts.", lesson: "Context labels.", hint: "ls -Z", check: (cmd) => /^ls\s+/.test(cmd) && /-[a-zA-Z]*Z/.test(cmd) },
+  { id: 32, category: "Security", tool: "restorecon", title: "SELinux Restore", desc: "Fix contexts on '/var/www/html'.", lesson: "Context repair.", hint: "restorecon -R /var/www/html", check: (cmd) => /^restorecon\s+/.test(cmd) && /-R/.test(cmd) },
+  { id: 33, category: "Security", tool: "chage", title: "Passwords", desc: "Set max password age to 90 days for 'student'.", lesson: "Aging policies.", hint: "chage -M 90 student", check: (cmd) => /^chage\s+/.test(cmd) && /-M\s+90/.test(cmd) }
 ];
 
 // --- 4. MAIN APP COMPONENT ---
@@ -196,28 +251,29 @@ export default function App() {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [showHint, setShowHint] = useState(false); 
   const [missions] = useState(MISSIONS);
-  const [retroMode, setRetroMode] = useState(false);
-  
-  // --- VIRTUAL FS STATE ---
+  const [currentTheme, setCurrentTheme] = useState(THEMES[0]);
+  const [successFlash, setSuccessFlash] = useState(false);
   const [fs, setFs] = useState(INITIAL_FS);
   const [cwd, setCwd] = useState('/root');
 
-  // --- STATES FOR PRO FEATURES ---
+  // PRO STATE
   const [completedMissions, setCompletedMissions] = useState([]);
   const [examMode, setExamMode] = useState(false);
   const [examTimeLeft, setExamTimeLeft] = useState(0);
   const [examQuestions, setExamQuestions] = useState([]);
-  
+  const [examResults, setExamResults] = useState([]); // Array of { id, category, success }
+  const [showReportCard, setShowReportCard] = useState(false);
+
   const terminalEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Load progress on mount
+  // Load progress
   useEffect(() => {
       const saved = localStorage.getItem('rhcsa_progress');
       if (saved) setCompletedMissions(JSON.parse(saved));
   }, []);
 
-  // Save progress on update
+  // Save progress
   useEffect(() => {
       localStorage.setItem('rhcsa_progress', JSON.stringify(completedMissions));
   }, [completedMissions]);
@@ -230,22 +286,25 @@ export default function App() {
               setExamTimeLeft((prev) => prev - 1);
           }, 1000);
       } else if (examMode && examTimeLeft === 0) {
-          setExamMode(false);
-          addToTerm("TIME'S UP! Exam finished.", 'error');
-          setCurrentMissionId(0);
+          endExam();
       }
       return () => clearInterval(interval);
   }, [examMode, examTimeLeft]);
 
-  // Auto-scroll terminal
+  // Auto-scroll
   useEffect(() => {
     terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [terminalHistory]);
 
-  // Reset hint when mission changes
   useEffect(() => {
     setShowHint(false);
   }, [currentMissionId]);
+
+  const cycleTheme = () => {
+    const currentIndex = THEMES.indexOf(currentTheme);
+    const nextIndex = (currentIndex + 1) % THEMES.length;
+    setCurrentTheme(THEMES[nextIndex]);
+  };
 
   const addToTerm = (text, type = 'output') => {
     if (typeof text !== 'string') return;
@@ -258,29 +317,29 @@ export default function App() {
   };
 
   const startExamMode = () => {
-      // Pick 15 random missions
       const shuffled = [...MISSIONS].sort(() => 0.5 - Math.random());
       const selected = shuffled.slice(0, 15);
       
       setExamQuestions(selected);
+      setExamResults([]); // Reset results
       setExamMode(true);
-      setExamTimeLeft(20 * 60); // 20 minutes
+      setShowReportCard(false);
+      setExamTimeLeft(20 * 60); 
       setCurrentMissionId(selected[0].id);
       setTerminalHistory([]);
       addToTerm("--- MOCK EXAM STARTED ---", 'system');
       addToTerm("You have 20 minutes to complete 15 random tasks.", 'system');
-      addToTerm(`Objective 1: ${selected[0].desc}`, 'system');
+      addToTerm(`Task 1: ${selected[0].desc}`, 'system');
   };
 
-  // --- VFS HELPERS ---
-  const getDir = (path, currentFs = fs) => {
-      if (path === '/') return currentFs; // Not supported fully in this simplified recursion, but assumes root keys
-      // Simple lookup for top-level dirs in our flat(ish) structure
-      if (currentFs[path]) return currentFs[path];
-      // Basic recursive lookup could go here, but keeping it flat for simplicity of this demo
-      return null;
+  const endExam = () => {
+      setExamMode(false);
+      setShowReportCard(true);
+      addToTerm("EXAM FINISHED. Generating report...", 'system');
+      setCurrentMissionId(0);
   };
 
+  // Process Logic
   const processCommand = (cmd) => {
     const cleanCmd = sanitizeInput(cmd.trim());
     if (!cleanCmd) return;
@@ -292,32 +351,35 @@ export default function App() {
     const args = cleanCmd.split(' ');
     const base = args[0];
 
-    // --- MAN PAGE LOGIC ---
+    // MAN PAGE
     if (base === 'man') {
         const page = MAN_PAGES[args[1]] || MAN_PAGES['default'];
         addToTerm(page);
         return;
     }
 
-    // --- MISSION LOGIC ---
-    const activeMissionList = examMode ? examQuestions : MISSIONS;
+    // MISSION LOGIC
+    const activeMissionList = examMode ? examQuestions : missions;
     const currentMission = activeMissionList.find(m => m.id === currentMissionId);
 
     if (currentMissionId > 0 && currentMission) {
-      
-      // 1. Check Success
       let success = false;
       try { success = currentMission.check(cleanCmd); } catch(e) {}
 
       if (success) {
-        addToTerm(`SUCCESS: Mission Complete!`, 'success');
+        addToTerm(`SUCCESS`, 'success');
+        setSuccessFlash(true);
+        setTimeout(() => setSuccessFlash(false), 800);
         
-        // Save Progress (Only in normal mode)
+        // Track Result for Report Card
+        if (examMode) {
+             setExamResults(prev => [...prev, { ...currentMission, success: true }]);
+        }
+        
         if (!examMode && !completedMissions.includes(currentMission.id)) {
             setCompletedMissions(prev => [...prev, currentMission.id]);
         }
 
-        // Logic for Next Mission
         if (examMode) {
             const currentIndex = examQuestions.findIndex(m => m.id === currentMissionId);
             if (currentIndex < examQuestions.length - 1) {
@@ -328,16 +390,15 @@ export default function App() {
                     addToTerm(`Objective: ${nextMission.desc}`, 'system');
                 }, 1000);
             } else {
-                setExamMode(false);
-                addToTerm("CONGRATULATIONS! You passed the mock exam.", 'success');
-                setCurrentMissionId(0);
+                endExam();
             }
         } else {
-            // Normal Mode
-            if (currentMissionId < MISSIONS.length) {
-                setTimeout(() => {
-                    setCurrentMissionId(prev => prev + 1);
-                    const nextMission = MISSIONS.find(m => m.id === currentMissionId + 1);
+            // Normal
+             const currentIndex = missions.findIndex(m => m.id === currentMissionId);
+            if (currentIndex < missions.length - 1) {
+                const nextMission = missions[currentIndex + 1];
+                 setTimeout(() => {
+                    setCurrentMissionId(nextMission.id);
                     addToTerm(`\n--- MISSION ${nextMission.id} ---`, 'system');
                     addToTerm(`Objective: ${nextMission.desc}`, 'system');
                 }, 1500);
@@ -349,19 +410,22 @@ export default function App() {
         return;
       }
       
-      // 2. Feedback
+      // Feedback
       if (!examMode) {
           if (cleanCmd.startsWith(currentMission.tool) && base === currentMission.tool) {
               addToTerm(`> Correct command '${base}', check flags.`, 'error');
           } else if (!UTILITY_COMMANDS.includes(base) && base !== currentMission.tool) {
               addToTerm(`> Wrong tool. Try again.`, 'error');
           }
+      } else {
+          // In exam mode, if they fail, maybe we should track it as a fail attempts? 
+          // For now, we just let them retry until time runs out or they get it.
+          // Optional: Skip button implementation could go here.
       }
     }
 
-    // --- SIMULATION & VFS COMMANDS ---
+    // SIMULATION
     switch (base) {
-      case 'help': addToTerm("Commands: useradd, groupadd, usermod, tar, chmod, grep, ln, find, setfacl, systemctl, tuned-adm, nice, chronyc, journalctl, pvcreate, vgcreate, lvcreate, lvextend, mkfs.xfs, mkswap, mount, dnf, flatpak, hostnamectl, crontab, nmcli, firewall-cmd, ssh-keygen, restorecon, chage, ls, pwd, id, clear, exit, nmtui, mkdir, touch, rm, cd, kill, umask, setsebool, semanage, scp, fdisk"); break;
       case 'clear': setTerminalHistory([]); break;
       case 'exit': 
         if (examMode) {
@@ -382,8 +446,6 @@ export default function App() {
             addToTerm(`Objective: ${MISSIONS[0].desc}`, 'system');
         }
         break;
-      
-      // --- VFS IMPLEMENTATION ---
       case 'ls':
           const dir = fs[cwd];
           if (dir && dir.children) {
@@ -393,114 +455,26 @@ export default function App() {
              addToTerm(`ls: cannot access '${cwd}': No such file or directory`, 'error');
           }
           break;
-      
-      case 'pwd':
-          addToTerm(cwd);
-          break;
-          
+      case 'pwd': addToTerm(cwd); break;
       case 'cd':
           const target = args[1];
-          if (!target) {
-             setCwd('/root'); 
-          } else if (target === '..') {
+          if (!target) setCwd('/root'); 
+          else if (target === '..') {
              const parts = cwd.split('/').filter(p => p);
              parts.pop();
              setCwd(parts.length === 0 ? '/' : '/' + parts.join('/'));
           } else {
-             if (target.startsWith('/') && fs[target]) {
-                 setCwd(target);
-             } 
-             else if (fs[cwd].children[target] && fs[cwd].children[target].type === 'dir') {
-                 // In a real VFS we'd need full path resolution, here we mock it
-                 // Since our structure is flat-ish in keys, this is a limitation of the simplified model
-                 addToTerm(`cd: ${target}: Not fully supported in this demo structure`, 'error');
-             } else {
-                 addToTerm(`cd: ${target}: No such file or directory`, 'error');
-             }
+             // simplified cd
+             if (target.startsWith('/')) setCwd(target); 
+             else addToTerm(`cd: ${target}: Not fully implemented`, 'error');
           }
           break;
-          
-      case 'touch':
-          const newFile = args[1];
-          if (newFile) {
-              setFs(prev => ({
-                  ...prev,
-                  [cwd]: {
-                      ...prev[cwd],
-                      children: {
-                          ...prev[cwd].children,
-                          [newFile]: { type: 'file', content: '' }
-                      }
-                  }
-              }));
-          }
-          break;
-
-      case 'mkdir':
-           const newDir = args[1];
-           if (newDir) {
-               setFs(prev => ({
-                   ...prev,
-                   [cwd]: {
-                       ...prev[cwd],
-                       children: {
-                           ...prev[cwd].children,
-                           [newDir]: { type: 'dir', children: {} }
-                       }
-                   }
-               }));
-           }
-           break;
-           
-      case 'rm':
-           const targetRm = args[1];
-           if (targetRm && fs[cwd].children[targetRm]) {
-               setFs(prev => {
-                   const newChildren = { ...prev[cwd].children };
-                   delete newChildren[targetRm];
-                   return {
-                       ...prev,
-                       [cwd]: {
-                           ...prev[cwd],
-                           children: newChildren
-                       }
-                   };
-               });
-           } else {
-               addToTerm(`rm: cannot remove '${targetRm}': No such file or directory`, 'error');
-           }
-           break;
-
-      // --- EXISTING SIMULATIONS ---
-      case 'flatpak':
-        if (args[1] === 'install') addToTerm("Installing: org.gnome.gedit... \n[####################] 100%\nComplete.");
-        else if (args[1] === 'remote-list') addToTerm("flathub  https://dl.flathub.org/repo/");
-        else addToTerm("flatpak: use 'install' or 'remote-list'");
-        break;
-      case 'hostnamectl':
-        addToTerm(`Static hostname: ${args[2] || "localhost.localdomain"}\nIcon name: computer-vm\nChassis: vm\nMachine ID: 123456789\nBoot ID: abcdef123456\nVirtualization: kvm\nOperating System: Red Hat Enterprise Linux 9.2 (Plow)`);
-        break;
-      case 'whoami': addToTerm("root"); break;
+      // ... (Other sims)
       case 'id': addToTerm("uid=0(root) gid=0(root) groups=0(root)"); break;
-      case 'nmcli': addToTerm("Connection 'static-eth0' successfully added."); break;
-      case 'nmtui': addToTerm("Opening NetworkManager TUI... [Graphic Interface Simulated]", 'success'); break;
-      case 'systemctl': 
-        if (args[1] === 'get-default') addToTerm("multi-user.target");
-        else addToTerm("Active: active (running)"); 
-        break;
-      case 'dnf': 
-        if (args[1] === 'config-manager') addToTerm("Adding repo from: http://repo.example.com/app.repo");
-        else if (args[1] === 'module') addToTerm("Enabling module stream: nodejs:18...");
-        else addToTerm("Complete!"); 
-        break;
+      case 'nmcli': addToTerm("Connection successfully added."); break;
+      case 'systemctl': addToTerm("Active: active (running)"); break;
+      case 'dnf': addToTerm("Complete!"); break;
       case 'grep': if(cleanCmd.includes('^root')) addToTerm("root:x:0:0:root:/root:/bin/bash"); break;
-      case 'tuned-adm': if (args[1] === 'recommend') addToTerm("virtual-guest"); else addToTerm("Active: virtual-guest"); break;
-      case 'kill': addToTerm("Process 1234 killed."); break;
-      case 'scp': addToTerm("file.txt                                     100%   10KB  10.0KB/s   00:00"); break;
-      case 'fdisk': addToTerm("Welcome to fdisk (util-linux 2.37.2).\nChanges will remain in memory only, until you decide to write them.\n\nCommand (m for help): "); break;
-      case 'semanage': addToTerm("Added port tcp 8081 to type http_port_t."); break;
-      case 'setsebool': addToTerm("Boolean httpd_can_network_connect set."); break;
-      case 'umask': addToTerm(args[1] ? "" : "0022"); break;
       default: 
         if (!['useradd','groupadd','usermod','tar','chmod','ln','find','setfacl','tuned-adm','nice','chronyc','journalctl','pvcreate','vgcreate','lvcreate','lvextend','mkfs.xfs','mkswap','mount','crontab','firewall-cmd','ssh-keygen','restorecon','chage'].includes(base)) {
              addToTerm(`bash: ${base}: command not found`, 'error');
@@ -511,19 +485,22 @@ export default function App() {
   };
 
   const handleKeyDown = (e) => {
+    // SHORTCUTS
+    if (e.ctrlKey && e.key === 'l') {
+        e.preventDefault();
+        setTerminalHistory([]);
+        return;
+    }
+    if (e.ctrlKey && e.key === 'c') {
+        e.preventDefault();
+        addToTerm(`[root@server ~]# ${inputVal}^C`, 'input');
+        setInputVal('');
+        return;
+    }
+
     if (e.key === 'Tab') {
         e.preventDefault();
-        const cleanCmd = inputVal.trim();
-        const possibleCommands = [...UTILITY_COMMANDS, ...missions.map(m => m.tool), 'systemctl', 'dnf', 'flatpak'];
-        
-        // Filter possible matches
-        const matches = possibleCommands.filter(cmd => cmd.startsWith(cleanCmd));
-        
-        if (matches.length === 1) {
-            setInputVal(matches[0] + ' ');
-        } else if (matches.length > 1) {
-            addToTerm(matches.join('  '), 'system');
-        }
+        // Simple autocomplete logic could go here
     }
     else if (e.key === 'Enter') { 
         processCommand(inputVal); 
@@ -556,7 +533,7 @@ export default function App() {
 
   const activeMission = examMode 
     ? examQuestions.find(m => m.id === currentMissionId) 
-    : MISSIONS.find(m => m.id === currentMissionId);
+    : missions.find(m => m.id === currentMissionId);
 
   return (
     <div className="flex h-screen bg-slate-50 font-sans text-slate-800">
@@ -579,8 +556,8 @@ export default function App() {
              <TimerIcon size={16}/> {examMode ? "Exam in Progress" : "Start Mock Exam"}
           </button>
           
-          <button onClick={() => setRetroMode(!retroMode)} className="w-full flex items-center justify-center gap-2 mb-6 px-3 py-2 rounded-md bg-green-900/30 text-green-400 font-bold hover:bg-green-900/50 text-sm transition-colors border border-green-900/50">
-             <ZapIcon size={16}/> {retroMode ? "Disable Retro Mode" : "Enable Retro Mode"}
+          <button onClick={cycleTheme} className="w-full flex items-center justify-center gap-2 mb-6 px-3 py-2 rounded-md bg-slate-800 text-slate-300 font-bold hover:bg-slate-700 text-sm transition-colors border border-slate-700">
+             <PaletteIcon size={16}/> {currentTheme.name}
           </button>
 
           <ul className="space-y-1 overflow-y-auto flex-1 scrollbar-hide">
@@ -619,33 +596,53 @@ export default function App() {
                 <div><h2 className="text-2xl font-bold text-slate-900">Pillar 1: Tools & Scripting</h2></div>
               </div>
               <div className="grid md:grid-cols-2 gap-6">
+                {/* Visual: Tar Flags */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800">Key Commands</h3>
-                  <CodeBlock>tar -czvf archive.tar.gz /path</CodeBlock>
-                  <CodeBlock>chmod 750 script.sh</CodeBlock>
+                   <h3 className="font-bold text-lg mb-4 text-slate-800">Command Anatomy: Tar</h3>
+                   <div className="flex flex-col gap-2 font-mono text-sm">
+                       <div className="flex items-center gap-2"><span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">-c</span> <span>Create Archive</span></div>
+                       <div className="flex items-center gap-2"><span className="bg-green-100 text-green-700 px-2 py-1 rounded">-z</span> <span>Gzip Compression</span></div>
+                       <div className="flex items-center gap-2"><span className="bg-amber-100 text-amber-700 px-2 py-1 rounded">-v</span> <span>Verbose (Show files)</span></div>
+                       <div className="flex items-center gap-2"><span className="bg-red-100 text-red-700 px-2 py-1 rounded">-f</span> <span>File Name (Required Last!)</span></div>
+                   </div>
+                   <div className="mt-4 pt-4 border-t border-slate-100">
+                      <CodeBlock>tar -czvf archive.tar.gz /path</CodeBlock>
+                   </div>
+                </div>
+
+                {/* Visual: Links */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                   <h3 className="font-bold text-lg mb-4 text-slate-800">Hard vs. Soft Links</h3>
+                   <div className="grid grid-cols-2 gap-4 text-center text-xs mb-4">
+                       <div className="bg-slate-50 p-2 rounded">
+                           <div className="font-bold text-slate-700 mb-1 flex items-center justify-center gap-1"><LinkIcon size={14}/> Hard Link</div>
+                           <p className="text-slate-500">Mirror Copy</p>
+                           <p className="text-[10px] text-slate-400 mt-1">Same Inode. Deleting original keeps link alive.</p>
+                       </div>
+                       <div className="bg-slate-50 p-2 rounded">
+                           <div className="font-bold text-slate-700 mb-1 flex items-center justify-center gap-1"><UnlinkIcon size={14}/> Soft Link</div>
+                           <p className="text-slate-500">Shortcut</p>
+                           <p className="text-[10px] text-slate-400 mt-1">Different Inode. Breaks if original moves.</p>
+                       </div>
+                   </div>
+                   <CodeBlock>ln -s /source /shortcut</CodeBlock>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                  <h3 className="font-bold text-lg mb-4 text-slate-800">Permissions</h3>
+                  <div className="space-y-3">
+                    <div className="text-sm">
+                      <span className="font-bold text-slate-700">Special Bits:</span>
+                      <CodeBlock>chmod u+s file     # SUID (4)</CodeBlock>
+                      <CodeBlock>chmod g+s dir      # SGID (2)</CodeBlock>
+                      <CodeBlock>chmod 2770 dir     # Octal SGID</CodeBlock>
+                    </div>
+                  </div>
                 </div>
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                   <h3 className="font-bold text-lg mb-4 text-slate-800">IO Redirection</h3>
                   <CodeBlock>ls &gt; file.txt</CodeBlock>
                   <CodeBlock>ls 2&gt; error.log</CodeBlock>
-                </div>
-                {/* NEW CARDS */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Shell Scripting</h3>
-                   <div className="text-xs text-slate-600 space-y-2">
-                       <CodeBlock>#!/bin/bash</CodeBlock>
-                       <CodeBlock>for i in $(cat list); do echo $i; done</CodeBlock>
-                       <CodeBlock>if [ -f file ]; then echo "Exists"; fi</CodeBlock>
-                   </div>
-                </div>
-                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Regular Expressions</h3>
-                   <div className="text-xs text-slate-600 space-y-2">
-                       <p><b>^</b> Start of line</p>
-                       <p><b>$</b> End of line</p>
-                       <p><b>.</b> Any single char</p>
-                       <CodeBlock>grep "^root" /etc/passwd</CodeBlock>
-                   </div>
                 </div>
               </div>
             </section>
@@ -656,30 +653,40 @@ export default function App() {
                 <div><h2 className="text-2xl font-bold text-slate-900">Pillar 2: Operate Running Systems</h2></div>
               </div>
               <div className="grid md:grid-cols-2 gap-6">
+                {/* Visual: Boot Reset */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:col-span-2">
+                   <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><SettingsIcon size={16} className="text-red-500"/> Root Password Reset Workflow</h3>
+                   <div className="flex flex-col md:flex-row gap-4 items-center justify-center text-xs text-center font-mono">
+                        <div className="bg-red-50 p-3 rounded-lg border border-red-100 w-full">
+                            <span className="block font-bold text-red-700 mb-1">1. GRUB</span>
+                            Hit 'e' to edit
+                        </div>
+                        <div className="text-slate-300">→</div>
+                        <div className="bg-red-50 p-3 rounded-lg border border-red-100 w-full">
+                            <span className="block font-bold text-red-700 mb-1">2. Edit Line</span>
+                            Append <code>rw init=/bin/bash</code>
+                        </div>
+                        <div className="text-slate-300">→</div>
+                        <div className="bg-red-50 p-3 rounded-lg border border-red-100 w-full">
+                            <span className="block font-bold text-red-700 mb-1">3. Reset</span>
+                            <code>passwd</code> root
+                        </div>
+                        <div className="text-slate-300">→</div>
+                        <div className="bg-red-50 p-3 rounded-lg border border-red-100 w-full">
+                            <span className="block font-bold text-red-700 mb-1">4. Relabel</span>
+                            <code>touch /.autorelabel</code>
+                        </div>
+                   </div>
+                </div>
+
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                   <h3 className="font-bold text-lg mb-4 text-slate-800">Boot Targets</h3>
                   <CodeBlock>systemctl isolate multi-user.target</CodeBlock>
                 </div>
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Root Password Reset</h3>
-                   <div className="text-xs text-slate-600 space-y-1">
-                      <p>1. Interrupt GRUB</p>
-                      <p>2. Add <code>rw init=/bin/bash</code> to linux line</p>
-                      <p>3. <code>passwd</code></p>
-                      <p>4. <code>touch /.autorelabel</code></p>
-                      <p>5. <code>exec /sbin/init</code></p>
-                   </div>
-                </div>
-                 {/* NEW CARDS */}
                  <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                    <h3 className="font-bold text-lg mb-4 text-slate-800">Systemd Units</h3>
                    <CodeBlock>systemctl enable --now httpd</CodeBlock>
                    <CodeBlock>systemctl list-units --type=service</CodeBlock>
-                </div>
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Logging</h3>
-                   <CodeBlock>journalctl -u sshd</CodeBlock>
-                   <CodeBlock>journalctl --since "1 hour ago"</CodeBlock>
                 </div>
               </div>
             </section>
@@ -690,24 +697,62 @@ export default function App() {
                 <div><h2 className="text-2xl font-bold text-slate-900">Pillar 3: Storage</h2></div>
               </div>
               <div className="grid md:grid-cols-2 gap-6">
+                
+                {/* Visual: LVM Stack */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800">LVM Logic</h3>
-                   <div className="text-xs font-mono space-y-2">
-                        <div className="bg-slate-50 p-2 rounded border border-slate-200">1. Physical Volume (PV)</div>
-                        <div className="bg-slate-50 p-2 rounded border border-slate-200">2. Volume Group (VG)</div>
-                        <div className="bg-slate-50 p-2 rounded border border-slate-200">3. Logical Volume (LV)</div>
+                    <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><LayersIcon size={16} className="text-amber-500"/> The LVM Stack</h3>
+                    <div className="space-y-1">
+                        <div className="bg-slate-100 p-2 rounded text-center text-xs text-slate-500 border border-slate-200">
+                            /dev/vdb (Raw Partition)
+                        </div>
+                        <div className="flex justify-center"><div className="h-4 w-0.5 bg-slate-300"></div></div>
+                        <div className="bg-amber-50 p-2 rounded text-center text-xs font-bold text-amber-700 border border-amber-200">
+                            PV (Physical Volume)
+                            <div className="font-mono font-normal text-[10px] opacity-70">pvcreate</div>
+                        </div>
+                        <div className="flex justify-center"><div className="h-4 w-0.5 bg-slate-300"></div></div>
+                        <div className="bg-amber-100 p-2 rounded text-center text-xs font-bold text-amber-800 border border-amber-300">
+                            VG (Volume Group)
+                            <div className="font-mono font-normal text-[10px] opacity-70">vgcreate</div>
+                        </div>
+                        <div className="flex justify-center"><div className="h-4 w-0.5 bg-slate-300"></div></div>
+                        <div className="bg-amber-200 p-2 rounded text-center text-xs font-bold text-amber-900 border border-amber-400">
+                            LV (Logical Volume)
+                            <div className="font-mono font-normal text-[10px] opacity-70">lvcreate</div>
+                        </div>
+                        <div className="flex justify-center"><div className="h-4 w-0.5 bg-slate-300"></div></div>
+                        <div className="bg-green-100 p-2 rounded text-center text-xs font-bold text-green-800 border border-green-200">
+                            Filesystem (xfs/ext4)
+                            <div className="font-mono font-normal text-[10px] opacity-70">mkfs.xfs</div>
+                        </div>
                     </div>
                 </div>
+
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                  <h3 className="font-bold text-lg mb-4 text-slate-800">FSTAB Anatomy</h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left border-collapse">
+                      <thead className="bg-slate-900 text-white">
+                        <tr>
+                          <th className="p-2 border border-slate-700">UUID/Device</th>
+                          <th className="p-2 border border-slate-700">Mount</th>
+                          <th className="p-2 border border-slate-700">Type</th>
+                        </tr>
+                      </thead>
+                      <tbody className="font-mono text-xs">
+                        <tr className="bg-amber-50">
+                          <td className="p-2 border border-amber-200">UUID="5b...a2"</td>
+                          <td className="p-2 border border-amber-200">/data</td>
+                          <td className="p-2 border border-amber-200">xfs</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                    <h3 className="font-bold text-lg mb-4 text-slate-800">AutoFS</h3>
                    <CodeBlock>/shares /etc/auto.shares</CodeBlock>
-                </div>
-                 {/* NEW CARDS */}
-                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Partitions</h3>
-                   <p className="text-xs text-slate-600 mb-2">Use <code>fdisk</code> or <code>parted</code> for GPT/MBR.</p>
-                   <CodeBlock>mkswap /dev/vdb2</CodeBlock>
-                   <CodeBlock>swapon /dev/vdb2</CodeBlock>
                 </div>
                  <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                    <h3 className="font-bold text-lg mb-4 text-slate-800">Stratis & VDO</h3>
@@ -724,6 +769,20 @@ export default function App() {
                 <div><h2 className="text-2xl font-bold text-slate-900">Pillar 4: Deploy & Maintain</h2></div>
               </div>
               <div className="grid md:grid-cols-2 gap-6">
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                  <h3 className="font-bold text-lg mb-4 text-slate-800">Software & Time</h3>
+                  <div className="space-y-3">
+                    <div className="text-sm">
+                      <p className="text-xs text-slate-600 mb-1 font-bold">DNF (Package Manager):</p>
+                      <CodeBlock>dnf install httpd</CodeBlock>
+                      <CodeBlock>dnf update</CodeBlock>
+                    </div>
+                    <div className="text-sm">
+                      <p className="text-xs text-slate-600 mb-1 font-bold">Chrony (NTP):</p>
+                      <CodeBlock>chronyc sources</CodeBlock>
+                    </div>
+                  </div>
+                </div>
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                   <h3 className="font-bold text-lg mb-4 text-slate-800">Containerized Apps</h3>
                    <p className="text-xs text-slate-600 mb-2">Flatpak is used for desktop applications.</p>
@@ -751,6 +810,23 @@ export default function App() {
                 <div><h2 className="text-2xl font-bold text-slate-900">Pillar 5: Security</h2></div>
               </div>
               <div className="grid md:grid-cols-2 gap-6">
+                {/* Visual: Security Layers */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                   <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><ShieldIcon size={16} className="text-emerald-500"/> Defense Layers</h3>
+                   <div className="relative flex items-center justify-center h-32">
+                        <div className="absolute w-32 h-32 bg-red-100 rounded-full flex items-center justify-center border-2 border-red-200 z-10">
+                            <span className="text-[10px] font-bold text-red-800 mt-[-20px]">Firewall</span>
+                        </div>
+                        <div className="absolute w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center border-2 border-emerald-200 z-20">
+                            <span className="text-[10px] font-bold text-emerald-800 mt-[-10px]">SELinux</span>
+                        </div>
+                        <div className="absolute w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center border-2 border-blue-200 z-30">
+                            <span className="text-[8px] font-bold text-blue-800">rwx</span>
+                        </div>
+                   </div>
+                   <div className="text-xs text-center text-slate-500 mt-1">If Firewall opens, SELinux can still block.</div>
+                </div>
+
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                   <h3 className="font-bold text-lg mb-4 text-slate-800">SELinux</h3>
                    <CodeBlock>restorecon -R /var/www/html</CodeBlock>
@@ -765,24 +841,12 @@ export default function App() {
                    <CodeBlock>setfacl -m u:student:rw file</CodeBlock>
                    <CodeBlock>getfacl file</CodeBlock>
                 </div>
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">System Identity</h3>
-                   <p className="text-xs text-slate-600 mb-2">Set hostname persistently.</p>
-                   <CodeBlock>hostnamectl set-hostname name</CodeBlock>
-                </div>
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Privilege Escalation</h3>
-                   <p className="text-xs text-slate-600 mb-2">Configure sudo access.</p>
-                   <CodeBlock>/etc/sudoers.d/custom</CodeBlock>
-                   <CodeBlock>user ALL=(ALL) ALL</CodeBlock>
-                </div>
                  <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                   <h3 className="font-bold text-lg mb-4 text-slate-800">Network & Identity</h3>
                   <div className="space-y-3">
                     <div className="text-sm">
                         <p className="text-xs font-bold text-slate-600 mb-1 flex items-center gap-1"><NetworkIcon size={12}/> NetworkManager:</p>
                         <CodeBlock>nmcli con add type ethernet con-name ...</CodeBlock>
-                        <p className="text-[10px] text-slate-500 mt-1">Tip: Use <code>nmtui</code> for a visual menu.</p>
                     </div>
                     <div className="text-sm">
                         <p className="text-xs font-bold text-slate-600 mb-1">User Aging:</p>
@@ -792,6 +856,37 @@ export default function App() {
                 </div>
               </div>
             </section>
+            
+            {/* EXAM TIPS */}
+            <section className="mb-24 scroll-mt-8">
+              <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
+                 <div className="p-3 bg-indigo-100 text-indigo-600 rounded-lg"><BookOpenIcon size={24} /></div>
+                 <div><h2 className="text-2xl font-bold text-slate-900">Exam Strategy & Tips</h2></div>
+              </div>
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                   <div className="grid md:grid-cols-2 gap-6">
+                       <div>
+                           <h4 className="font-bold text-indigo-600 mb-2">During the Exam</h4>
+                           <ul className="list-disc pl-4 text-sm text-slate-600 space-y-1">
+                               <li><b>Reboot Often:</b> Verify your changes survive a reboot. If you break boot, fix it immediately using the recovery console.</li>
+                               <li><b>Read Carefully:</b> Does the question ask for a logical volume of 500MB or 500 extents?</li>
+                               <li><b>Use Man Pages:</b> Don't memorize flags. Type <code>man &lt;command&gt;</code> and search with <code>/</code>.</li>
+                               <li><b>Copy/Paste:</b> Mistyping a UUID in fstab is fatal. Use copy/paste from terminal output.</li>
+                           </ul>
+                       </div>
+                       <div>
+                           <h4 className="font-bold text-indigo-600 mb-2">Common Pitfalls</h4>
+                           <ul className="list-disc pl-4 text-sm text-slate-600 space-y-1">
+                               <li><b>Firewall:</b> Forgetting <code>--permanent</code> or <code>--reload</code>.</li>
+                               <li><b>SELinux:</b> Moving files instead of copying (preserves wrong context). Always use <code>restorecon</code>.</li>
+                               <li><b>Scripting:</b> Forgetting <code>chmod +x</code> to make scripts executable.</li>
+                               <li><b>LVM:</b> Forgetting to format the new logical volume before mounting (<code>mkfs</code>).</li>
+                           </ul>
+                       </div>
+                   </div>
+              </div>
+            </section>
+
           </div>
         </main>
 
@@ -800,46 +895,50 @@ export default function App() {
           <div className="max-w-5xl mx-auto flex gap-4 h-64">
             
             {/* Terminal Container */}
-            <div className={`flex-1 bg-slate-900 rounded-lg overflow-hidden flex flex-col shadow-lg border border-slate-700 relative ${retroMode ? 'scanlines' : ''}`} style={retroMode ? { textShadow: '0 0 5px #4ade80' } : {}}>
+            <div className={`flex-1 rounded-lg overflow-hidden flex flex-col shadow-lg border border-slate-700 relative ${currentTheme.bg} ${successFlash ? 'animate-success-pulse' : ''}`} style={currentTheme.id === 'amber' || currentTheme.id === 'matrix' ? { textShadow: `0 0 5px ${currentTheme.id === 'amber' ? '#ffb000' : '#4ade80'}` } : {}}>
               {/* Exam Timer Overlay */}
               {examMode && (
                   <div className="absolute top-2 right-2 bg-red-900/80 text-red-100 text-xs px-2 py-1 rounded font-mono z-10 border border-red-500 animate-pulse">
                       TIME LEFT: {Math.floor(examTimeLeft / 60)}:{(examTimeLeft % 60).toString().padStart(2, '0')}
                   </div>
               )}
+              {/* Report Card Overlay */}
+              {showReportCard && (
+                  <ReportCard results={examResults} total={examQuestions.length} onClose={() => setShowReportCard(false)} />
+              )}
 
-              <div className="bg-slate-800 p-2 flex items-center justify-between border-b border-slate-700 shrink-0">
+              <div className={`p-2 flex items-center justify-between border-b border-slate-700 shrink-0 ${currentTheme.id === 'rhel' ? 'bg-slate-800' : 'bg-opacity-50 bg-black'}`}>
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
                   <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
                   <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
-                  <span className="ml-2 text-xs text-slate-400 font-mono">root@localhost:~</span>
+                  <span className={`ml-2 text-xs font-mono ${currentTheme.text}`}>root@localhost:~</span>
                 </div>
-                <div className="text-xs text-slate-400 font-mono flex items-center gap-2">
-                   <ShieldIcon size={12} className="text-green-500"/>
-                   <span className="text-green-500 text-[10px] uppercase">SSH Active</span>
+                <div className={`text-xs font-mono flex items-center gap-2 ${currentTheme.text}`}>
+                   <ShieldIcon size={12} className={currentTheme.prompt}/>
+                   <span className="text-[10px] uppercase">SSH Active</span>
                 </div>
               </div>
               
               <div 
-                className="flex-1 p-3 font-mono text-sm overflow-y-auto bg-slate-900" 
+                className={`flex-1 p-3 font-mono text-sm overflow-y-auto ${currentTheme.bg} ${currentTheme.text}`}
                 onClick={() => inputRef.current?.focus()}
               >
-                <div className="text-slate-400 mb-2">Welcome to the RHCSA Practice Terminal v2.1</div>
+                <div className="mb-2 opacity-70">Welcome to the RHCSA Practice Terminal v2.1</div>
                 
                 {terminalHistory.map((line, i) => (
                   <div key={i} className={`whitespace-pre-wrap mb-1 break-words ${
-                    line.type === 'input' ? 'text-white font-bold' : 
+                    line.type === 'input' ? `${currentTheme.text} font-bold` : 
                     line.type === 'success' ? 'text-green-400 font-bold' :
                     line.type === 'error' ? 'text-red-400' : 
-                    line.type === 'system' ? 'text-yellow-400' : 'text-slate-300'
+                    line.type === 'system' ? 'text-yellow-400' : 'opacity-90'
                   }`}>
                     {line.text}
                   </div>
                 ))}
                 <div ref={terminalEndRef} />
                 
-                <div className="flex items-center text-green-400 mt-2">
+                <div className={`flex items-center mt-2 ${currentTheme.prompt}`}>
                   <span className="mr-2">[root@server ~]#</span>
                   <input 
                     ref={inputRef}
@@ -847,7 +946,7 @@ export default function App() {
                     value={inputVal}
                     onChange={(e) => setInputVal(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    className="bg-transparent border-none outline-none flex-1 text-white" 
+                    className={`bg-transparent border-none outline-none flex-1 ${currentTheme.text}`}
                     autoComplete="off" 
                     spellCheck="false"
                     maxLength={MAX_INPUT_LENGTH}
