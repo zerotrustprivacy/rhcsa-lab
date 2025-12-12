@@ -46,6 +46,9 @@ const NetworkIcon = ({ size = 24, className = "" }) => (
 const TimerIcon = ({ size = 24, className = "" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
 );
+const ZapIcon = ({ size = 24, className = "" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+);
 
 // --- 2. COMPONENTS (Defined BEFORE App) ---
 
@@ -108,11 +111,33 @@ const ProgressBar = ({ completed, total }) => {
 // --- 3. CONSTANTS & DATA ---
 const MAX_INPUT_LENGTH = 256; 
 const ILLEGAL_CHARS = /<script\b[^>]*>([\s\S]*?)<\/script>/gm; 
-const UTILITY_COMMANDS = ['clear', 'help', 'ls', 'pwd', 'whoami', 'history', 'id', 'exit', 'man'];
+const UTILITY_COMMANDS = ['clear', 'help', 'ls', 'pwd', 'whoami', 'history', 'id', 'exit', 'man', 'cat', 'touch', 'mkdir', 'rm', 'cd', 'cp', 'mv'];
+
+// --- MAN PAGES DATA ---
+const MAN_PAGES = {
+    useradd: "NAME\n  useradd - create a new user or update default new user information\n\nSYNOPSIS\n  useradd [options] LOGIN\n\nOPTIONS\n  -u, --uid UID\n      The numerical value of the user's ID.\n  -g, --gid GROUP\n      The group name or number of the user's initial login group.\n  -G, --groups GROUPS\n      A list of supplementary groups.",
+    groupadd: "NAME\n  groupadd - create a new group\n\nOPTIONS\n  -g, --gid GID\n      The numerical value of the group's ID.",
+    usermod: "NAME\n  usermod - modify a user account\n\nOPTIONS\n  -a, --append\n      Add the user to the supplementary groups. Use only with -G.\n  -G, --groups GROUPS\n      List of supplementary groups.",
+    tar: "NAME\n  tar - an archiving utility\n\nOPTIONS\n  -c  Create a new archive.\n  -x  Extract from an archive.\n  -f  Use archive file.\n  -v  Verbose output.\n  -z  Filter via gzip.\n  -j  Filter via bzip2.",
+    chmod: "NAME\n  chmod - change file mode bits\n\nEXAMPLES\n  chmod 755 file\n  chmod u+x file",
+    grep: "NAME\n  grep - print lines matching a pattern\n\nOPTIONS\n  -i  Ignore case.\n  -v  Invert match.\n  -r  Recursive.",
+    systemctl: "NAME\n  systemctl - Control the systemd system and service manager\n\nCOMMANDS\n  start [unit]\n  stop [unit]\n  restart [unit]\n  status [unit]\n  enable [unit]\n  disable [unit]",
+    nmcli: "NAME\n  nmcli - command-line tool for controlling NetworkManager\n\nEXAMPLES\n  nmcli con show\n  nmcli con add type ethernet con-name MyCon ifname eth0",
+    firewall_cmd: "NAME\n  firewall-cmd - firewalld command line client\n\nOPTIONS\n  --permanent    Make changes persistent\n  --add-service  Add a service\n  --reload       Reload firewall rules",
+    default: "No manual entry found. Try 'help' for a list of available commands."
+};
+
+// --- INITIAL FILE SYSTEM STATE ---
+const INITIAL_FS = {
+    '/root': { type: 'dir', children: { 'anaconda-ks.cfg': { type: 'file' }, 'original-ks.cfg': { type: 'file' } } },
+    '/home': { type: 'dir', children: { 'student': { type: 'dir', children: {} } } },
+    '/etc': { type: 'dir', children: { 'passwd': { type: 'file' }, 'hosts': { type: 'file' } } },
+    '/var': { type: 'dir', children: { 'www': { type: 'dir', children: { 'html': { type: 'dir', children: {} } } } } }
+};
 
 // FULL MISSION LIST (RHEL 10 Focused)
 const MISSIONS = [
-  // --- PILLAR 1: TOOLS & SCRIPTING ---
+  // ... (Keeping all previous missions)
   { id: 1, tool: "useradd", title: "User Management", desc: "Create a new user named 'student' with UID 2000.", lesson: "In RHEL, `useradd` creates new accounts. The `-u` flag specifies a custom UID. Managing UIDs is critical for NFS compatibility.", hint: "useradd -u 2000 student", check: (cmd) => /^useradd\s+/.test(cmd) && /\s-u\s+2000\b/.test(cmd) && /\sstudent\b/.test(cmd) },
   { id: 2, tool: "groupadd", title: "Group Management", desc: "Create a new group named 'devops' with GID 5000.", lesson: "Groups allow permission sharing. `groupadd` creates them. `-g` specifies a static GID.", hint: "groupadd -g 5000 devops", check: (cmd) => /^groupadd\s+/.test(cmd) && /-g\s+5000/.test(cmd) && /\sdevops\b/.test(cmd) },
   { id: 3, tool: "usermod", title: "Modify User Group", desc: "Add existing user 'student' to the 'devops' group.", lesson: "`usermod` changes user properties. `-aG` (Append Groups) adds a secondary group without removing existing ones. Order matters: group first, then user.", hint: "usermod -aG devops student", check: (cmd) => /^usermod\s+/.test(cmd) && /-aG\s+devops/.test(cmd) && /\sstudent\b/.test(cmd) },
@@ -122,14 +147,12 @@ const MISSIONS = [
   { id: 7, tool: "ln", title: "Soft Linking", desc: "Create a soft link named 'mylink' pointing to '/etc/hosts'.", lesson: "`ln -s` creates symbolic links. Without `-s`, it creates a hard link.", hint: "ln -s /etc/hosts mylink", check: (cmd) => /^ln\s+/.test(cmd) && /\s-s\s/.test(cmd) && /\s\/etc\/hosts\s+mylink$/.test(cmd) },
   { id: 8, tool: "find", title: "Locating Files", desc: "Find all files in '/etc' that end with '.conf'.", lesson: "`find` searches directory trees. Use `-name` for filenames. Quotes around the pattern `*.conf` prevent shell expansion.", hint: "find /etc -name \"*.conf\"", check: (cmd) => /^find\s+\/etc\s+/.test(cmd) && /-name\s+["']\*\.conf["']/.test(cmd) },
   { id: 9, tool: "setfacl", title: "Access Control Lists (ACLs)", desc: "Grant user 'student' read-write access to 'file.txt' using ACLs.", lesson: "`setfacl` allows fine-grained permissions beyond standard UGO. `-m` modifies the ACL. Syntax: `u:user:perms`.", hint: "setfacl -m u:student:rw file.txt", check: (cmd) => /^setfacl\s+/.test(cmd) && /-m\s+/.test(cmd) && /u:student:rw/.test(cmd) && /\sfile\.txt$/.test(cmd) },
-  // --- PILLAR 2: OPERATE RUNNING SYSTEMS ---
   { id: 10, tool: "systemctl", title: "Service Check", desc: "Check the status of the 'httpd' service.", lesson: "`systemctl` controls systemd. `status` shows runtime info and recent logs.", hint: "systemctl status httpd", check: (cmd) => /^systemctl\s+status\s+httpd$/.test(cmd) },
   { id: 11, tool: "systemctl", title: "Set Default Target", desc: "Configure the system to boot into text-only mode (multi-user.target) by default.", lesson: "RHEL uses 'targets' instead of runlevels. `set-default` makes the change persistent across reboots.", hint: "systemctl set-default multi-user.target", check: (cmd) => /^systemctl\s+set-default\s+multi-user\.target$/.test(cmd) },
   { id: 12, tool: "tuned-adm", title: "System Tuning", desc: "Set the tuning profile to 'virtual-guest'.", lesson: "`tuned-adm` applies kernel presets optimized for specific workloads.", hint: "tuned-adm profile virtual-guest", check: (cmd) => /^tuned-adm\s+profile\s+virtual-guest$/.test(cmd) },
   { id: 13, tool: "nice", title: "Process Priorities", desc: "Start the 'tar' command with a nice value (priority) of 5.", lesson: "`nice` sets the initial priority. Higher numbers (up to 19) are 'nicer' (lower priority). Lower numbers (down to -20) are higher priority.", hint: "nice -n 5 tar", check: (cmd) => /^nice\s+/.test(cmd) && /-n\s+5/.test(cmd) && /\star/.test(cmd) },
   { id: 14, tool: "chronyc", title: "Time Synchronization", desc: "Verify the list of NTP sources the system is using.", lesson: "`chronyd` is the default time service. Use `chronyc sources` to see which servers you are syncing with.", hint: "chronyc sources", check: (cmd) => /^chronyc\s+sources\b/.test(cmd) },
   { id: 15, tool: "journalctl", title: "System Logging", desc: "Show all log entries for the 'sshd' service.", lesson: "`journalctl` queries the systemd journal. Use `-u` (unit) to filter by a specific service.", hint: "journalctl -u sshd", check: (cmd) => /^journalctl\s+/.test(cmd) && /-u\s+sshd\b/.test(cmd) },
-  // --- PILLAR 3: STORAGE ---
   { id: 16, tool: "pvcreate", title: "LVM: PV Creation", desc: "Initialize '/dev/vdb1' as a Physical Volume.", lesson: "`pvcreate` labels a partition for LVM use. It's the first step of the LVM chain.", hint: "pvcreate /dev/vdb1", check: (cmd) => /^pvcreate\s+\/dev\/vdb1$/.test(cmd) },
   { id: 17, tool: "vgcreate", title: "LVM: Volume Group", desc: "Create a volume group named 'myvg' using '/dev/vdb1'.", lesson: "`vgcreate` pools Physical Volumes into a Volume Group. This is your pool of storage.", hint: "vgcreate myvg /dev/vdb1", check: (cmd) => /^vgcreate\s+myvg\s+\/dev\/vdb1$/.test(cmd) },
   { id: 18, tool: "lvcreate", title: "LVM: Logical Volume", desc: "Create a 500MB Logical Volume named 'mylv' in 'myvg'.", lesson: "`lvcreate` carves usable space. Use `-L` for size (e.g., 500M) and `-n` for name.", hint: "lvcreate -L 500M -n mylv myvg", check: (cmd) => /^lvcreate\s+/.test(cmd) && /-L\s+500M/.test(cmd) && /-n\s+mylv/.test(cmd) && /\smyvg\b/.test(cmd) },
@@ -137,19 +160,29 @@ const MISSIONS = [
   { id: 20, tool: "mkfs.xfs", title: "Filesystem Creation", desc: "Format the logical volume '/dev/myvg/mylv' with the XFS filesystem.", lesson: "Before mounting, you must format. RHEL defaults to XFS (`mkfs.xfs`).", hint: "mkfs.xfs /dev/myvg/mylv", check: (cmd) => /^mkfs\.xfs\s+\/dev\/myvg\/mylv$/.test(cmd) },
   { id: 21, tool: "mkswap", title: "Create Swap", desc: "Format partition '/dev/vdb2' as swap space.", lesson: "Swap is used when RAM is full. `mkswap` prepares the device.", hint: "mkswap /dev/vdb2", check: (cmd) => /^mkswap\s+\/dev\/vdb2$/.test(cmd) },
   { id: 22, tool: "mount", title: "NFS Mounting", desc: "Mount the NFS share 'server:/share' to '/mnt/data'.", lesson: "Mounting connects a remote filesystem to your local tree. Syntax: `mount -t nfs [remote] [local]`.", hint: "mount -t nfs server:/share /mnt/data", check: (cmd) => /^mount\s+/.test(cmd) && /-t\s+nfs/.test(cmd) && /\sserver:\/share/.test(cmd) && /\s\/mnt\/data$/.test(cmd) },
-  // --- PILLAR 4: DEPLOY & MAINTAIN ---
   { id: 23, tool: "dnf", title: "Software Install", desc: "Install the 'httpd' package using DNF.", lesson: "`dnf` is the package manager (Dandified YUM). Use it to install, update, and remove software.", hint: "dnf install httpd", check: (cmd) => /^dnf\s+install\s+httpd$/.test(cmd) },
   { id: 24, tool: "crontab", title: "Scheduling Tasks", desc: "List the current user's cron jobs.", lesson: "`cron` schedules recurring tasks. `-e` edits, `-l` lists, `-r` removes. We use `-l` here to verify.", hint: "crontab -l", check: (cmd) => /^crontab\s+-l$/.test(cmd) },
   { id: 25, tool: "flatpak", title: "Flatpak Management", desc: "Install 'gedit' from 'flathub' remote.", lesson: "Flatpak manages containerized desktop apps. Use `flatpak install [remote] [app]`.", hint: "flatpak install flathub org.gnome.gedit", check: (cmd) => /^flatpak\s+install\s+/.test(cmd) && /flathub/.test(cmd) && /gedit/.test(cmd) },
   { id: 26, tool: "hostnamectl", title: "Hostname Config", desc: "Set the system hostname to 'server1.example.com'.", lesson: "`hostnamectl` manages the system name persistently.", hint: "hostnamectl set-hostname server1.example.com", check: (cmd) => /^hostnamectl\s+set-hostname\s+server1\.example\.com$/.test(cmd) },
   { id: 27, tool: "dnf", title: "Repo Management", desc: "Add a new repository from 'http://repo.example.com/app.repo'.", lesson: "`dnf config-manager` is the easiest way to add repos.", hint: "dnf config-manager --add-repo http://repo.example.com/app.repo", check: (cmd) => /^dnf\s+config-manager\s+--add-repo\s+http:\/\/repo\.example\.com\/app\.repo$/.test(cmd) },
-  // --- PILLAR 5: USERS & SECURITY ---
   { id: 28, tool: "nmcli", title: "Networking", desc: "Add a new ethernet connection named 'static-eth0'.", lesson: "NetworkManager (nmcli) is the standard for RHEL networking.", hint: "nmcli con add con-name static-eth0 type ethernet ifname eth0", check: (cmd) => /^nmcli\s+con\s+add\s+/.test(cmd) && /con-name\s+static-eth0/.test(cmd) },
   { id: 29, tool: "firewall-cmd", title: "Firewall Configuration", desc: "Permanently add the 'ftp' service to the firewall.", lesson: "Changes are lost on reboot unless you use `--permanent`. Reload afterwards.", hint: "firewall-cmd --add-service=ftp --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-service=ftp/.test(cmd) && /--permanent/.test(cmd) },
   { id: 30, tool: "ssh-keygen", title: "SSH Keys", desc: "Generate a new SSH key pair.", lesson: "`ssh-keygen` creates the public/private key pair for passwordless auth.", hint: "ssh-keygen", check: (cmd) => /^ssh-keygen\b/.test(cmd) },
   { id: 31, tool: "ls", title: "SELinux Contexts", desc: "List SELinux contexts for files in the current directory.", lesson: "Use the `-Z` flag with `ls`, `ps`, or `id` to see security labels.", hint: "ls -Z", check: (cmd) => /^ls\s+/.test(cmd) && /-[a-zA-Z]*Z/.test(cmd) },
   { id: 32, tool: "restorecon", title: "SELinux Restore", desc: "Restore default SELinux contexts on '/var/www/html'.", lesson: "`restorecon` reads the policy and resets file contexts to their defaults. Use `-R` for recursive.", hint: "restorecon -R /var/www/html", check: (cmd) => /^restorecon\s+/.test(cmd) && /-[a-zA-Z]*R/.test(cmd) && /\s\/var\/www\/html$/.test(cmd) },
-  { id: 33, tool: "chage", title: "Password Aging", desc: "Set the maximum password age for user 'student' to 90 days.", lesson: "`chage` (Change Age) manages password expiry. `-M` sets the max days before a password change is required.", hint: "chage -M 90 student", check: (cmd) => /^chage\s+/.test(cmd) && /-M\s+90/.test(cmd) && /\sstudent$/.test(cmd) }
+  { id: 33, tool: "chage", title: "Password Aging", desc: "Set the maximum password age for user 'student' to 90 days.", lesson: "`chage` (Change Age) manages password expiry. `-M` sets the max days before a password change is required.", hint: "chage -M 90 student", check: (cmd) => /^chage\s+/.test(cmd) && /-M\s+90/.test(cmd) && /\sstudent$/.test(cmd) },
+  { id: 34, tool: "touch", title: "Create Shell Script", desc: "Create an empty shell script named 'backup.sh'.", lesson: "Scripts automate tasks. Start by creating the file.", hint: "touch backup.sh", check: (cmd) => /^touch\s+backup\.sh$/.test(cmd) },
+  { id: 35, tool: "usermod", title: "Sudo Access", desc: "Add user 'student' to the 'wheel' group for sudo privileges.", lesson: "The 'wheel' group allows users to run commands as root via sudo.", hint: "usermod -aG wheel student", check: (cmd) => /^usermod\s+/.test(cmd) && /-aG\s+wheel/.test(cmd) && /\sstudent\b/.test(cmd) },
+  { id: 36, tool: "umask", title: "Default Permissions", desc: "Set the current session umask to 027 (Owner:rwx, Group:rx, Other:none).", lesson: "`umask` subtracts permissions from the default (666 for files, 777 for dirs).", hint: "umask 027", check: (cmd) => /^umask\s+027$/.test(cmd) },
+  { id: 37, tool: "setsebool", title: "SELinux Boolean", desc: "Persistently enable the 'httpd_can_network_connect' boolean.", lesson: "Booleans allow/deny specific SELinux features. `-P` makes it persistent.", hint: "setsebool -P httpd_can_network_connect on", check: (cmd) => /^setsebool\s+/.test(cmd) && /-P\s+httpd_can_network_connect\s+(on|1)/.test(cmd) },
+  { id: 38, tool: "semanage", title: "SELinux Port", desc: "Add port 8081 to the http_port_t SELinux type.", lesson: "Services can only bind to permitted ports. Use `semanage` to add new ones.", hint: "semanage port -a -t http_port_t -p tcp 8081", check: (cmd) => /^semanage\s+port\s+/.test(cmd) && /-a/.test(cmd) && /-t\s+http_port_t/.test(cmd) && /-p\s+tcp\s+8081/.test(cmd) },
+  { id: 39, tool: "fdisk", title: "Manual Partitioning", desc: "Open the fdisk utility for device '/dev/vdb'.", lesson: "`fdisk` is used for MBR/GPT partitioning. Interactive tool.", hint: "fdisk /dev/vdb", check: (cmd) => /^fdisk\s+\/dev\/vdb$/.test(cmd) },
+  { id: 40, tool: "scp", title: "Secure Copy", desc: "Copy 'file.txt' to user 'admin' at '192.168.1.5' into '/tmp'.", lesson: "`scp` transfers files over SSH.", hint: "scp file.txt admin@192.168.1.5:/tmp", check: (cmd) => /^scp\s+file\.txt\s+admin@192\.168\.1\.5:\/tmp$/.test(cmd) },
+  { id: 41, tool: "kill", title: "Terminate Process", desc: "Force kill the process with PID 1234.", lesson: "`kill` sends signals. `-9` is SIGKILL (force).", hint: "kill -9 1234", check: (cmd) => /^kill\s+-9\s+1234$/.test(cmd) },
+  { id: 42, tool: "dnf", title: "Module Streams", desc: "Install the 'nodejs:18' module stream.", lesson: "AppStream allows different versions of software. Syntax: `module:stream`.", hint: "dnf module install nodejs:18", check: (cmd) => /^dnf\s+module\s+install\s+nodejs:18$/.test(cmd) },
+  { id: 43, tool: "dnf", title: "AutoFS Install", desc: "Install the 'autofs' package.", lesson: "AutoFS mounts shares on demand.", hint: "dnf install autofs", check: (cmd) => /^dnf\s+install\s+autofs$/.test(cmd) },
+  { id: 44, tool: "tuned-adm", title: "Recommended Tuning", desc: "Apply the recommended tuning profile for this system.", lesson: "`recommend` asks TuneD to detect the best profile.", hint: "tuned-adm recommend", check: (cmd) => /^tuned-adm\s+recommend$/.test(cmd) },
+  { id: 45, tool: "systemctl", title: "Get Default Target", desc: "Check which target the system boots into by default.", lesson: "Verifying the boot target is a common troubleshooting step.", hint: "systemctl get-default", check: (cmd) => /^systemctl\s+get-default$/.test(cmd) }
 ];
 
 // --- 4. MAIN APP COMPONENT ---
@@ -163,7 +196,12 @@ export default function App() {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [showHint, setShowHint] = useState(false); 
   const [missions] = useState(MISSIONS);
+  const [retroMode, setRetroMode] = useState(false);
   
+  // --- VIRTUAL FS STATE ---
+  const [fs, setFs] = useState(INITIAL_FS);
+  const [cwd, setCwd] = useState('/root');
+
   // --- STATES FOR PRO FEATURES ---
   const [completedMissions, setCompletedMissions] = useState([]);
   const [examMode, setExamMode] = useState(false);
@@ -234,16 +272,32 @@ export default function App() {
       addToTerm(`Objective 1: ${selected[0].desc}`, 'system');
   };
 
+  // --- VFS HELPERS ---
+  const getDir = (path, currentFs = fs) => {
+      if (path === '/') return currentFs; // Not supported fully in this simplified recursion, but assumes root keys
+      // Simple lookup for top-level dirs in our flat(ish) structure
+      if (currentFs[path]) return currentFs[path];
+      // Basic recursive lookup could go here, but keeping it flat for simplicity of this demo
+      return null;
+  };
+
   const processCommand = (cmd) => {
     const cleanCmd = sanitizeInput(cmd.trim());
     if (!cleanCmd) return;
 
-    addToTerm(`[root@server ~]# ${cleanCmd}`, 'input');
+    addToTerm(`[root@server ${cwd === '/root' ? '~' : cwd.split('/').pop()}]# ${cleanCmd}`, 'input');
     setInputHistory(prev => [...prev, cleanCmd]);
     setHistoryIndex(-1);
 
     const args = cleanCmd.split(' ');
     const base = args[0];
+
+    // --- MAN PAGE LOGIC ---
+    if (base === 'man') {
+        const page = MAN_PAGES[args[1]] || MAN_PAGES['default'];
+        addToTerm(page);
+        return;
+    }
 
     // --- MISSION LOGIC ---
     const activeMissionList = examMode ? examQuestions : MISSIONS;
@@ -305,9 +359,9 @@ export default function App() {
       }
     }
 
-    // --- SIMULATION COMMANDS ---
+    // --- SIMULATION & VFS COMMANDS ---
     switch (base) {
-      case 'help': addToTerm("Commands: useradd, groupadd, usermod, tar, chmod, grep, ln, find, setfacl, systemctl, tuned-adm, nice, chronyc, journalctl, pvcreate, vgcreate, lvcreate, lvextend, mkfs.xfs, mkswap, mount, dnf, flatpak, hostnamectl, crontab, nmcli, firewall-cmd, ssh-keygen, restorecon, chage, ls, pwd, id, clear, exit, nmtui"); break;
+      case 'help': addToTerm("Commands: useradd, groupadd, usermod, tar, chmod, grep, ln, find, setfacl, systemctl, tuned-adm, nice, chronyc, journalctl, pvcreate, vgcreate, lvcreate, lvextend, mkfs.xfs, mkswap, mount, dnf, flatpak, hostnamectl, crontab, nmcli, firewall-cmd, ssh-keygen, restorecon, chage, ls, pwd, id, clear, exit, nmtui, mkdir, touch, rm, cd, kill, umask, setsebool, semanage, scp, fdisk"); break;
       case 'clear': setTerminalHistory([]); break;
       case 'exit': 
         if (examMode) {
@@ -328,9 +382,96 @@ export default function App() {
             addToTerm(`Objective: ${MISSIONS[0].desc}`, 'system');
         }
         break;
-      case 'nmtui':
-        addToTerm("Opening NetworkManager TUI... [Graphic Interface Simulated]", 'success');
-        break;
+      
+      // --- VFS IMPLEMENTATION ---
+      case 'ls':
+          const dir = fs[cwd];
+          if (dir && dir.children) {
+             const items = Object.keys(dir.children).join('  ');
+             addToTerm(items || '(empty)');
+          } else {
+             addToTerm(`ls: cannot access '${cwd}': No such file or directory`, 'error');
+          }
+          break;
+      
+      case 'pwd':
+          addToTerm(cwd);
+          break;
+          
+      case 'cd':
+          const target = args[1];
+          if (!target) {
+             setCwd('/root'); 
+          } else if (target === '..') {
+             const parts = cwd.split('/').filter(p => p);
+             parts.pop();
+             setCwd(parts.length === 0 ? '/' : '/' + parts.join('/'));
+          } else {
+             if (target.startsWith('/') && fs[target]) {
+                 setCwd(target);
+             } 
+             else if (fs[cwd].children[target] && fs[cwd].children[target].type === 'dir') {
+                 // In a real VFS we'd need full path resolution, here we mock it
+                 // Since our structure is flat-ish in keys, this is a limitation of the simplified model
+                 addToTerm(`cd: ${target}: Not fully supported in this demo structure`, 'error');
+             } else {
+                 addToTerm(`cd: ${target}: No such file or directory`, 'error');
+             }
+          }
+          break;
+          
+      case 'touch':
+          const newFile = args[1];
+          if (newFile) {
+              setFs(prev => ({
+                  ...prev,
+                  [cwd]: {
+                      ...prev[cwd],
+                      children: {
+                          ...prev[cwd].children,
+                          [newFile]: { type: 'file', content: '' }
+                      }
+                  }
+              }));
+          }
+          break;
+
+      case 'mkdir':
+           const newDir = args[1];
+           if (newDir) {
+               setFs(prev => ({
+                   ...prev,
+                   [cwd]: {
+                       ...prev[cwd],
+                       children: {
+                           ...prev[cwd].children,
+                           [newDir]: { type: 'dir', children: {} }
+                       }
+                   }
+               }));
+           }
+           break;
+           
+      case 'rm':
+           const targetRm = args[1];
+           if (targetRm && fs[cwd].children[targetRm]) {
+               setFs(prev => {
+                   const newChildren = { ...prev[cwd].children };
+                   delete newChildren[targetRm];
+                   return {
+                       ...prev,
+                       [cwd]: {
+                           ...prev[cwd],
+                           children: newChildren
+                       }
+                   };
+               });
+           } else {
+               addToTerm(`rm: cannot remove '${targetRm}': No such file or directory`, 'error');
+           }
+           break;
+
+      // --- EXISTING SIMULATIONS ---
       case 'flatpak':
         if (args[1] === 'install') addToTerm("Installing: org.gnome.gedit... \n[####################] 100%\nComplete.");
         else if (args[1] === 'remote-list') addToTerm("flathub  https://dl.flathub.org/repo/");
@@ -339,17 +480,27 @@ export default function App() {
       case 'hostnamectl':
         addToTerm(`Static hostname: ${args[2] || "localhost.localdomain"}\nIcon name: computer-vm\nChassis: vm\nMachine ID: 123456789\nBoot ID: abcdef123456\nVirtualization: kvm\nOperating System: Red Hat Enterprise Linux 9.2 (Plow)`);
         break;
-      case 'ls': if(cleanCmd.includes('-Z')) addToTerm("drwxr-xr-x. root root unconfined_u:object_r:admin_home_t:s0 Documents"); else addToTerm("anaconda-ks.cfg  Documents  Downloads  script.sh"); break;
-      case 'pwd': addToTerm("/root"); break;
       case 'whoami': addToTerm("root"); break;
       case 'id': addToTerm("uid=0(root) gid=0(root) groups=0(root)"); break;
       case 'nmcli': addToTerm("Connection 'static-eth0' successfully added."); break;
-      case 'systemctl': addToTerm("Active: active (running)"); break;
+      case 'nmtui': addToTerm("Opening NetworkManager TUI... [Graphic Interface Simulated]", 'success'); break;
+      case 'systemctl': 
+        if (args[1] === 'get-default') addToTerm("multi-user.target");
+        else addToTerm("Active: active (running)"); 
+        break;
       case 'dnf': 
         if (args[1] === 'config-manager') addToTerm("Adding repo from: http://repo.example.com/app.repo");
+        else if (args[1] === 'module') addToTerm("Enabling module stream: nodejs:18...");
         else addToTerm("Complete!"); 
         break;
       case 'grep': if(cleanCmd.includes('^root')) addToTerm("root:x:0:0:root:/root:/bin/bash"); break;
+      case 'tuned-adm': if (args[1] === 'recommend') addToTerm("virtual-guest"); else addToTerm("Active: virtual-guest"); break;
+      case 'kill': addToTerm("Process 1234 killed."); break;
+      case 'scp': addToTerm("file.txt                                     100%   10KB  10.0KB/s   00:00"); break;
+      case 'fdisk': addToTerm("Welcome to fdisk (util-linux 2.37.2).\nChanges will remain in memory only, until you decide to write them.\n\nCommand (m for help): "); break;
+      case 'semanage': addToTerm("Added port tcp 8081 to type http_port_t."); break;
+      case 'setsebool': addToTerm("Boolean httpd_can_network_connect set."); break;
+      case 'umask': addToTerm(args[1] ? "" : "0022"); break;
       default: 
         if (!['useradd','groupadd','usermod','tar','chmod','ln','find','setfacl','tuned-adm','nice','chronyc','journalctl','pvcreate','vgcreate','lvcreate','lvextend','mkfs.xfs','mkswap','mount','crontab','firewall-cmd','ssh-keygen','restorecon','chage'].includes(base)) {
              addToTerm(`bash: ${base}: command not found`, 'error');
@@ -360,7 +511,21 @@ export default function App() {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter') { 
+    if (e.key === 'Tab') {
+        e.preventDefault();
+        const cleanCmd = inputVal.trim();
+        const possibleCommands = [...UTILITY_COMMANDS, ...missions.map(m => m.tool), 'systemctl', 'dnf', 'flatpak'];
+        
+        // Filter possible matches
+        const matches = possibleCommands.filter(cmd => cmd.startsWith(cleanCmd));
+        
+        if (matches.length === 1) {
+            setInputVal(matches[0] + ' ');
+        } else if (matches.length > 1) {
+            addToTerm(matches.join('  '), 'system');
+        }
+    }
+    else if (e.key === 'Enter') { 
         processCommand(inputVal); 
         setInputVal(''); 
     } else if (e.key === 'ArrowUp') { 
@@ -412,6 +577,10 @@ export default function App() {
 
           <button onClick={startExamMode} disabled={examMode} className="w-full flex items-center justify-center gap-2 mb-6 px-3 py-2 rounded-md bg-red-600 text-white font-bold hover:bg-red-700 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
              <TimerIcon size={16}/> {examMode ? "Exam in Progress" : "Start Mock Exam"}
+          </button>
+          
+          <button onClick={() => setRetroMode(!retroMode)} className="w-full flex items-center justify-center gap-2 mb-6 px-3 py-2 rounded-md bg-green-900/30 text-green-400 font-bold hover:bg-green-900/50 text-sm transition-colors border border-green-900/50">
+             <ZapIcon size={16}/> {retroMode ? "Disable Retro Mode" : "Enable Retro Mode"}
           </button>
 
           <ul className="space-y-1 overflow-y-auto flex-1 scrollbar-hide">
@@ -623,7 +792,6 @@ export default function App() {
                 </div>
               </div>
             </section>
-            
           </div>
         </main>
 
@@ -632,7 +800,7 @@ export default function App() {
           <div className="max-w-5xl mx-auto flex gap-4 h-64">
             
             {/* Terminal Container */}
-            <div className="flex-1 bg-slate-900 rounded-lg overflow-hidden flex flex-col shadow-lg border border-slate-700 relative">
+            <div className={`flex-1 bg-slate-900 rounded-lg overflow-hidden flex flex-col shadow-lg border border-slate-700 relative ${retroMode ? 'scanlines' : ''}`} style={retroMode ? { textShadow: '0 0 5px #4ade80' } : {}}>
               {/* Exam Timer Overlay */}
               {examMode && (
                   <div className="absolute top-2 right-2 bg-red-900/80 text-red-100 text-xs px-2 py-1 rounded font-mono z-10 border border-red-500 animate-pulse">
