@@ -11,7 +11,7 @@ const HardDriveIcon = ({ size = 24, className = "" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="22" y1="12" x2="2" y2="12"></line><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path><line x1="6" y1="16" x2="6.01" y2="16"></line><line x1="10" y1="16" x2="10.01" y2="16"></line></svg>
 );
 const SettingsIcon = ({ size = 24, className = "" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
 );
 const ShieldIcon = ({ size = 24, className = "" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
@@ -65,13 +65,12 @@ const LayersIcon = ({ size = 24, className = "" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
 );
 
-// --- 2. COMPONENTS (Defined BEFORE App) ---
+// --- 2. COMPONENTS ---
 
 const CopyButton = ({ text }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    // Safely handle text
     const textToCopy = text ? String(text) : "";
     try {
         await navigator.clipboard.writeText(textToCopy);
@@ -194,83 +193,85 @@ const INITIAL_FS = {
     '/etc': { type: 'dir', children: { 'passwd': { type: 'file' }, 'hosts': { type: 'file' } } },
 };
 
-// FULL MISSION LIST WITH CATEGORIES
+// FULL MISSION LIST (MAPPED TO 64 OBJECTIVES)
 const MISSIONS = [
-  // PILLAR 1: TOOLS & SCRIPTING
-  { id: 1, category: "Tools", tool: "useradd", title: "User Management", desc: "Create user 'student' with UID 2000.", lesson: "RHEL user creation.", hint: "useradd -u 2000 student", check: (cmd) => /^useradd\s+/.test(cmd) && /\s-u\s+2000\b/.test(cmd) },
-  { id: 2, category: "Tools", tool: "groupadd", title: "Group Management", desc: "Create group 'devops' with GID 5000.", lesson: "Static GIDs.", hint: "groupadd -g 5000 devops", check: (cmd) => /^groupadd\s+/.test(cmd) && /-g\s+5000/.test(cmd) },
-  { id: 3, category: "Tools", tool: "usermod", title: "Modify User", desc: "Add 'student' to 'devops' group.", lesson: "Append groups.", hint: "usermod -aG devops student", check: (cmd) => /^usermod\s+/.test(cmd) && /-aG\s+devops/.test(cmd) },
-  { id: 4, category: "Tools", tool: "tar", title: "Archiving", desc: "Create gzip archive 'backup.tar.gz' of '/home'.", lesson: "Tar with gzip.", hint: "tar -czvf backup.tar.gz /home", check: (cmd) => /^tar\s+/.test(cmd) && /-[a-zA-Z]*z/.test(cmd) && /-[a-zA-Z]*c/.test(cmd) },
-  { id: 5, category: "Tools", tool: "chmod", title: "Permissions", desc: "Set 'script.sh' permissions: Owner=All, Group=RX, Other=None.", lesson: "Octal 750.", hint: "chmod 750 script.sh", check: (cmd) => /^chmod\s+750\s+script\.sh$/.test(cmd) },
-  { id: 6, category: "Tools", tool: "grep", title: "Grep", desc: "Search for lines starting with 'root' in '/etc/passwd'.", lesson: "Regex anchors.", hint: "grep \"^root\" /etc/passwd", check: (cmd) => /^grep\s+/.test(cmd) && /\^root/.test(cmd) },
-  { id: 7, category: "Tools", tool: "ln", title: "Soft Link", desc: "Create soft link 'mylink' to '/etc/hosts'.", lesson: "Symbolic links.", hint: "ln -s /etc/hosts mylink", check: (cmd) => /^ln\s+/.test(cmd) && /\s-s\s/.test(cmd) },
-  { id: 8, category: "Tools", tool: "find", title: "Find Files", desc: "Find files in '/etc' ending with '.conf'.", lesson: "Find by name.", hint: "find /etc -name \"*.conf\"", check: (cmd) => /^find\s+/.test(cmd) && /-name/.test(cmd) },
-  { id: 9, category: "Tools", tool: "setfacl", title: "ACLs", desc: "Grant 'student' RW access to 'file.txt' via ACL.", lesson: "Extended permissions.", hint: "setfacl -m u:student:rw file.txt", check: (cmd) => /^setfacl\s+/.test(cmd) && /-m/.test(cmd) },
-
-  // PILLAR 2: SYSTEMS
-  { id: 10, category: "Systems", tool: "systemctl", title: "Service Status", desc: "Check status of 'httpd'.", lesson: "Systemd control.", hint: "systemctl status httpd", check: (cmd) => /^systemctl\s+status\s+httpd$/.test(cmd) },
-  { id: 11, category: "Systems", tool: "systemctl", title: "Default Target", desc: "Set default boot to text-mode.", lesson: "Multi-user target.", hint: "systemctl set-default multi-user.target", check: (cmd) => /^systemctl\s+set-default\s+multi-user\.target$/.test(cmd) },
-  { id: 12, category: "Systems", tool: "tuned-adm", title: "Tuning", desc: "Set profile to 'virtual-guest'.", lesson: "Performance profiles.", hint: "tuned-adm profile virtual-guest", check: (cmd) => /^tuned-adm\s+profile\s+virtual-guest$/.test(cmd) },
-  { id: 13, category: "Systems", tool: "nice", title: "Process Priority", desc: "Start 'tar' with priority 5.", lesson: "Process niceness.", hint: "nice -n 5 tar", check: (cmd) => /^nice\s+/.test(cmd) && /-n\s+5/.test(cmd) },
-  { id: 14, category: "Systems", tool: "chronyc", title: "NTP", desc: "Verify NTP sources.", lesson: "Time sync.", hint: "chronyc sources", check: (cmd) => /^chronyc\s+sources/.test(cmd) },
-  { id: 15, category: "Systems", tool: "journalctl", title: "Logging", desc: "Show logs for 'sshd'.", lesson: "Systemd journal.", hint: "journalctl -u sshd", check: (cmd) => /^journalctl\s+/.test(cmd) && /-u\s+sshd/.test(cmd) },
-
-  // PILLAR 3: STORAGE
-  { id: 16, category: "Storage", tool: "pvcreate", title: "PV Creation", desc: "Init '/dev/vdb1' as PV.", lesson: "LVM Layer 1.", hint: "pvcreate /dev/vdb1", check: (cmd) => /^pvcreate\s+\/dev\/vdb1$/.test(cmd) },
-  { id: 17, category: "Storage", tool: "vgcreate", title: "VG Creation", desc: "Create VG 'myvg' using '/dev/vdb1'.", lesson: "LVM Layer 2.", hint: "vgcreate myvg /dev/vdb1", check: (cmd) => /^vgcreate\s+myvg\s+\/dev\/vdb1$/.test(cmd) },
-  { id: 18, category: "Storage", tool: "lvcreate", title: "LV Creation", desc: "Create 500MB LV 'mylv' in 'myvg'.", lesson: "LVM Layer 3.", hint: "lvcreate -L 500M -n mylv myvg", check: (cmd) => /^lvcreate\s+/.test(cmd) && /-L\s+500M/.test(cmd) },
-  { id: 19, category: "Storage", tool: "lvextend", title: "Extend LV", desc: "Add 200MB to 'mylv' and resize FS.", lesson: "Resize fs flag.", hint: "lvextend -L +200M -r /dev/myvg/mylv", check: (cmd) => /^lvextend\s+/.test(cmd) && /-r/.test(cmd) },
-  { id: 20, category: "Storage", tool: "mkfs.xfs", title: "Format FS", desc: "Format '/dev/myvg/mylv' as XFS.", lesson: "Filesystem creation.", hint: "mkfs.xfs /dev/myvg/mylv", check: (cmd) => /^mkfs\.xfs\s+/.test(cmd) },
-  { id: 21, category: "Storage", tool: "mkswap", title: "Swap", desc: "Format '/dev/vdb2' as swap.", lesson: "Swap space.", hint: "mkswap /dev/vdb2", check: (cmd) => /^mkswap\s+\/dev\/vdb2$/.test(cmd) },
-  { id: 22, category: "Storage", tool: "mount", title: "Mounting", desc: "Mount NFS share 'server:/share' to '/mnt'.", lesson: "Mount command.", hint: "mount -t nfs server:/share /mnt", check: (cmd) => /^mount\s+/.test(cmd) && /-t\s+nfs/.test(cmd) },
-
-  // PILLAR 4: DEPLOY
-  { id: 23, category: "Deploy", tool: "dnf", title: "Install Software", desc: "Install 'httpd'.", lesson: "Package manager.", hint: "dnf install httpd", check: (cmd) => /^dnf\s+install\s+httpd$/.test(cmd) },
-  { id: 24, category: "Deploy", tool: "crontab", title: "Cron", desc: "List current cron jobs.", lesson: "Scheduling.", hint: "crontab -l", check: (cmd) => /^crontab\s+-l$/.test(cmd) },
-  { id: 25, category: "Deploy", tool: "flatpak", title: "Flatpak", desc: "Install 'gedit' from flathub.", lesson: "Container apps.", hint: "flatpak install flathub org.gnome.gedit", check: (cmd) => /^flatpak\s+install/.test(cmd) },
-  { id: 26, category: "Deploy", tool: "hostnamectl", title: "Hostname", desc: "Set hostname to 'server1'.", lesson: "System identity.", hint: "hostnamectl set-hostname server1", check: (cmd) => /^hostnamectl\s+set-hostname\s+server1/.test(cmd) },
-  { id: 27, category: "Deploy", tool: "dnf", title: "Repos", desc: "Add repo 'http://repo.com/app.repo'.", lesson: "Repo management.", hint: "dnf config-manager --add-repo http://repo.com/app.repo", check: (cmd) => /^dnf\s+config-manager\s+--add-repo/.test(cmd) },
-
-  // PILLAR 5: SECURITY
-  { id: 28, category: "Security", tool: "nmcli", title: "Network", desc: "Add ethernet connection 'static-eth0'.", lesson: "NetworkManager.", hint: "nmcli con add con-name static-eth0 type ethernet ifname eth0", check: (cmd) => /^nmcli\s+con\s+add/.test(cmd) },
-  { id: 29, category: "Security", tool: "firewall-cmd", title: "Firewall", desc: "Permanently allow 'ftp'.", lesson: "Firewalld.", hint: "firewall-cmd --add-service=ftp --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--permanent/.test(cmd) },
-  { id: 30, category: "Security", tool: "ssh-keygen", title: "SSH", desc: "Generate SSH keys.", lesson: "Secure shell.", hint: "ssh-keygen", check: (cmd) => /^ssh-keygen/.test(cmd) },
-  { id: 31, category: "Security", tool: "ls", title: "SELinux List", desc: "List file contexts.", lesson: "Context labels.", hint: "ls -Z", check: (cmd) => /^ls\s+/.test(cmd) && /-[a-zA-Z]*Z/.test(cmd) },
-  { id: 32, category: "Security", tool: "restorecon", title: "SELinux Restore", desc: "Fix contexts on '/var/www/html'.", lesson: "Context repair.", hint: "restorecon -R /var/www/html", check: (cmd) => /^restorecon\s+/.test(cmd) && /-R/.test(cmd) },
-  { id: 33, category: "Security", tool: "chage", title: "Passwords", desc: "Set max password age to 90 days for 'student'.", lesson: "Aging policies.", hint: "chage -M 90 student", check: (cmd) => /^chage\s+/.test(cmd) && /-M\s+90/.test(cmd) },
+  // --- ESSENTIAL TOOLS ---
+  { id: 1, category: "Tools", tool: "ls", title: "Input/Output", desc: "Redirect output of 'ls' to 'file.txt'.", lesson: "Redirection: > overwrites, >> appends.", hint: "ls > file.txt", check: (cmd) => /^ls\s+>\s+file\.txt$/.test(cmd) },
+  { id: 2, category: "Tools", tool: "grep", title: "Analyze Text", desc: "Use grep to find 'root' in '/etc/passwd'.", lesson: "Regex: ^ starts with, $ ends with.", hint: "grep root /etc/passwd", check: (cmd) => /^grep\s+root\s+\/etc\/passwd$/.test(cmd) },
+  { id: 3, category: "Tools", tool: "ssh", title: "Remote Access", desc: "SSH into 'serverb' as 'student'.", lesson: "Secure remote shell.", hint: "ssh student@serverb", check: (cmd) => /^ssh\s+student@serverb$/.test(cmd) },
+  { id: 4, category: "Tools", tool: "tar", title: "Archive Files", desc: "Create a gzip archive 'backup.tar.gz' of '/home'.", lesson: "tar -czvf (Create, Gzip, Verbose, File).", hint: "tar -czvf backup.tar.gz /home", check: (cmd) => /^tar\s+/.test(cmd) && /-[a-zA-Z]*z/.test(cmd) && /-[a-zA-Z]*c/.test(cmd) },
+  { id: 5, category: "Tools", tool: "touch", title: "Create Files", desc: "Create a new file named 'new.txt'.", lesson: "touch creates empty files or updates timestamps.", hint: "touch new.txt", check: (cmd) => /^touch\s+new\.txt$/.test(cmd) },
+  { id: 6, category: "Tools", tool: "cp", title: "Copy Files", desc: "Copy 'file1' to '/tmp/file1'.", lesson: "cp copies files/dirs.", hint: "cp file1 /tmp/file1", check: (cmd) => /^cp\s+file1\s+\/tmp\/file1$/.test(cmd) },
+  { id: 7, category: "Tools", tool: "ln", title: "Hard Links", desc: "Create a hard link 'hlink' to 'file1'.", lesson: "Hard links share the same inode.", hint: "ln file1 hlink", check: (cmd) => /^ln\s+file1\s+hlink$/.test(cmd) },
+  { id: 8, category: "Tools", tool: "ln", title: "Soft Links", desc: "Create a soft link 'slink' to '/etc/hosts'.", lesson: "Soft links point to the file path.", hint: "ln -s /etc/hosts slink", check: (cmd) => /^ln\s+-s\s+\/etc\/hosts\s+slink$/.test(cmd) },
+  { id: 9, category: "Tools", tool: "chmod", title: "Permissions", desc: "Set 'script.sh' to rwxr-x--- (750).", lesson: "Octal: 4=r, 2=w, 1=x.", hint: "chmod 750 script.sh", check: (cmd) => /^chmod\s+750\s+script\.sh$/.test(cmd) },
+  { id: 10, category: "Tools", tool: "man", title: "Documentation", desc: "Open the manual for 'grep'.", lesson: "man pages are your best friend in the exam.", hint: "man grep", check: (cmd) => /^man\s+grep$/.test(cmd) },
   
-  // --- NEW MISSIONS (34-64) ---
-  { id: 34, category: "Tools", tool: "touch", title: "Create Shell Script", desc: "Create an empty shell script named 'backup.sh'.", lesson: "Scripts automate tasks. Start by creating the file.", hint: "touch backup.sh", check: (cmd) => /^touch\s+backup\.sh$/.test(cmd) },
-  { id: 35, category: "Users", tool: "usermod", title: "Sudo Access", desc: "Add user 'student' to the 'wheel' group for sudo privileges.", lesson: "The 'wheel' group allows users to run commands as root via sudo.", hint: "usermod -aG wheel student", check: (cmd) => /^usermod\s+/.test(cmd) && /-aG\s+wheel/.test(cmd) && /\sstudent\b/.test(cmd) },
-  { id: 36, category: "Security", tool: "umask", title: "Default Permissions", desc: "Set the current session umask to 027 (Owner:rwx, Group:rx, Other:none).", lesson: "`umask` subtracts permissions from the default (666 for files, 777 for dirs).", hint: "umask 027", check: (cmd) => /^umask\s+027$/.test(cmd) },
-  { id: 37, category: "Security", tool: "setsebool", title: "SELinux Boolean", desc: "Persistently enable the 'httpd_can_network_connect' boolean.", lesson: "Booleans allow/deny specific SELinux features. `-P` makes it persistent.", hint: "setsebool -P httpd_can_network_connect on", check: (cmd) => /^setsebool\s+/.test(cmd) && /-P\s+httpd_can_network_connect\s+(on|1)/.test(cmd) },
-  { id: 38, category: "Security", tool: "semanage", title: "SELinux Port", desc: "Add port 8081 to the http_port_t SELinux type.", lesson: "Services can only bind to permitted ports. Use `semanage` to add new ones.", hint: "semanage port -a -t http_port_t -p tcp 8081", check: (cmd) => /^semanage\s+port\s+/.test(cmd) && /-a/.test(cmd) && /-t\s+http_port_t/.test(cmd) && /-p\s+tcp\s+8081/.test(cmd) },
-  { id: 39, category: "Storage", tool: "fdisk", title: "Manual Partitioning", desc: "Open the fdisk utility for device '/dev/vdb'.", lesson: "`fdisk` is used for MBR/GPT partitioning. Interactive tool.", hint: "fdisk /dev/vdb", check: (cmd) => /^fdisk\s+\/dev\/vdb$/.test(cmd) },
-  { id: 40, category: "Security", tool: "scp", title: "Secure Copy", desc: "Copy 'file.txt' to user 'admin' at '192.168.1.5' into '/tmp'.", lesson: "`scp` transfers files over SSH.", hint: "scp file.txt admin@192.168.1.5:/tmp", check: (cmd) => /^scp\s+file\.txt\s+admin@192\.168\.1\.5:\/tmp$/.test(cmd) },
-  { id: 41, category: "Systems", tool: "kill", title: "Terminate Process", desc: "Force kill the process with PID 1234.", lesson: "`kill` sends signals. `-9` is SIGKILL (force).", hint: "kill -9 1234", check: (cmd) => /^kill\s+-9\s+1234$/.test(cmd) },
-  { id: 42, category: "Deploy", tool: "dnf", title: "Module Streams", desc: "Install the 'nodejs:18' module stream.", lesson: "AppStream allows different versions of software. Syntax: `module:stream`.", hint: "dnf module install nodejs:18", check: (cmd) => /^dnf\s+module\s+install\s+nodejs:18$/.test(cmd) },
-  { id: 43, category: "Deploy", tool: "dnf", title: "AutoFS Install", desc: "Install the 'autofs' package.", lesson: "AutoFS mounts shares on demand.", hint: "dnf install autofs", check: (cmd) => /^dnf\s+install\s+autofs$/.test(cmd) },
-  { id: 44, category: "Systems", tool: "tuned-adm", title: "Recommended Tuning", desc: "Apply the recommended tuning profile for this system.", lesson: "`recommend` asks TuneD to detect the best profile.", hint: "tuned-adm recommend", check: (cmd) => /^tuned-adm\s+recommend$/.test(cmd) },
-  { id: 45, category: "Systems", tool: "systemctl", title: "Get Default Target", desc: "Check which target the system boots into by default.", lesson: "Verifying the boot target is a common troubleshooting step.", hint: "systemctl get-default", check: (cmd) => /^systemctl\s+get-default$/.test(cmd) },
-  { id: 46, category: "Tools", tool: "echo", title: "Input Redirection", desc: "Redirect 'input.txt' into the 'cat' command.", lesson: "< redirects file contents to stdin.", hint: "cat < input.txt", check: (cmd) => /^cat\s+<\s+input\.txt$/.test(cmd) },
-  { id: 47, category: "Tools", tool: "bzip2", title: "Compress File", desc: "Compress 'archive.tar' using bzip2.", lesson: "bzip2 creates .bz2 files.", hint: "bzip2 archive.tar", check: (cmd) => /^bzip2\s+archive\.tar$/.test(cmd) },
-  { id: 48, category: "Tools", tool: "gzip", title: "Compress File (Gzip)", desc: "Compress 'file.txt' using gzip.", lesson: "gzip creates .gz files.", hint: "gzip file.txt", check: (cmd) => /^gzip\s+file\.txt$/.test(cmd) },
-  { id: 49, category: "Tools", tool: "gunzip", title: "Uncompress File", desc: "Uncompress 'file.txt.gz'.", lesson: "gunzip restores the original file.", hint: "gunzip file.txt.gz", check: (cmd) => /^gunzip\s+file\.txt\.gz$/.test(cmd) },
-  { id: 50, category: "Tools", tool: "mv", title: "Move File", desc: "Move 'file1' to '/tmp/file2'.", lesson: "mv renames or moves files.", hint: "mv file1 /tmp/file2", check: (cmd) => /^mv\s+file1\s+\/tmp\/file2$/.test(cmd) },
-  { id: 51, category: "Tools", tool: "rm", title: "Delete Directory", desc: "Recursively delete '/tmp/dir'.", lesson: "rm -r removes directories.", hint: "rm -r /tmp/dir", check: (cmd) => /^rm\s+-r\s+\/tmp\/dir$/.test(cmd) },
-  { id: 52, category: "Tools", tool: "mkdir", title: "Create Directory", desc: "Create nested directories 'a/b/c'.", lesson: "mkdir -p creates parent directories.", hint: "mkdir -p a/b/c", check: (cmd) => /^mkdir\s+-p\s+a\/b\/c$/.test(cmd) },
-  { id: 53, category: "Tools", tool: "rmdir", title: "Remove Empty Dir", desc: "Remove empty directory 'emptydir'.", lesson: "rmdir only works on empty dirs.", hint: "rmdir emptydir", check: (cmd) => /^rmdir\s+emptydir$/.test(cmd) },
-  { id: 54, category: "Tools", tool: "wc", title: "Word Count", desc: "Count lines in 'file.txt'.", lesson: "wc -l counts lines.", hint: "wc -l file.txt", check: (cmd) => /^wc\s+-l\s+file\.txt$/.test(cmd) },
-  { id: 55, category: "Tools", tool: "head", title: "File Head", desc: "View the first 5 lines of 'file.txt'.", lesson: "head -n 5 shows top lines.", hint: "head -n 5 file.txt", check: (cmd) => /^head\s+-n\s+5\s+file\.txt$/.test(cmd) },
-  { id: 56, category: "Tools", tool: "tail", title: "File Tail", desc: "View the last 5 lines of 'file.txt'.", lesson: "tail -n 5 shows bottom lines.", hint: "tail -n 5 file.txt", check: (cmd) => /^tail\s+-n\s+5\s+file\.txt$/.test(cmd) },
-  { id: 57, category: "Systems", tool: "uptime", title: "System Uptime", desc: "Check how long the system has been running.", lesson: "uptime shows load averages.", hint: "uptime", check: (cmd) => /^uptime$/.test(cmd) },
-  { id: 58, category: "Systems", tool: "lscpu", title: "CPU Info", desc: "Display CPU architecture information.", lesson: "lscpu details processor info.", hint: "lscpu", check: (cmd) => /^lscpu$/.test(cmd) },
-  { id: 59, category: "Systems", tool: "free", title: "Memory Usage", desc: "Check memory usage in human-readable format.", lesson: "free -h shows RAM/Swap.", hint: "free -h", check: (cmd) => /^free\s+-h$/.test(cmd) },
-  { id: 60, category: "Systems", tool: "top", title: "Process Monitor", desc: "Start the real-time process monitor.", lesson: "top shows active processes.", hint: "top", check: (cmd) => /^top$/.test(cmd) },
-  { id: 61, category: "Storage", tool: "lsblk", title: "List Block Devices", desc: "List all block devices.", lesson: "lsblk shows disks and partitions.", hint: "lsblk", check: (cmd) => /^lsblk$/.test(cmd) },
-  { id: 62, category: "Storage", tool: "findmnt", title: "Find Mounts", desc: "List all mounted filesystems.", lesson: "findmnt is a powerful mount tool.", hint: "findmnt", check: (cmd) => /^findmnt$/.test(cmd) },
-  { id: 63, category: "Users", tool: "id", title: "User ID", desc: "Display user and group IDs for 'student'.", lesson: "id shows uid/gid info.", hint: "id student", check: (cmd) => /^id\s+student$/.test(cmd) },
-  { id: 64, category: "Users", tool: "whoami", title: "Current User", desc: "Display current username.", lesson: "whoami check.", hint: "whoami", check: (cmd) => /^whoami$/.test(cmd) }
+  // --- SCRIPTING ---
+  { id: 11, category: "Tools", tool: "touch", title: "Create Script", desc: "Create a file named 'myscript.sh'.", lesson: "Scripts automate tasks.", hint: "touch myscript.sh", check: (cmd) => /^touch\s+myscript\.sh$/.test(cmd) },
+  { id: 12, category: "Tools", tool: "chmod", title: "Make Executable", desc: "Make 'myscript.sh' executable.", lesson: "chmod +x adds execution bit.", hint: "chmod +x myscript.sh", check: (cmd) => /^chmod\s+\+x\s+myscript\.sh$/.test(cmd) },
+  { id: 13, category: "Tools", tool: "echo", title: "Script Inputs", desc: "Echo the first argument ($1).", lesson: "$1, $2 are positional arguments.", hint: "echo $1", check: (cmd) => /^echo\s+\$1$/.test(cmd) },
+  
+  // --- SYSTEMS ---
+  { id: 14, category: "Systems", tool: "systemctl", title: "Reboot System", desc: "Reboot the machine.", lesson: "System power state.", hint: "systemctl reboot", check: (cmd) => /^systemctl\s+reboot$/.test(cmd) },
+  { id: 15, category: "Systems", tool: "systemctl", title: "Boot Target", desc: "Isolate 'multi-user.target' now.", lesson: "Switch to text mode without rebooting.", hint: "systemctl isolate multi-user.target", check: (cmd) => /^systemctl\s+isolate\s+multi-user\.target$/.test(cmd) },
+  { id: 16, category: "Systems", tool: "touch", title: "Root Pass Reset", desc: "Create the autorelabel file (Simulated).", lesson: "Essential for resetting root pass.", hint: "touch /.autorelabel", check: (cmd) => /^touch\s+\/\.autorelabel$/.test(cmd) },
+  { id: 17, category: "Systems", tool: "kill", title: "Kill Process", desc: "Force kill PID 1234.", lesson: "-9 sends SIGKILL.", hint: "kill -9 1234", check: (cmd) => /^kill\s+-9\s+1234$/.test(cmd) },
+  { id: 18, category: "Systems", tool: "renice", title: "Scheduling", desc: "Renice PID 1234 to priority 10.", lesson: "Adjust running process priority.", hint: "renice -n 10 1234", check: (cmd) => /^renice\s+-n\s+10\s+1234$/.test(cmd) },
+  { id: 19, category: "Systems", tool: "tuned-adm", title: "Tuning", desc: "Set 'virtual-guest' profile.", lesson: "System performance profiles.", hint: "tuned-adm profile virtual-guest", check: (cmd) => /^tuned-adm\s+profile\s+virtual-guest$/.test(cmd) },
+  { id: 20, category: "Systems", tool: "journalctl", title: "Logs", desc: "View logs for 'sshd'.", lesson: "Systemd journal.", hint: "journalctl -u sshd", check: (cmd) => /^journalctl\s+/.test(cmd) && /-u\s+sshd/.test(cmd) },
+  { id: 21, category: "Systems", tool: "mkdir", title: "Preserve Logs", desc: "Create '/var/log/journal'.", lesson: "Makes journald logs persistent.", hint: "mkdir /var/log/journal", check: (cmd) => /^mkdir\s+(\/var\/log\/journal)/.test(cmd) },
+  { id: 22, category: "Systems", tool: "systemctl", title: "Network Svc", desc: "Check status of 'NetworkManager'.", lesson: "Service management.", hint: "systemctl status NetworkManager", check: (cmd) => /^systemctl\s+status\s+NetworkManager$/.test(cmd) },
+  { id: 23, category: "Systems", tool: "scp", title: "Transfer File", desc: "Copy 'file' to 'serverb:/tmp'.", lesson: "Secure Copy.", hint: "scp file serverb:/tmp", check: (cmd) => /^scp\s+file\s+serverb:\/tmp$/.test(cmd) },
+
+  // --- STORAGE ---
+  { id: 24, category: "Storage", tool: "fdisk", title: "Partitioning", desc: "Manage partitions on '/dev/vdb'.", lesson: "MBR/GPT management.", hint: "fdisk /dev/vdb", check: (cmd) => /^fdisk\s+\/dev\/vdb$/.test(cmd) },
+  { id: 25, category: "Storage", tool: "pvcreate", title: "Create PV", desc: "Init '/dev/vdb1' as PV.", lesson: "LVM Layer 1.", hint: "pvcreate /dev/vdb1", check: (cmd) => /^pvcreate\s+\/dev\/vdb1$/.test(cmd) },
+  { id: 26, category: "Storage", tool: "vgcreate", title: "Create VG", desc: "Create VG 'myvg' on '/dev/vdb1'.", lesson: "LVM Layer 2.", hint: "vgcreate myvg /dev/vdb1", check: (cmd) => /^vgcreate\s+myvg\s+\/dev\/vdb1$/.test(cmd) },
+  { id: 27, category: "Storage", tool: "lvcreate", title: "Create LV", desc: "Create 1GB LV 'mylv' in 'myvg'.", lesson: "LVM Layer 3.", hint: "lvcreate -L 1G -n mylv myvg", check: (cmd) => /^lvcreate\s+/.test(cmd) && /-L\s+1G/.test(cmd) && /-n\s+mylv/.test(cmd) },
+  { id: 28, category: "Storage", tool: "blkid", title: "UUID", desc: "Find UUIDs for block devices.", lesson: "Persistent mounting identifier.", hint: "blkid", check: (cmd) => /^blkid$/.test(cmd) },
+  { id: 29, category: "Storage", tool: "mkswap", title: "Format Swap", desc: "Format '/dev/vdb2' as swap.", lesson: "Swap creation.", hint: "mkswap /dev/vdb2", check: (cmd) => /^mkswap\s+\/dev\/vdb2$/.test(cmd) },
+  { id: 30, category: "Storage", tool: "swapon", title: "Enable Swap", desc: "Activate swap on '/dev/vdb2'.", lesson: "Enable swap.", hint: "swapon /dev/vdb2", check: (cmd) => /^swapon\s+\/dev\/vdb2$/.test(cmd) },
+  { id: 31, category: "Storage", tool: "mkfs.xfs", title: "Format XFS", desc: "Format '/dev/myvg/mylv' as XFS.", lesson: "Filesystem creation.", hint: "mkfs.xfs /dev/myvg/mylv", check: (cmd) => /^mkfs\.xfs\s+\/dev\/myvg\/mylv$/.test(cmd) },
+  { id: 32, category: "Storage", tool: "mkfs.ext4", title: "Format Ext4", desc: "Format '/dev/myvg/mylv' as Ext4.", lesson: "Filesystem creation.", hint: "mkfs.ext4 /dev/myvg/mylv", check: (cmd) => /^mkfs\.ext4\s+\/dev\/myvg\/mylv$/.test(cmd) },
+  { id: 33, category: "Storage", tool: "mount", title: "Mount FS", desc: "Mount '/dev/myvg/mylv' to '/mnt'.", lesson: "Manual mounting.", hint: "mount /dev/myvg/mylv /mnt", check: (cmd) => /^mount\s+\/dev\/myvg\/mylv\s+\/mnt$/.test(cmd) },
+  { id: 34, category: "Storage", tool: "mount", title: "Mount NFS", desc: "Mount 'server:/share' to '/mnt'.", lesson: "Network filesystem.", hint: "mount -t nfs server:/share /mnt", check: (cmd) => /^mount\s+/.test(cmd) && /-t\s+nfs/.test(cmd) },
+  { id: 35, category: "Storage", tool: "dnf", title: "AutoFS", desc: "Install 'autofs'.", lesson: "Automounting utility.", hint: "dnf install autofs", check: (cmd) => /^dnf\s+install\s+autofs$/.test(cmd) },
+  { id: 36, category: "Storage", tool: "lvextend", title: "Extend LV", desc: "Add 100M to 'mylv' and resize FS.", lesson: "Resize fs flag is critical.", hint: "lvextend -L +100M -r /dev/myvg/mylv", check: (cmd) => /^lvextend\s+/.test(cmd) && /-r/.test(cmd) && /-L\s+\+100M/.test(cmd) },
+  
+  // --- DEPLOY & CONFIGURE ---
+  { id: 37, category: "Deploy", tool: "crontab", title: "Cron Job", desc: "Edit current user's cron.", lesson: "Task scheduling.", hint: "crontab -e", check: (cmd) => /^crontab\s+-e$/.test(cmd) },
+  { id: 38, category: "Deploy", tool: "systemctl", title: "Enable Boot", desc: "Enable 'httpd' to start at boot.", lesson: "Service persistence.", hint: "systemctl enable httpd", check: (cmd) => /^systemctl\s+enable\s+httpd$/.test(cmd) },
+  { id: 39, category: "Deploy", tool: "systemctl", title: "Set Target", desc: "Set default boot target to 'multi-user'.", lesson: "Boot level config.", hint: "systemctl set-default multi-user.target", check: (cmd) => /^systemctl\s+set-default\s+multi-user\.target$/.test(cmd) },
+  { id: 40, category: "Deploy", tool: "chronyc", title: "Time Sync", desc: "Check NTP sources.", lesson: "Time management.", hint: "chronyc sources", check: (cmd) => /^chronyc\s+sources\b/.test(cmd) },
+  { id: 41, category: "Deploy", tool: "dnf", title: "Install Pkg", desc: "Install 'httpd'.", lesson: "Package management.", hint: "dnf install httpd", check: (cmd) => /^dnf\s+install\s+httpd$/.test(cmd) },
+  { id: 42, category: "Deploy", tool: "dnf", title: "Update Pkg", desc: "Update all packages.", lesson: "System maintenance.", hint: "dnf update", check: (cmd) => /^dnf\s+update$/.test(cmd) },
+  { id: 43, category: "Deploy", tool: "grub2-mkconfig", title: "Bootloader", desc: "Regenerate GRUB config.", lesson: "Bootloader updates.", hint: "grub2-mkconfig -o /boot/grub2/grub.cfg", check: (cmd) => /^grub2-mkconfig\s+/.test(cmd) },
+  { id: 44, category: "Deploy", tool: "nmcli", title: "Configure IP", desc: "Add 'static-eth0' connection.", lesson: "Networking.", hint: "nmcli con add con-name static-eth0 type ethernet ifname eth0", check: (cmd) => /^nmcli\s+con\s+add\s+/.test(cmd) },
+  { id: 45, category: "Deploy", tool: "hostnamectl", title: "Hostname", desc: "Set hostname to 'server1'.", lesson: "System identity.", hint: "hostnamectl set-hostname server1", check: (cmd) => /^hostnamectl\s+set-hostname\s+server1$/.test(cmd) },
+  { id: 46, category: "Deploy", tool: "firewall-cmd", title: "Firewall Service", desc: "Allow 'http' permanently.", lesson: "Network security.", hint: "firewall-cmd --add-service=http --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-service=http/.test(cmd) && /--permanent/.test(cmd) },
+
+  // --- USERS & GROUPS ---
+  { id: 47, category: "Users", tool: "useradd", title: "Add User", desc: "Create user 'harry'.", lesson: "User mgmt.", hint: "useradd harry", check: (cmd) => /^useradd\s+harry$/.test(cmd) },
+  { id: 48, category: "Users", tool: "userdel", title: "Delete User", desc: "Delete user 'harry'.", lesson: "User mgmt.", hint: "userdel harry", check: (cmd) => /^userdel\s+harry$/.test(cmd) },
+  { id: 49, category: "Users", tool: "usermod", title: "Mod User", desc: "Lock user 'harry'.", lesson: "User mgmt.", hint: "usermod -L harry", check: (cmd) => /^usermod\s+-L\s+harry$/.test(cmd) },
+  { id: 50, category: "Users", tool: "chage", title: "Pass Aging", desc: "Set max age 90 for 'harry'.", lesson: "Password policy.", hint: "chage -M 90 harry", check: (cmd) => /^chage\s+-M\s+90\s+harry$/.test(cmd) },
+  { id: 51, category: "Users", tool: "groupadd", title: "Add Group", desc: "Create group 'sales'.", lesson: "Group mgmt.", hint: "groupadd sales", check: (cmd) => /^groupadd\s+sales$/.test(cmd) },
+  { id: 52, category: "Users", tool: "groupdel", title: "Del Group", desc: "Delete group 'sales'.", lesson: "Group mgmt.", hint: "groupdel sales", check: (cmd) => /^groupdel\s+sales$/.test(cmd) },
+  { id: 53, category: "Users", tool: "gpasswd", title: "Group Admin", desc: "Add 'harry' to 'sales'.", lesson: "Group membership.", hint: "gpasswd -a harry sales", check: (cmd) => /^gpasswd\s+-a\s+harry\s+sales$/.test(cmd) },
+  { id: 54, category: "Users", tool: "visudo", title: "Sudo", desc: "Edit sudoers file.", lesson: "Privilege escalation.", hint: "visudo", check: (cmd) => /^visudo$/.test(cmd) },
+
+  // --- SECURITY ---
+  { id: 55, category: "Security", tool: "firewall-cmd", title: "Firewall Port", desc: "Open port 8080/tcp permanently.", lesson: "Port security.", hint: "firewall-cmd --add-port=8080/tcp --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-port=8080\/tcp/.test(cmd) },
+  { id: 56, category: "Security", tool: "umask", title: "Umask", desc: "Set umask to 027.", lesson: "Default permissions.", hint: "umask 027", check: (cmd) => /^umask\s+027$/.test(cmd) },
+  { id: 57, category: "Security", tool: "ssh-keygen", title: "SSH Key", desc: "Generate SSH keys.", lesson: "Authentication.", hint: "ssh-keygen", check: (cmd) => /^ssh-keygen/.test(cmd) },
+  { id: 58, category: "Security", tool: "setenforce", title: "Enforcing", desc: "Set SELinux to Enforcing.", lesson: "MAC mode.", hint: "setenforce 1", check: (cmd) => /^setenforce\s+1$/.test(cmd) },
+  { id: 59, category: "Security", tool: "ls", title: "List Context", desc: "List file contexts.", lesson: "SELinux labels.", hint: "ls -Z", check: (cmd) => /^ls\s+-[a-zA-Z]*Z/.test(cmd) },
+  { id: 60, category: "Security", tool: "restorecon", title: "Restore Context", desc: "Fix context on '/var/www'.", lesson: "SELinux fix.", hint: "restorecon -R /var/www", check: (cmd) => /^restorecon\s+/.test(cmd) && /-R/.test(cmd) },
+  { id: 61, category: "Security", tool: "semanage", title: "Port Label", desc: "Add port 81 to http_port_t.", lesson: "SELinux ports.", hint: "semanage port -a -t http_port_t -p tcp 81", check: (cmd) => /^semanage\s+port\s+/.test(cmd) && /-a/.test(cmd) },
+  { id: 62, category: "Security", tool: "setsebool", title: "Boolean", desc: "Enable httpd home dirs.", lesson: "SELinux booleans.", hint: "setsebool -P httpd_enable_homedirs 1", check: (cmd) => /^setsebool\s+/.test(cmd) && /-P/.test(cmd) },
+  { id: 63, category: "Software", tool: "dnf", title: "Repo Config", desc: "Add a repo from URL.", lesson: "Software sources.", hint: "dnf config-manager --add-repo http://example.com/repo", check: (cmd) => /^dnf\s+config-manager\s+--add-repo/.test(cmd) },
+  { id: 64, category: "Software", tool: "flatpak", title: "Flatpak", desc: "Install 'gedit' from flathub.", lesson: "Application streams.", hint: "flatpak install flathub org.gnome.gedit", check: (cmd) => /^flatpak\s+install/.test(cmd) }
 ];
 
 // --- 4. MAIN APP COMPONENT ---
@@ -294,7 +295,7 @@ export default function App() {
   const [examMode, setExamMode] = useState(false);
   const [examTimeLeft, setExamTimeLeft] = useState(0);
   const [examQuestions, setExamQuestions] = useState([]);
-  const [examResults, setExamResults] = useState([]); // Array of { id, category, success }
+  const [examResults, setExamResults] = useState([]); 
   const [showReportCard, setShowReportCard] = useState(false);
 
   const terminalEndRef = useRef(null);
@@ -354,7 +355,7 @@ export default function App() {
       const selected = shuffled.slice(0, 15);
       
       setExamQuestions(selected);
-      setExamResults([]); // Reset results
+      setExamResults([]); 
       setExamMode(true);
       setShowReportCard(false);
       setExamTimeLeft(20 * 60); 
@@ -450,10 +451,6 @@ export default function App() {
           } else if (!UTILITY_COMMANDS.includes(base) && base !== currentMission.tool) {
               addToTerm(`> Wrong tool. Try again.`, 'error');
           }
-      } else {
-          // In exam mode, if they fail, maybe we should track it as a fail attempts? 
-          // For now, we just let them retry until time runs out or they get it.
-          // Optional: Skip button implementation could go here.
       }
     }
 
@@ -497,19 +494,28 @@ export default function App() {
              parts.pop();
              setCwd(parts.length === 0 ? '/' : '/' + parts.join('/'));
           } else {
-             // simplified cd
-             if (target.startsWith('/')) setCwd(target); 
-             else addToTerm(`cd: ${target}: Not fully implemented`, 'error');
+             if (target.startsWith('/') && fs[target]) {
+                 setCwd(target);
+             } 
+             else if (fs[cwd].children[target] && fs[cwd].children[target].type === 'dir') {
+                 addToTerm(`cd: ${target}: Not fully supported in this demo structure`, 'error');
+             } else {
+                 addToTerm(`cd: ${target}: No such file or directory`, 'error');
+             }
           }
           break;
-      // ... (Other sims)
       case 'id': addToTerm("uid=0(root) gid=0(root) groups=0(root)"); break;
       case 'nmcli': addToTerm("Connection successfully added."); break;
       case 'systemctl': addToTerm("Active: active (running)"); break;
       case 'dnf': addToTerm("Complete!"); break;
       case 'grep': if(cleanCmd.includes('^root')) addToTerm("root:x:0:0:root:/root:/bin/bash"); break;
+      case 'nmtui': addToTerm("Opening NetworkManager TUI... [Graphic Interface Simulated]", 'success'); break;
+      case 'flatpak': if (args[1] === 'install') addToTerm("Installing... Complete."); else addToTerm("Flatpak remote added."); break;
+      case 'hostnamectl': addToTerm("Hostname set."); break;
+      case 'semanage': addToTerm("Port label added."); break;
+      case 'restorecon': addToTerm("Relabeled."); break;
       default: 
-        if (!['useradd','groupadd','usermod','tar','chmod','ln','find','setfacl','tuned-adm','nice','chronyc','journalctl','pvcreate','vgcreate','lvcreate','lvextend','mkfs.xfs','mkswap','mount','crontab','firewall-cmd','ssh-keygen','restorecon','chage'].includes(base)) {
+        if (!['useradd','groupadd','usermod','tar','chmod','ln','find','setfacl','tuned-adm','nice','chronyc','journalctl','pvcreate','vgcreate','lvcreate','lvextend','mkfs.xfs','mkswap','mount','crontab','firewall-cmd','ssh-keygen','chage','fdisk','scp','kill'].includes(base)) {
              addToTerm(`bash: ${base}: command not found`, 'error');
         } else {
              addToTerm("Command executed (Simulated).");
@@ -518,7 +524,6 @@ export default function App() {
   };
 
   const handleKeyDown = (e) => {
-    // SHORTCUTS
     if (e.ctrlKey && e.key === 'l') {
         e.preventDefault();
         setTerminalHistory([]);
@@ -533,7 +538,11 @@ export default function App() {
 
     if (e.key === 'Tab') {
         e.preventDefault();
-        // Simple autocomplete logic could go here
+        const cleanCmd = inputVal.trim();
+        const possibleCommands = [...UTILITY_COMMANDS, ...missions.map(m => m.tool), 'systemctl', 'dnf', 'flatpak'];
+        const matches = possibleCommands.filter(cmd => cmd.startsWith(cleanCmd));
+        if (matches.length === 1) setInputVal(matches[0] + ' ');
+        else if (matches.length > 1) addToTerm(matches.join('  '), 'system');
     }
     else if (e.key === 'Enter') { 
         processCommand(inputVal); 
@@ -639,7 +648,6 @@ export default function App() {
                   <CodeBlock>ls &gt; file.txt</CodeBlock>
                   <CodeBlock>ls 2&gt; error.log</CodeBlock>
                 </div>
-                {/* NEW CARDS */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                    <h3 className="font-bold text-lg mb-4 text-slate-800">Shell Scripting</h3>
                    <div className="text-xs text-slate-600 space-y-2">
@@ -680,7 +688,6 @@ export default function App() {
                       <p>5. <code>exec /sbin/init</code></p>
                    </div>
                 </div>
-                 {/* NEW CARDS */}
                  <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                    <h3 className="font-bold text-lg mb-4 text-slate-800">Systemd Units</h3>
                    <CodeBlock>systemctl enable --now httpd</CodeBlock>
@@ -712,7 +719,6 @@ export default function App() {
                    <h3 className="font-bold text-lg mb-4 text-slate-800">AutoFS</h3>
                    <CodeBlock>/shares /etc/auto.shares</CodeBlock>
                 </div>
-                 {/* NEW CARDS */}
                  <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                    <h3 className="font-bold text-lg mb-4 text-slate-800">Partitions</h3>
                    <p className="text-xs text-slate-600 mb-2">Use <code>fdisk</code> or <code>parted</code> for GPT/MBR.</p>
@@ -744,7 +750,6 @@ export default function App() {
                    <h3 className="font-bold text-lg mb-4 text-slate-800">Cron</h3>
                    <CodeBlock>*/5 * * * * /script.sh</CodeBlock>
                 </div>
-                 {/* NEW CARD */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                    <h3 className="font-bold text-lg mb-4 text-slate-800">Repositories</h3>
                    <p className="text-xs text-slate-600 mb-2">Config in <code>/etc/yum.repos.d/</code></p>
@@ -769,7 +774,6 @@ export default function App() {
                    <h3 className="font-bold text-lg mb-4 text-slate-800">Firewall</h3>
                    <CodeBlock>firewall-cmd --permanent --add-service=http</CodeBlock>
                 </div>
-                 {/* NEW CARDS */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                    <h3 className="font-bold text-lg mb-4 text-slate-800">Access Control Lists</h3>
                    <CodeBlock>setfacl -m u:student:rw file</CodeBlock>
