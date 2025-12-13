@@ -71,6 +71,7 @@ const CopyButton = ({ text }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
+    // Safely handle text
     const textToCopy = text ? String(text) : "";
     try {
         await navigator.clipboard.writeText(textToCopy);
@@ -193,85 +194,50 @@ const INITIAL_FS = {
     '/etc': { type: 'dir', children: { 'passwd': { type: 'file' }, 'hosts': { type: 'file' } } },
 };
 
-// FULL MISSION LIST (MAPPED TO 64 OBJECTIVES)
+// FULL MISSION LIST WITH CATEGORIES
 const MISSIONS = [
-  // --- ESSENTIAL TOOLS ---
-  { id: 1, category: "Tools", tool: "ls", title: "Input/Output", desc: "Redirect output of 'ls' to 'file.txt'.", lesson: "Redirection: > overwrites, >> appends.", hint: "ls > file.txt", check: (cmd) => /^ls\s+>\s+file\.txt$/.test(cmd) },
-  { id: 2, category: "Tools", tool: "grep", title: "Analyze Text", desc: "Use grep to find 'root' in '/etc/passwd'.", lesson: "Regex: ^ starts with, $ ends with.", hint: "grep root /etc/passwd", check: (cmd) => /^grep\s+root\s+\/etc\/passwd$/.test(cmd) },
-  { id: 3, category: "Tools", tool: "ssh", title: "Remote Access", desc: "SSH into 'serverb' as 'student'.", lesson: "Secure remote shell.", hint: "ssh student@serverb", check: (cmd) => /^ssh\s+student@serverb$/.test(cmd) },
-  { id: 4, category: "Tools", tool: "tar", title: "Archive Files", desc: "Create a gzip archive 'backup.tar.gz' of '/home'.", lesson: "tar -czvf (Create, Gzip, Verbose, File).", hint: "tar -czvf backup.tar.gz /home", check: (cmd) => /^tar\s+/.test(cmd) && /-[a-zA-Z]*z/.test(cmd) && /-[a-zA-Z]*c/.test(cmd) },
-  { id: 5, category: "Tools", tool: "touch", title: "Create Files", desc: "Create a new file named 'new.txt'.", lesson: "touch creates empty files or updates timestamps.", hint: "touch new.txt", check: (cmd) => /^touch\s+new\.txt$/.test(cmd) },
-  { id: 6, category: "Tools", tool: "cp", title: "Copy Files", desc: "Copy 'file1' to '/tmp/file1'.", lesson: "cp copies files/dirs.", hint: "cp file1 /tmp/file1", check: (cmd) => /^cp\s+file1\s+\/tmp\/file1$/.test(cmd) },
-  { id: 7, category: "Tools", tool: "ln", title: "Hard Links", desc: "Create a hard link 'hlink' to 'file1'.", lesson: "Hard links share the same inode.", hint: "ln file1 hlink", check: (cmd) => /^ln\s+file1\s+hlink$/.test(cmd) },
-  { id: 8, category: "Tools", tool: "ln", title: "Soft Links", desc: "Create a soft link 'slink' to '/etc/hosts'.", lesson: "Soft links point to the file path.", hint: "ln -s /etc/hosts slink", check: (cmd) => /^ln\s+-s\s+\/etc\/hosts\s+slink$/.test(cmd) },
-  { id: 9, category: "Tools", tool: "chmod", title: "Permissions", desc: "Set 'script.sh' to rwxr-x--- (750).", lesson: "Octal: 4=r, 2=w, 1=x.", hint: "chmod 750 script.sh", check: (cmd) => /^chmod\s+750\s+script\.sh$/.test(cmd) },
-  { id: 10, category: "Tools", tool: "man", title: "Documentation", desc: "Open the manual for 'grep'.", lesson: "man pages are your best friend in the exam.", hint: "man grep", check: (cmd) => /^man\s+grep$/.test(cmd) },
-  
-  // --- SCRIPTING ---
-  { id: 11, category: "Tools", tool: "touch", title: "Create Script", desc: "Create an empty shell script named 'myscript.sh'.", lesson: "Scripts automate tasks.", hint: "touch myscript.sh", check: (cmd) => /^touch\s+myscript\.sh$/.test(cmd) },
-  { id: 12, category: "Tools", tool: "chmod", title: "Make Executable", desc: "Make 'myscript.sh' executable.", lesson: "chmod +x adds execution bit.", hint: "chmod +x myscript.sh", check: (cmd) => /^chmod\s+\+x\s+myscript\.sh$/.test(cmd) },
-  { id: 13, category: "Tools", tool: "echo", title: "Script Inputs", desc: "Echo the first argument ($1).", lesson: "$1, $2 are positional arguments.", hint: "echo $1", check: (cmd) => /^echo\s+\$1$/.test(cmd) },
-  
-  // --- SYSTEMS ---
-  { id: 14, category: "Systems", tool: "systemctl", title: "Reboot System", desc: "Reboot the machine.", lesson: "System power state.", hint: "systemctl reboot", check: (cmd) => /^systemctl\s+reboot$/.test(cmd) },
-  { id: 15, category: "Systems", tool: "systemctl", title: "Boot Target", desc: "Isolate 'multi-user.target' now.", lesson: "Switch to text mode without rebooting.", hint: "systemctl isolate multi-user.target", check: (cmd) => /^systemctl\s+isolate\s+multi-user\.target$/.test(cmd) },
-  { id: 16, category: "Systems", tool: "touch", title: "Root Pass Reset", desc: "Create the autorelabel file (Simulated).", lesson: "Essential for resetting root pass.", hint: "touch /.autorelabel", check: (cmd) => /^touch\s+\/\.autorelabel$/.test(cmd) },
-  { id: 17, category: "Systems", tool: "kill", title: "Kill Process", desc: "Force kill PID 1234.", lesson: "-9 sends SIGKILL.", hint: "kill -9 1234", check: (cmd) => /^kill\s+-9\s+1234$/.test(cmd) },
-  { id: 18, category: "Systems", tool: "renice", title: "Scheduling", desc: "Renice PID 1234 to priority 10.", lesson: "Adjust running process priority.", hint: "renice -n 10 1234", check: (cmd) => /^renice\s+-n\s+10\s+1234$/.test(cmd) },
-  { id: 19, category: "Systems", tool: "tuned-adm", title: "Tuning", desc: "Set 'virtual-guest' profile.", lesson: "System performance profiles.", hint: "tuned-adm profile virtual-guest", check: (cmd) => /^tuned-adm\s+profile\s+virtual-guest$/.test(cmd) },
-  { id: 20, category: "Systems", tool: "journalctl", title: "Logs", desc: "View logs for 'sshd'.", lesson: "Systemd journal.", hint: "journalctl -u sshd", check: (cmd) => /^journalctl\s+/.test(cmd) && /-u\s+sshd/.test(cmd) },
-  { id: 21, category: "Systems", tool: "mkdir", title: "Preserve Logs", desc: "Create '/var/log/journal'.", lesson: "Makes journald logs persistent.", hint: "mkdir /var/log/journal", check: (cmd) => /^mkdir\s+(\/var\/log\/journal)/.test(cmd) },
-  { id: 22, category: "Systems", tool: "systemctl", title: "Network Svc", desc: "Check status of 'NetworkManager'.", lesson: "Service management.", hint: "systemctl status NetworkManager", check: (cmd) => /^systemctl\s+status\s+NetworkManager$/.test(cmd) },
-  { id: 23, category: "Systems", tool: "scp", title: "Transfer File", desc: "Copy 'file' to 'serverb:/tmp'.", lesson: "Secure Copy.", hint: "scp file serverb:/tmp", check: (cmd) => /^scp\s+file\s+serverb:\/tmp$/.test(cmd) },
+  // PILLAR 1: TOOLS & SCRIPTING
+  { id: 1, category: "Tools", tool: "useradd", title: "User Management", desc: "Create user 'student' with UID 2000.", lesson: "RHEL user creation.", hint: "useradd -u 2000 student", check: (cmd) => /^useradd\s+/.test(cmd) && /\s-u\s+2000\b/.test(cmd) },
+  { id: 2, category: "Tools", tool: "groupadd", title: "Group Management", desc: "Create group 'devops' with GID 5000.", lesson: "Static GIDs.", hint: "groupadd -g 5000 devops", check: (cmd) => /^groupadd\s+/.test(cmd) && /-g\s+5000/.test(cmd) },
+  { id: 3, category: "Tools", tool: "usermod", title: "Modify User", desc: "Add 'student' to 'devops' group.", lesson: "Append groups.", hint: "usermod -aG devops student", check: (cmd) => /^usermod\s+/.test(cmd) && /-aG\s+devops/.test(cmd) },
+  { id: 4, category: "Tools", tool: "tar", title: "Archiving", desc: "Create gzip archive 'backup.tar.gz' of '/home'.", lesson: "Tar with gzip.", hint: "tar -czvf backup.tar.gz /home", check: (cmd) => /^tar\s+/.test(cmd) && /-[a-zA-Z]*z/.test(cmd) && /-[a-zA-Z]*c/.test(cmd) },
+  { id: 5, category: "Tools", tool: "chmod", title: "Permissions", desc: "Set 'script.sh' permissions: Owner=All, Group=RX, Other=None.", lesson: "Octal 750.", hint: "chmod 750 script.sh", check: (cmd) => /^chmod\s+750\s+script\.sh$/.test(cmd) },
+  { id: 6, category: "Tools", tool: "grep", title: "Grep", desc: "Search for lines starting with 'root' in '/etc/passwd'.", lesson: "Regex anchors.", hint: "grep \"^root\" /etc/passwd", check: (cmd) => /^grep\s+/.test(cmd) && /\^root/.test(cmd) },
+  { id: 7, category: "Tools", tool: "ln", title: "Soft Link", desc: "Create soft link 'mylink' to '/etc/hosts'.", lesson: "Symbolic links.", hint: "ln -s /etc/hosts mylink", check: (cmd) => /^ln\s+/.test(cmd) && /\s-s\s/.test(cmd) },
+  { id: 8, category: "Tools", tool: "find", title: "Find Files", desc: "Find files in '/etc' ending with '.conf'.", lesson: "Find by name.", hint: "find /etc -name \"*.conf\"", check: (cmd) => /^find\s+/.test(cmd) && /-name/.test(cmd) },
+  { id: 9, category: "Tools", tool: "setfacl", title: "ACLs", desc: "Grant 'student' RW access to 'file.txt' via ACL.", lesson: "Extended permissions.", hint: "setfacl -m u:student:rw file.txt", check: (cmd) => /^setfacl\s+/.test(cmd) && /-m/.test(cmd) },
 
-  // --- STORAGE ---
-  { id: 24, category: "Storage", tool: "fdisk", title: "Partitioning", desc: "Manage partitions on '/dev/vdb'.", lesson: "MBR/GPT management.", hint: "fdisk /dev/vdb", check: (cmd) => /^fdisk\s+\/dev\/vdb$/.test(cmd) },
-  { id: 25, category: "Storage", tool: "pvcreate", title: "Create PV", desc: "Init '/dev/vdb1' as PV.", lesson: "LVM Layer 1.", hint: "pvcreate /dev/vdb1", check: (cmd) => /^pvcreate\s+\/dev\/vdb1$/.test(cmd) },
-  { id: 26, category: "Storage", tool: "vgcreate", title: "Create VG", desc: "Create VG 'myvg' on '/dev/vdb1'.", lesson: "LVM Layer 2.", hint: "vgcreate myvg /dev/vdb1", check: (cmd) => /^vgcreate\s+myvg\s+\/dev\/vdb1$/.test(cmd) },
-  { id: 27, category: "Storage", tool: "lvcreate", title: "Create LV", desc: "Create 1GB LV 'mylv' in 'myvg'.", lesson: "LVM Layer 3.", hint: "lvcreate -L 1G -n mylv myvg", check: (cmd) => /^lvcreate\s+/.test(cmd) && /-L\s+1G/.test(cmd) && /-n\s+mylv/.test(cmd) },
-  { id: 28, category: "Storage", tool: "blkid", title: "UUID", desc: "Find UUIDs for block devices.", lesson: "Persistent mounting identifier.", hint: "blkid", check: (cmd) => /^blkid$/.test(cmd) },
-  { id: 29, category: "Storage", tool: "mkswap", title: "Format Swap", desc: "Format '/dev/vdb2' as swap.", lesson: "Swap creation.", hint: "mkswap /dev/vdb2", check: (cmd) => /^mkswap\s+\/dev\/vdb2$/.test(cmd) },
-  { id: 30, category: "Storage", tool: "swapon", title: "Enable Swap", desc: "Activate swap on '/dev/vdb2'.", lesson: "Enable swap.", hint: "swapon /dev/vdb2", check: (cmd) => /^swapon\s+\/dev\/vdb2$/.test(cmd) },
-  { id: 31, category: "Storage", tool: "mkfs.xfs", title: "Format XFS", desc: "Format '/dev/myvg/mylv' as XFS.", lesson: "Filesystem creation.", hint: "mkfs.xfs /dev/myvg/mylv", check: (cmd) => /^mkfs\.xfs\s+\/dev\/myvg\/mylv$/.test(cmd) },
-  { id: 32, category: "Storage", tool: "mkfs.ext4", title: "Format Ext4", desc: "Format '/dev/myvg/mylv' as Ext4.", lesson: "Filesystem creation.", hint: "mkfs.ext4 /dev/myvg/mylv", check: (cmd) => /^mkfs\.ext4\s+\/dev\/myvg\/mylv$/.test(cmd) },
-  { id: 33, category: "Storage", tool: "mount", title: "Mount FS", desc: "Mount '/dev/myvg/mylv' to '/mnt'.", lesson: "Manual mounting.", hint: "mount /dev/myvg/mylv /mnt", check: (cmd) => /^mount\s+\/dev\/myvg\/mylv\s+\/mnt$/.test(cmd) },
-  { id: 34, category: "Storage", tool: "mount", title: "Mount NFS", desc: "Mount 'server:/share' to '/mnt'.", lesson: "Network filesystem.", hint: "mount -t nfs server:/share /mnt", check: (cmd) => /^mount\s+/.test(cmd) && /-t\s+nfs/.test(cmd) },
-  { id: 35, category: "Storage", tool: "dnf", title: "AutoFS", desc: "Install 'autofs'.", lesson: "Automounting utility.", hint: "dnf install autofs", check: (cmd) => /^dnf\s+install\s+autofs$/.test(cmd) },
-  { id: 36, category: "Storage", tool: "lvextend", title: "Extend LV", desc: "Add 100M to 'mylv' and resize FS.", lesson: "Resize fs flag is critical.", hint: "lvextend -L +100M -r /dev/myvg/mylv", check: (cmd) => /^lvextend\s+/.test(cmd) && /-r/.test(cmd) && /-L\s+\+100M/.test(cmd) },
-  
-  // --- DEPLOY & CONFIGURE ---
-  { id: 37, category: "Deploy", tool: "crontab", title: "Cron Job", desc: "Edit current user's cron.", lesson: "Task scheduling.", hint: "crontab -e", check: (cmd) => /^crontab\s+-e$/.test(cmd) },
-  { id: 38, category: "Deploy", tool: "systemctl", title: "Enable Boot", desc: "Enable 'httpd' to start at boot.", lesson: "Service persistence.", hint: "systemctl enable httpd", check: (cmd) => /^systemctl\s+enable\s+httpd$/.test(cmd) },
-  { id: 39, category: "Deploy", tool: "systemctl", title: "Set Target", desc: "Set default boot target to 'multi-user'.", lesson: "Boot level config.", hint: "systemctl set-default multi-user.target", check: (cmd) => /^systemctl\s+set-default\s+multi-user\.target$/.test(cmd) },
-  { id: 40, category: "Deploy", tool: "chronyc", title: "Time Sync", desc: "Check NTP sources.", lesson: "Time management.", hint: "chronyc sources", check: (cmd) => /^chronyc\s+sources\b/.test(cmd) },
-  { id: 41, category: "Deploy", tool: "dnf", title: "Install Pkg", desc: "Install 'httpd'.", lesson: "Package management.", hint: "dnf install httpd", check: (cmd) => /^dnf\s+install\s+httpd$/.test(cmd) },
-  { id: 42, category: "Deploy", tool: "dnf", title: "Update Pkg", desc: "Update all packages.", lesson: "System maintenance.", hint: "dnf update", check: (cmd) => /^dnf\s+update$/.test(cmd) },
-  { id: 43, category: "Deploy", tool: "grub2-mkconfig", title: "Bootloader", desc: "Regenerate GRUB config.", lesson: "Bootloader updates.", hint: "grub2-mkconfig -o /boot/grub2/grub.cfg", check: (cmd) => /^grub2-mkconfig\s+/.test(cmd) },
-  { id: 44, category: "Deploy", tool: "nmcli", title: "Configure IP", desc: "Add 'static-eth0' connection.", lesson: "Networking.", hint: "nmcli con add con-name static-eth0 type ethernet ifname eth0", check: (cmd) => /^nmcli\s+con\s+add\s+/.test(cmd) },
-  { id: 45, category: "Deploy", tool: "hostnamectl", title: "Hostname", desc: "Set hostname to 'server1'.", lesson: "System identity.", hint: "hostnamectl set-hostname server1", check: (cmd) => /^hostnamectl\s+set-hostname\s+server1$/.test(cmd) },
-  { id: 46, category: "Deploy", tool: "firewall-cmd", title: "Firewall Service", desc: "Allow 'http' permanently.", lesson: "Network security.", hint: "firewall-cmd --add-service=http --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-service=http/.test(cmd) && /--permanent/.test(cmd) },
+  // PILLAR 2: SYSTEMS
+  { id: 10, category: "Systems", tool: "systemctl", title: "Service Status", desc: "Check status of 'httpd'.", lesson: "Systemd control.", hint: "systemctl status httpd", check: (cmd) => /^systemctl\s+status\s+httpd$/.test(cmd) },
+  { id: 11, category: "Systems", tool: "systemctl", title: "Default Target", desc: "Set default boot to text-mode.", lesson: "Multi-user target.", hint: "systemctl set-default multi-user.target", check: (cmd) => /^systemctl\s+set-default\s+multi-user\.target$/.test(cmd) },
+  { id: 12, category: "Systems", tool: "tuned-adm", title: "Tuning", desc: "Set profile to 'virtual-guest'.", lesson: "Performance profiles.", hint: "tuned-adm profile virtual-guest", check: (cmd) => /^tuned-adm\s+profile\s+virtual-guest$/.test(cmd) },
+  { id: 13, category: "Systems", tool: "nice", title: "Process Priority", desc: "Start 'tar' with priority 5.", lesson: "Process niceness.", hint: "nice -n 5 tar", check: (cmd) => /^nice\s+/.test(cmd) && /-n\s+5/.test(cmd) },
+  { id: 14, category: "Systems", tool: "chronyc", title: "NTP", desc: "Verify NTP sources.", lesson: "Time sync.", hint: "chronyc sources", check: (cmd) => /^chronyc\s+sources/.test(cmd) },
+  { id: 15, category: "Systems", tool: "journalctl", title: "Logging", desc: "Show logs for 'sshd'.", lesson: "Systemd journal.", hint: "journalctl -u sshd", check: (cmd) => /^journalctl\s+/.test(cmd) && /-u\s+sshd/.test(cmd) },
 
-  // --- USERS & GROUPS ---
-  { id: 47, category: "Users", tool: "useradd", title: "Add User", desc: "Create user 'harry'.", lesson: "User mgmt.", hint: "useradd harry", check: (cmd) => /^useradd\s+harry$/.test(cmd) },
-  { id: 48, category: "Users", tool: "userdel", title: "Delete User", desc: "Delete user 'harry'.", lesson: "User mgmt.", hint: "userdel harry", check: (cmd) => /^userdel\s+harry$/.test(cmd) },
-  { id: 49, category: "Users", tool: "usermod", title: "Mod User", desc: "Lock user 'harry'.", lesson: "User mgmt.", hint: "usermod -L harry", check: (cmd) => /^usermod\s+-L\s+harry$/.test(cmd) },
-  { id: 50, category: "Users", tool: "chage", title: "Pass Aging", desc: "Set max age 90 for 'harry'.", lesson: "Password policy.", hint: "chage -M 90 harry", check: (cmd) => /^chage\s+-M\s+90\s+harry$/.test(cmd) },
-  { id: 51, category: "Users", tool: "groupadd", title: "Add Group", desc: "Create group 'sales'.", lesson: "Group mgmt.", hint: "groupadd sales", check: (cmd) => /^groupadd\s+sales$/.test(cmd) },
-  { id: 52, category: "Users", tool: "groupdel", title: "Del Group", desc: "Delete group 'sales'.", lesson: "Group mgmt.", hint: "groupdel sales", check: (cmd) => /^groupdel\s+sales$/.test(cmd) },
-  { id: 53, category: "Users", tool: "gpasswd", title: "Group Admin", desc: "Add 'harry' to 'sales'.", lesson: "Group membership.", hint: "gpasswd -a harry sales", check: (cmd) => /^gpasswd\s+-a\s+harry\s+sales$/.test(cmd) },
-  { id: 54, category: "Users", tool: "visudo", title: "Sudo", desc: "Edit sudoers file.", lesson: "Privilege escalation.", hint: "visudo", check: (cmd) => /^visudo$/.test(cmd) },
+  // PILLAR 3: STORAGE
+  { id: 16, category: "Storage", tool: "pvcreate", title: "PV Creation", desc: "Init '/dev/vdb1' as PV.", lesson: "LVM Layer 1.", hint: "pvcreate /dev/vdb1", check: (cmd) => /^pvcreate\s+\/dev\/vdb1$/.test(cmd) },
+  { id: 17, category: "Storage", tool: "vgcreate", title: "VG Creation", desc: "Create VG 'myvg' using '/dev/vdb1'.", lesson: "LVM Layer 2.", hint: "vgcreate myvg /dev/vdb1", check: (cmd) => /^vgcreate\s+myvg\s+\/dev\/vdb1$/.test(cmd) },
+  { id: 18, category: "Storage", tool: "lvcreate", title: "LV Creation", desc: "Create 500MB LV 'mylv' in 'myvg'.", lesson: "LVM Layer 3.", hint: "lvcreate -L 500M -n mylv myvg", check: (cmd) => /^lvcreate\s+/.test(cmd) && /-L\s+500M/.test(cmd) },
+  { id: 19, category: "Storage", tool: "lvextend", title: "Extend LV", desc: "Add 200MB to 'mylv' and resize FS.", lesson: "Resize fs flag.", hint: "lvextend -L +200M -r /dev/myvg/mylv", check: (cmd) => /^lvextend\s+/.test(cmd) && /-r/.test(cmd) },
+  { id: 20, category: "Storage", tool: "mkfs.xfs", title: "Format FS", desc: "Format '/dev/myvg/mylv' as XFS.", lesson: "Filesystem creation.", hint: "mkfs.xfs /dev/myvg/mylv", check: (cmd) => /^mkfs\.xfs\s+/.test(cmd) },
+  { id: 21, category: "Storage", tool: "mkswap", title: "Swap", desc: "Format '/dev/vdb2' as swap.", lesson: "Swap space.", hint: "mkswap /dev/vdb2", check: (cmd) => /^mkswap\s+\/dev\/vdb2$/.test(cmd) },
+  { id: 22, category: "Storage", tool: "mount", title: "Mounting", desc: "Mount NFS share 'server:/share' to '/mnt'.", lesson: "Mount command.", hint: "mount -t nfs server:/share /mnt", check: (cmd) => /^mount\s+/.test(cmd) && /-t\s+nfs/.test(cmd) },
 
-  // --- SECURITY ---
-  { id: 55, category: "Security", tool: "firewall-cmd", title: "Firewall Port", desc: "Open port 8080/tcp permanently.", lesson: "Port security.", hint: "firewall-cmd --add-port=8080/tcp --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-port=8080\/tcp/.test(cmd) },
-  { id: 56, category: "Security", tool: "umask", title: "Umask", desc: "Set umask to 027.", lesson: "Default permissions.", hint: "umask 027", check: (cmd) => /^umask\s+027$/.test(cmd) },
-  { id: 57, category: "Security", tool: "ssh-keygen", title: "SSH Key", desc: "Generate SSH keys.", lesson: "Authentication.", hint: "ssh-keygen", check: (cmd) => /^ssh-keygen/.test(cmd) },
-  { id: 58, category: "Security", tool: "setenforce", title: "Enforcing", desc: "Set SELinux to Enforcing.", lesson: "MAC mode.", hint: "setenforce 1", check: (cmd) => /^setenforce\s+1$/.test(cmd) },
-  { id: 59, category: "Security", tool: "ls", title: "List Context", desc: "List file contexts.", lesson: "SELinux labels.", hint: "ls -Z", check: (cmd) => /^ls\s+-[a-zA-Z]*Z/.test(cmd) },
-  { id: 60, category: "Security", tool: "restorecon", title: "Restore Context", desc: "Fix context on '/var/www'.", lesson: "SELinux fix.", hint: "restorecon -R /var/www", check: (cmd) => /^restorecon\s+/.test(cmd) && /-R/.test(cmd) },
-  { id: 61, category: "Security", tool: "semanage", title: "Port Label", desc: "Add port 81 to http_port_t.", lesson: "SELinux ports.", hint: "semanage port -a -t http_port_t -p tcp 81", check: (cmd) => /^semanage\s+port\s+/.test(cmd) && /-a/.test(cmd) },
-  { id: 62, category: "Security", tool: "setsebool", title: "Boolean", desc: "Enable httpd home dirs.", lesson: "SELinux booleans.", hint: "setsebool -P httpd_enable_homedirs 1", check: (cmd) => /^setsebool\s+/.test(cmd) && /-P/.test(cmd) },
-  { id: 63, category: "Software", tool: "dnf", title: "Repo Config", desc: "Add a repo from URL.", lesson: "Software sources.", hint: "dnf config-manager --add-repo http://example.com/repo", check: (cmd) => /^dnf\s+config-manager\s+--add-repo/.test(cmd) },
-  { id: 64, category: "Software", tool: "flatpak", title: "Flatpak", desc: "Install 'gedit' from flathub.", lesson: "Application streams.", hint: "flatpak install flathub org.gnome.gedit", check: (cmd) => /^flatpak\s+install/.test(cmd) }
+  // PILLAR 4: DEPLOY
+  { id: 23, category: "Deploy", tool: "dnf", title: "Install Software", desc: "Install 'httpd'.", lesson: "Package manager.", hint: "dnf install httpd", check: (cmd) => /^dnf\s+install\s+httpd$/.test(cmd) },
+  { id: 24, category: "Deploy", tool: "crontab", title: "Cron", desc: "List current cron jobs.", lesson: "Scheduling.", hint: "crontab -l", check: (cmd) => /^crontab\s+-l$/.test(cmd) },
+  { id: 25, category: "Deploy", tool: "flatpak", title: "Flatpak", desc: "Install 'gedit' from flathub.", lesson: "Container apps.", hint: "flatpak install flathub org.gnome.gedit", check: (cmd) => /^flatpak\s+install/.test(cmd) },
+  { id: 26, category: "Deploy", tool: "hostnamectl", title: "Hostname", desc: "Set hostname to 'server1'.", lesson: "System identity.", hint: "hostnamectl set-hostname server1", check: (cmd) => /^hostnamectl\s+set-hostname\s+server1/.test(cmd) },
+  { id: 27, category: "Deploy", tool: "dnf", title: "Repos", desc: "Add repo 'http://repo.com/app.repo'.", lesson: "Repo management.", hint: "dnf config-manager --add-repo http://repo.com/app.repo", check: (cmd) => /^dnf\s+config-manager\s+--add-repo/.test(cmd) },
+
+  // PILLAR 5: SECURITY
+  { id: 28, category: "Security", tool: "nmcli", title: "Network", desc: "Add ethernet connection 'static-eth0'.", lesson: "NetworkManager.", hint: "nmcli con add con-name static-eth0 type ethernet ifname eth0", check: (cmd) => /^nmcli\s+con\s+add/.test(cmd) },
+  { id: 29, category: "Security", tool: "firewall-cmd", title: "Firewall", desc: "Permanently allow 'ftp'.", lesson: "Firewalld.", hint: "firewall-cmd --add-service=ftp --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--permanent/.test(cmd) },
+  { id: 30, category: "Security", tool: "ssh-keygen", title: "SSH", desc: "Generate SSH keys.", lesson: "Secure shell.", hint: "ssh-keygen", check: (cmd) => /^ssh-keygen/.test(cmd) },
+  { id: 31, category: "Security", tool: "ls", title: "SELinux List", desc: "List file contexts.", lesson: "Context labels.", hint: "ls -Z", check: (cmd) => /^ls\s+/.test(cmd) && /-[a-zA-Z]*Z/.test(cmd) },
+  { id: 32, category: "Security", tool: "restorecon", title: "SELinux Restore", desc: "Fix contexts on '/var/www/html'.", lesson: "Context repair.", hint: "restorecon -R /var/www/html", check: (cmd) => /^restorecon\s+/.test(cmd) && /-R/.test(cmd) },
+  { id: 33, category: "Security", tool: "chage", title: "Passwords", desc: "Set max password age to 90 days for 'student'.", lesson: "Aging policies.", hint: "chage -M 90 student", check: (cmd) => /^chage\s+/.test(cmd) && /-M\s+90/.test(cmd) }
 ];
 
 // --- 4. MAIN APP COMPONENT ---
@@ -643,33 +609,48 @@ export default function App() {
                 <div><h2 className="text-2xl font-bold text-slate-900">Pillar 1: Tools & Scripting</h2></div>
               </div>
               <div className="grid md:grid-cols-2 gap-6">
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800">Key Commands</h3>
-                  <CodeBlock>tar -czvf archive.tar.gz /path</CodeBlock>
-                  <CodeBlock>chmod 750 script.sh</CodeBlock>
+                {/* PERMISSIONS */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
+                  <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><LockIcon size={16} className="text-blue-500"/> Permissions</h3>
+                  <div className="space-y-3">
+                    <div className="text-sm">
+                      <span className="font-bold text-slate-700">Special Bits:</span>
+                      <CodeBlock>chmod u+s file     # SUID (4)</CodeBlock>
+                      <CodeBlock>chmod g+s dir      # SGID (2)</CodeBlock>
+                      <CodeBlock>chmod 2770 dir     # Octal SGID</CodeBlock>
+                    </div>
+                  </div>
                 </div>
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800">IO Redirection</h3>
-                  <CodeBlock>ls &gt; file.txt</CodeBlock>
-                  <CodeBlock>ls 2&gt; error.log</CodeBlock>
+
+                {/* ARCHIVING & LINKS */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
+                  <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><FileTextIcon size={16} className="text-blue-500"/> Archiving & Links</h3>
+                  <div className="space-y-3">
+                    <div className="text-sm">
+                      <p className="text-xs text-slate-600 mb-1 font-bold">Tar:</p>
+                      <CodeBlock>tar -czvf archive.tar.gz /path</CodeBlock>
+                    </div>
+                    <div className="text-sm">
+                      <p className="text-xs text-slate-600 mb-1 font-bold">Soft Link:</p>
+                      <CodeBlock>ln -s /source /linkname</CodeBlock>
+                    </div>
+                  </div>
                 </div>
-                {/* NEW CARDS */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Shell Scripting</h3>
-                   <div className="text-xs text-slate-600 space-y-2">
-                       <CodeBlock>#!/bin/bash</CodeBlock>
-                       <CodeBlock>for i in $(cat list); do echo $i; done</CodeBlock>
-                       <CodeBlock>if [ -f file ]; then echo "Exists"; fi</CodeBlock>
-                   </div>
-                </div>
-                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Regular Expressions</h3>
-                   <div className="text-xs text-slate-600 space-y-2">
-                       <p><b>^</b> Start of line</p>
-                       <p><b>$</b> End of line</p>
-                       <p><b>.</b> Any single char</p>
-                       <CodeBlock>grep "^root" /etc/passwd</CodeBlock>
-                   </div>
+
+                {/* IO REDIRECTION */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
+                  <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><FileTextIcon size={16} className="text-blue-500"/> I/O Redirection</h3>
+                  <div className="space-y-3">
+                    <div className="text-sm">
+                      <p className="text-xs text-slate-600 mb-1 font-bold">Standard Output:</p>
+                      <CodeBlock>ls &gt; file.txt      # Overwrite</CodeBlock>
+                      <CodeBlock>ls &gt;&gt; file.txt     # Append</CodeBlock>
+                    </div>
+                    <div className="text-sm">
+                      <p className="text-xs text-slate-600 mb-1 font-bold">Standard Error:</p>
+                      <CodeBlock>ls 2&gt; error.log   # Redirect stderr</CodeBlock>
+                    </div>
+                  </div>
                 </div>
               </div>
             </section>
@@ -680,30 +661,40 @@ export default function App() {
                 <div><h2 className="text-2xl font-bold text-slate-900">Pillar 2: Operate Running Systems</h2></div>
               </div>
               <div className="grid md:grid-cols-2 gap-6">
+                {/* Visual: Boot Reset */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:col-span-2">
+                   <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><SettingsIcon size={16} className="text-red-500"/> Root Password Reset Workflow</h3>
+                   <div className="flex flex-col md:flex-row gap-4 items-center justify-center text-xs text-center font-mono">
+                        <div className="bg-red-50 p-3 rounded-lg border border-red-100 w-full">
+                            <span className="block font-bold text-red-700 mb-1">1. GRUB</span>
+                            Hit 'e' to edit
+                        </div>
+                        <div className="text-slate-300">→</div>
+                        <div className="bg-red-50 p-3 rounded-lg border border-red-100 w-full">
+                            <span className="block font-bold text-red-700 mb-1">2. Edit Line</span>
+                            Append <code>rw init=/bin/bash</code>
+                        </div>
+                        <div className="text-slate-300">→</div>
+                        <div className="bg-red-50 p-3 rounded-lg border border-red-100 w-full">
+                            <span className="block font-bold text-red-700 mb-1">3. Reset</span>
+                            <code>passwd</code> root
+                        </div>
+                        <div className="text-slate-300">→</div>
+                        <div className="bg-red-50 p-3 rounded-lg border border-red-100 w-full">
+                            <span className="block font-bold text-red-700 mb-1">4. Relabel</span>
+                            <code>touch /.autorelabel</code>
+                        </div>
+                   </div>
+                </div>
+
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                   <h3 className="font-bold text-lg mb-4 text-slate-800">Boot Targets</h3>
                   <CodeBlock>systemctl isolate multi-user.target</CodeBlock>
                 </div>
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Root Password Reset</h3>
-                   <div className="text-xs text-slate-600 space-y-1">
-                      <p>1. Interrupt GRUB</p>
-                      <p>2. Add <code>rw init=/bin/bash</code> to linux line</p>
-                      <p>3. <code>passwd</code></p>
-                      <p>4. <code>touch /.autorelabel</code></p>
-                      <p>5. <code>exec /sbin/init</code></p>
-                   </div>
-                </div>
-                 {/* NEW CARDS */}
                  <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                    <h3 className="font-bold text-lg mb-4 text-slate-800">Systemd Units</h3>
                    <CodeBlock>systemctl enable --now httpd</CodeBlock>
                    <CodeBlock>systemctl list-units --type=service</CodeBlock>
-                </div>
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Logging</h3>
-                   <CodeBlock>journalctl -u sshd</CodeBlock>
-                   <CodeBlock>journalctl --since "1 hour ago"</CodeBlock>
                 </div>
               </div>
             </section>
@@ -714,24 +705,62 @@ export default function App() {
                 <div><h2 className="text-2xl font-bold text-slate-900">Pillar 3: Storage</h2></div>
               </div>
               <div className="grid md:grid-cols-2 gap-6">
+                
+                {/* Visual: LVM Stack */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800">LVM Logic</h3>
-                   <div className="text-xs font-mono space-y-2">
-                        <div className="bg-slate-50 p-2 rounded border border-slate-200">1. Physical Volume (PV)</div>
-                        <div className="bg-slate-50 p-2 rounded border border-slate-200">2. Volume Group (VG)</div>
-                        <div className="bg-slate-50 p-2 rounded border border-slate-200">3. Logical Volume (LV)</div>
+                    <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><LayersIcon size={16} className="text-amber-500"/> The LVM Stack</h3>
+                    <div className="space-y-1">
+                        <div className="bg-slate-100 p-2 rounded text-center text-xs text-slate-500 border border-slate-200">
+                            /dev/vdb (Raw Partition)
+                        </div>
+                        <div className="flex justify-center"><div className="h-4 w-0.5 bg-slate-300"></div></div>
+                        <div className="bg-amber-50 p-2 rounded text-center text-xs font-bold text-amber-700 border border-amber-200">
+                            PV (Physical Volume)
+                            <div className="font-mono font-normal text-[10px] opacity-70">pvcreate</div>
+                        </div>
+                        <div className="flex justify-center"><div className="h-4 w-0.5 bg-slate-300"></div></div>
+                        <div className="bg-amber-100 p-2 rounded text-center text-xs font-bold text-amber-800 border border-amber-300">
+                            VG (Volume Group)
+                            <div className="font-mono font-normal text-[10px] opacity-70">vgcreate</div>
+                        </div>
+                        <div className="flex justify-center"><div className="h-4 w-0.5 bg-slate-300"></div></div>
+                        <div className="bg-amber-200 p-2 rounded text-center text-xs font-bold text-amber-900 border border-amber-400">
+                            LV (Logical Volume)
+                            <div className="font-mono font-normal text-[10px] opacity-70">lvcreate</div>
+                        </div>
+                        <div className="flex justify-center"><div className="h-4 w-0.5 bg-slate-300"></div></div>
+                        <div className="bg-green-100 p-2 rounded text-center text-xs font-bold text-green-800 border border-green-200">
+                            Filesystem (xfs/ext4)
+                            <div className="font-mono font-normal text-[10px] opacity-70">mkfs.xfs</div>
+                        </div>
                     </div>
                 </div>
+
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                  <h3 className="font-bold text-lg mb-4 text-slate-800">FSTAB Anatomy</h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left border-collapse">
+                      <thead className="bg-slate-900 text-white">
+                        <tr>
+                          <th className="p-2 border border-slate-700">UUID/Device</th>
+                          <th className="p-2 border border-slate-700">Mount</th>
+                          <th className="p-2 border border-slate-700">Type</th>
+                        </tr>
+                      </thead>
+                      <tbody className="font-mono text-xs">
+                        <tr className="bg-amber-50">
+                          <td className="p-2 border border-amber-200">UUID="5b...a2"</td>
+                          <td className="p-2 border border-amber-200">/data</td>
+                          <td className="p-2 border border-amber-200">xfs</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                    <h3 className="font-bold text-lg mb-4 text-slate-800">AutoFS</h3>
                    <CodeBlock>/shares /etc/auto.shares</CodeBlock>
-                </div>
-                 {/* NEW CARDS */}
-                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Partitions</h3>
-                   <p className="text-xs text-slate-600 mb-2">Use <code>fdisk</code> or <code>parted</code> for GPT/MBR.</p>
-                   <CodeBlock>mkswap /dev/vdb2</CodeBlock>
-                   <CodeBlock>swapon /dev/vdb2</CodeBlock>
                 </div>
                  <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                    <h3 className="font-bold text-lg mb-4 text-slate-800">Stratis & VDO</h3>
@@ -748,6 +777,20 @@ export default function App() {
                 <div><h2 className="text-2xl font-bold text-slate-900">Pillar 4: Deploy & Maintain</h2></div>
               </div>
               <div className="grid md:grid-cols-2 gap-6">
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                  <h3 className="font-bold text-lg mb-4 text-slate-800">Software & Time</h3>
+                  <div className="space-y-3">
+                    <div className="text-sm">
+                      <p className="text-xs text-slate-600 mb-1 font-bold">DNF (Package Manager):</p>
+                      <CodeBlock>dnf install httpd</CodeBlock>
+                      <CodeBlock>dnf update</CodeBlock>
+                    </div>
+                    <div className="text-sm">
+                      <p className="text-xs text-slate-600 mb-1 font-bold">Chrony (NTP):</p>
+                      <CodeBlock>chronyc sources</CodeBlock>
+                    </div>
+                  </div>
+                </div>
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                   <h3 className="font-bold text-lg mb-4 text-slate-800">Containerized Apps</h3>
                    <p className="text-xs text-slate-600 mb-2">Flatpak is used for desktop applications.</p>
@@ -772,9 +815,26 @@ export default function App() {
              <section id="pillar-5" className="mb-24 scroll-mt-8">
               <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
                 <div className="p-3 bg-emerald-100 text-emerald-600 rounded-lg"><ShieldIcon size={24} /></div>
-                <div><h2 className="text-2xl font-bold text-slate-900">Pillar 5: Security</h2></div>
+                <div><h2 className="text-2xl font-bold text-slate-900">Pillar 5: Security & Networking</h2></div>
               </div>
               <div className="grid md:grid-cols-2 gap-6">
+                {/* Visual: Security Layers */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                   <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><ShieldIcon size={16} className="text-emerald-500"/> Defense Layers</h3>
+                   <div className="relative flex items-center justify-center h-32">
+                        <div className="absolute w-32 h-32 bg-red-100 rounded-full flex items-center justify-center border-2 border-red-200 z-10">
+                            <span className="text-[10px] font-bold text-red-800 mt-[-20px]">Firewall</span>
+                        </div>
+                        <div className="absolute w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center border-2 border-emerald-200 z-20">
+                            <span className="text-[10px] font-bold text-emerald-800 mt-[-10px]">SELinux</span>
+                        </div>
+                        <div className="absolute w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center border-2 border-blue-200 z-30">
+                            <span className="text-[8px] font-bold text-blue-800">rwx</span>
+                        </div>
+                   </div>
+                   <div className="text-xs text-center text-slate-500 mt-1">If Firewall opens, SELinux can still block.</div>
+                </div>
+
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                   <h3 className="font-bold text-lg mb-4 text-slate-800">SELinux</h3>
                    <CodeBlock>restorecon -R /var/www/html</CodeBlock>
@@ -789,24 +849,12 @@ export default function App() {
                    <CodeBlock>setfacl -m u:student:rw file</CodeBlock>
                    <CodeBlock>getfacl file</CodeBlock>
                 </div>
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">System Identity</h3>
-                   <p className="text-xs text-slate-600 mb-2">Set hostname persistently.</p>
-                   <CodeBlock>hostnamectl set-hostname name</CodeBlock>
-                </div>
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Privilege Escalation</h3>
-                   <p className="text-xs text-slate-600 mb-2">Configure sudo access.</p>
-                   <CodeBlock>/etc/sudoers.d/custom</CodeBlock>
-                   <CodeBlock>user ALL=(ALL) ALL</CodeBlock>
-                </div>
                  <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                   <h3 className="font-bold text-lg mb-4 text-slate-800">Network & Identity</h3>
                   <div className="space-y-3">
                     <div className="text-sm">
                         <p className="text-xs font-bold text-slate-600 mb-1 flex items-center gap-1"><NetworkIcon size={12}/> NetworkManager:</p>
                         <CodeBlock>nmcli con add type ethernet con-name ...</CodeBlock>
-                        <p className="text-[10px] text-slate-500 mt-1">Tip: Use <code>nmtui</code> for a visual menu.</p>
                     </div>
                     <div className="text-sm">
                         <p className="text-xs font-bold text-slate-600 mb-1">User Aging:</p>
