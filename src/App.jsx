@@ -208,14 +208,14 @@ const FlashcardDrill = ({ cards, onClose }) => {
                     onClick={() => setIsFlipped(!isFlipped)}
                 >
                      {/* FRONT */}
-                    <div className="absolute w-full h-full bg-white rounded-xl shadow-2xl p-8 flex flex-col items-center justify-center" style={{ backfaceVisibility: 'hidden' }}>
+                    <div className="absolute w-full h-full bg-white rounded-xl shadow-2xl p-8 flex flex-col items-center justify-center" style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
                         <h3 className="text-slate-400 text-sm uppercase tracking-widest mb-4">Concept</h3>
                         <p className="text-2xl font-bold text-slate-800">{cards[currentIndex].front}</p>
                         <p className="text-xs text-slate-400 mt-8">(Click to flip)</p>
                     </div>
 
                     {/* BACK */}
-                    <div className="absolute w-full h-full bg-slate-800 rounded-xl shadow-2xl p-8 flex flex-col items-center justify-center" style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
+                    <div className="absolute w-full h-full bg-slate-800 rounded-xl shadow-2xl p-8 flex flex-col items-center justify-center" style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
                          <h3 className="text-slate-500 text-sm uppercase tracking-widest mb-4">Solution</h3>
                          <div className="bg-black p-4 rounded w-full overflow-x-auto">
                             <code className="text-green-400 font-mono text-lg">{cards[currentIndex].back}</code>
@@ -305,7 +305,7 @@ const FLASHCARDS = [
     { id: 2, front: "nmcli command to add a static Ethernet connection", back: "nmcli con add con-name <name> type ethernet ifname <interface> ip4 <ip/mask> gw4 <gateway>" },
     { id: 3, front: "Octal Permission: Read + Execute", back: "5 (4+1)" },
     { id: 4, front: "Octal Permission: Read + Write", back: "6 (4+2)" },
-    { id: 5, front: "Kernel argument to interrupt boot for password reset", back: "init=/bin/bash" },
+    { id: 5, front: "Kernel argument to interrupt boot for password reset", back: "rd.break OR init=/bin/bash (Recommended: init=/bin/bash)" },
     { id: 6, front: "Step to ensure SELinux relabeling after password reset", back: "touch /.autorelabel" },
     { id: 7, front: "Command to make a firewall rule persistent", back: "--permanent" },
     { id: 8, front: "Command to reload firewall configuration", back: "firewall-cmd --reload" },
@@ -1094,6 +1094,7 @@ export default function App() {
                     <div className="text-sm">
                         <p className="text-xs font-bold text-slate-600 mb-1 flex items-center gap-1"><NetworkIcon size={12}/> NetworkManager:</p>
                         <CodeBlock>nmcli con add type ethernet con-name ...</CodeBlock>
+                        <p className="text-[10px] text-slate-500 mt-1">Tip: Use <code>nmtui</code> for a visual menu.</p>
                     </div>
                     <div className="text-sm">
                         <p className="text-xs font-bold text-slate-600 mb-1">User Aging:</p>
