@@ -359,7 +359,7 @@ const MISSIONS = [
   { id: 32, category: "Storage", tool: "mkfs.ext4", title: "Format Ext4", desc: "Format '/dev/myvg/mylv' as Ext4.", lesson: "Filesystem creation.", hint: "mkfs.ext4 /dev/myvg/mylv", check: (cmd) => /^mkfs\.ext4\s+\/dev\/myvg\/mylv$/.test(cmd) },
   { id: 33, category: "Storage", tool: "mount", title: "Mount FS", desc: "Mount '/dev/myvg/mylv' to '/mnt'.", lesson: "Manual mounting.", hint: "mount /dev/myvg/mylv /mnt", check: (cmd) => /^mount\s+\/dev\/myvg\/mylv\s+\/mnt$/.test(cmd) },
   { id: 34, category: "Storage", tool: "mount", title: "Mount NFS", desc: "Mount 'server:/share' to '/mnt'.", lesson: "Network filesystem.", hint: "mount -t nfs server:/share /mnt", check: (cmd) => /^mount\s+/.test(cmd) && /-t\s+nfs/.test(cmd) },
-  { id: 35, category: "Storage", tool: "dnf", title: "AutoFS", desc: "Install 'autofs'.", lesson: "Automounting utility.", hint: "dnf install autofs", check: (cmd) => /^dnf\s+install\s+autofs$/.test(cmd) },
+  { id: 35, category: "Storage", tool: "dnf", title: "AutoFS", desc: "Install 'autofs'.", lesson: "Automounting utility.", hint: "dnf -y install autofs", check: (cmd) => /^dnf\s+-y\s+install\s+autofs$/.test(cmd) },
   { id: 36, category: "Storage", tool: "lvextend", title: "Extend LV", desc: "Add 100M to 'mylv' and resize FS.", lesson: "Resize fs flag is critical.", hint: "lvextend -L +100M -r /dev/myvg/mylv", check: (cmd) => /^lvextend\s+/.test(cmd) && /-r/.test(cmd) && /-L\s+\+100M/.test(cmd) },
   
   // --- DEPLOY & CONFIGURE ---
@@ -367,7 +367,7 @@ const MISSIONS = [
   { id: 38, category: "Deploy", tool: "systemctl", title: "Enable Boot", desc: "Enable 'httpd' to start at boot.", lesson: "Service persistence.", hint: "systemctl enable httpd", check: (cmd) => /^systemctl\s+enable\s+httpd$/.test(cmd) },
   { id: 39, category: "Deploy", tool: "systemctl", title: "Set Target", desc: "Set default boot target to 'multi-user'.", lesson: "Boot level config.", hint: "systemctl set-default multi-user.target", check: (cmd) => /^systemctl\s+set-default\s+multi-user\.target$/.test(cmd) },
   { id: 40, category: "Deploy", tool: "chronyc", title: "Time Sync", desc: "Check NTP sources.", lesson: "Time management.", hint: "chronyc sources", check: (cmd) => /^chronyc\s+sources\b/.test(cmd) },
-  { id: 41, category: "Deploy", tool: "dnf", title: "Install Pkg", desc: "Install 'httpd'.", lesson: "Package management.", hint: "dnf install httpd", check: (cmd) => /^dnf\s+install\s+httpd$/.test(cmd) },
+  { id: 41, category: "Deploy", tool: "dnf", title: "Install Pkg", desc: "Install 'httpd'.", lesson: "Package management.", hint: "dnf -y install httpd", check: (cmd) => /^dnf\s+-y\s+install\s+httpd$/.test(cmd) },
   { id: 42, category: "Deploy", tool: "dnf", title: "Update Pkg", desc: "Update all packages.", lesson: "System maintenance.", hint: "dnf update", check: (cmd) => /^dnf\s+update$/.test(cmd) },
   { id: 43, category: "Deploy", tool: "grub2-mkconfig", title: "Bootloader", desc: "Regenerate GRUB config.", lesson: "Bootloader updates.", hint: "grub2-mkconfig -o /boot/grub2/grub.cfg", check: (cmd) => /^grub2-mkconfig\s+/.test(cmd) },
   { id: 44, category: "Deploy", tool: "nmcli", title: "Configure IP", desc: "Add 'static-eth0' connection.", lesson: "Networking.", hint: "nmcli con add con-name static-eth0 type ethernet ifname eth0", check: (cmd) => /^nmcli\s+con\s+add\s+/.test(cmd) },
@@ -1004,7 +1004,7 @@ export default function App() {
                   <div className="space-y-3">
                     <div className="text-sm">
                       <p className="text-xs text-slate-600 mb-1 font-bold">DNF (Package Manager):</p>
-                      <CodeBlock>dnf install httpd</CodeBlock>
+                      <CodeBlock>dnf -y install httpd</CodeBlock>
                       <CodeBlock>dnf update</CodeBlock>
                     </div>
                     <div className="text-sm">
