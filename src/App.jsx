@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 // --- 1. ICONS (Inline SVGs) ---
-// (Keeping all existing icons)
 const TerminalIcon = ({ size = 24, className = "" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
 );
@@ -75,7 +74,7 @@ const ListIcon = ({ size = 24, className = "" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
 );
 
-// --- 2. COMPONENTS ---
+// --- 2. COMPONENTS (Defined BEFORE App) ---
 
 const CopyButton = ({ text }) => {
   const [copied, setCopied] = useState(false);
@@ -199,23 +198,24 @@ const FlashcardDrill = ({ cards, onClose }) => {
 
     return (
         <div className="absolute inset-0 bg-slate-900/95 flex items-center justify-center z-50 p-4">
-             <div className="relative w-full max-w-lg h-96 perspective-1000">
+             <div className="relative w-full max-w-lg h-96" style={{ perspective: '1000px' }}>
                 <button onClick={onClose} className="absolute -top-12 right-0 text-white hover:text-red-400">
                      Close
                 </button>
                  <div 
-                    className={`relative w-full h-full text-center transition-transform duration-500 transform-style-3d cursor-pointer ${isFlipped ? 'rotate-y-180' : ''}`}
+                    className="relative w-full h-full text-center transition-transform duration-500 cursor-pointer"
+                    style={{ transformStyle: 'preserve-3d', transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}
                     onClick={() => setIsFlipped(!isFlipped)}
                 >
                      {/* FRONT */}
-                    <div className="absolute w-full h-full bg-white rounded-xl shadow-2xl p-8 flex flex-col items-center justify-center backface-hidden">
+                    <div className="absolute w-full h-full bg-white rounded-xl shadow-2xl p-8 flex flex-col items-center justify-center" style={{ backfaceVisibility: 'hidden' }}>
                         <h3 className="text-slate-400 text-sm uppercase tracking-widest mb-4">Concept</h3>
                         <p className="text-2xl font-bold text-slate-800">{cards[currentIndex].front}</p>
                         <p className="text-xs text-slate-400 mt-8">(Click to flip)</p>
                     </div>
 
                     {/* BACK */}
-                    <div className="absolute w-full h-full bg-slate-800 rounded-xl shadow-2xl p-8 flex flex-col items-center justify-center backface-hidden rotate-y-180">
+                    <div className="absolute w-full h-full bg-slate-800 rounded-xl shadow-2xl p-8 flex flex-col items-center justify-center" style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
                          <h3 className="text-slate-500 text-sm uppercase tracking-widest mb-4">Solution</h3>
                          <div className="bg-black p-4 rounded w-full overflow-x-auto">
                             <code className="text-green-400 font-mono text-lg">{cards[currentIndex].back}</code>
@@ -278,6 +278,7 @@ const CheatSheetModal = ({ bookmarks, missions, onClose }) => {
     );
 };
 
+
 // --- 3. CONSTANTS & DATA ---
 const MAX_INPUT_LENGTH = 256; 
 const ILLEGAL_CHARS = /<script\b[^>]*>([\s\S]*?)<\/script>/gm; 
@@ -294,6 +295,8 @@ const MAN_PAGES = {
     useradd: "NAME\n  useradd - create a new user\nSYNOPSIS\n  useradd [options] LOGIN\nOPTIONS\n  -u UID\n  -g GID\n  -G GROUPS",
     tar: "NAME\n  tar - archive utility\nOPTIONS\n  -c Create\n  -x Extract\n  -f File\n  -v Verbose\n  -z Gzip",
     chmod: "NAME\n  chmod - change file mode bits\nEXAMPLES\n  chmod 755 file",
+    grep: "NAME\n  grep - print lines matching a pattern\nSYNOPSIS\n  grep [OPTIONS] PATTERN [FILE...]\nOPTIONS\n  -i, --ignore-case\n  -v, --invert-match\n  -r, --recursive",
+    systemctl: "NAME\n  systemctl - Control the systemd system and service manager\nCOMMANDS\n  start\n  stop\n  restart\n  status\n  enable\n  disable\n  isolate",
     default: "No manual entry found. Try 'help'."
 };
 
@@ -302,7 +305,7 @@ const FLASHCARDS = [
     { id: 2, front: "nmcli command to add a static Ethernet connection", back: "nmcli con add con-name <name> type ethernet ifname <interface> ip4 <ip/mask> gw4 <gateway>" },
     { id: 3, front: "Octal Permission: Read + Execute", back: "5 (4+1)" },
     { id: 4, front: "Octal Permission: Read + Write", back: "6 (4+2)" },
-    { id: 5, front: "Kernel argument to interrupt boot for password reset", back: "init=/bin/bash (Recommended: init=/bin/bash)" },
+    { id: 5, front: "Kernel argument to interrupt boot for password reset", back: "init=/bin/bash" },
     { id: 6, front: "Step to ensure SELinux relabeling after password reset", back: "touch /.autorelabel" },
     { id: 7, front: "Command to make a firewall rule persistent", back: "--permanent" },
     { id: 8, front: "Command to reload firewall configuration", back: "firewall-cmd --reload" },
@@ -413,7 +416,7 @@ export default function App() {
   const [examMode, setExamMode] = useState(false);
   const [examTimeLeft, setExamTimeLeft] = useState(0);
   const [examQuestions, setExamQuestions] = useState([]);
-  const [examResults, setExamResults] = useState([]); 
+  const [examResults, setExamResults] = useState([]); // Array of { id, category, success }
   const [showReportCard, setShowReportCard] = useState(false);
   const [showFlashcards, setShowFlashcards] = useState(false);
   const [showCheatSheet, setShowCheatSheet] = useState(false);
@@ -1091,7 +1094,6 @@ export default function App() {
                     <div className="text-sm">
                         <p className="text-xs font-bold text-slate-600 mb-1 flex items-center gap-1"><NetworkIcon size={12}/> NetworkManager:</p>
                         <CodeBlock>nmcli con add type ethernet con-name ...</CodeBlock>
-                        <p className="text-[10px] text-slate-500 mt-1">Tip: Use <code>nmtui</code> for a visual menu.</p>
                     </div>
                     <div className="text-sm">
                         <p className="text-xs font-bold text-slate-600 mb-1">User Aging:</p>
