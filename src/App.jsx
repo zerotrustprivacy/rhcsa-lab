@@ -65,7 +65,7 @@ const LayersIcon = ({ size = 24, className = "" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
 );
 
-// --- 2. COMPONENTS ---
+// --- 2. COMPONENTS (Defined BEFORE App) ---
 
 const CopyButton = ({ text }) => {
   const [copied, setCopied] = useState(false);
@@ -208,7 +208,7 @@ const MISSIONS = [
   { id: 10, category: "Tools", tool: "man", title: "Documentation", desc: "Open the manual for 'grep'.", lesson: "man pages are your best friend in the exam.", hint: "man grep", check: (cmd) => /^man\s+grep$/.test(cmd) },
   
   // --- SCRIPTING ---
-  { id: 11, category: "Tools", tool: "touch", title: "Create Script", desc: "Create a file named 'myscript.sh'.", lesson: "Scripts automate tasks.", hint: "touch myscript.sh", check: (cmd) => /^touch\s+myscript\.sh$/.test(cmd) },
+  { id: 11, category: "Tools", tool: "touch", title: "Create Script", desc: "Create an empty shell script named 'myscript.sh'.", lesson: "Scripts automate tasks.", hint: "touch myscript.sh", check: (cmd) => /^touch\s+myscript\.sh$/.test(cmd) },
   { id: 12, category: "Tools", tool: "chmod", title: "Make Executable", desc: "Make 'myscript.sh' executable.", lesson: "chmod +x adds execution bit.", hint: "chmod +x myscript.sh", check: (cmd) => /^chmod\s+\+x\s+myscript\.sh$/.test(cmd) },
   { id: 13, category: "Tools", tool: "echo", title: "Script Inputs", desc: "Echo the first argument ($1).", lesson: "$1, $2 are positional arguments.", hint: "echo $1", check: (cmd) => /^echo\s+\$1$/.test(cmd) },
   
@@ -295,7 +295,7 @@ export default function App() {
   const [examMode, setExamMode] = useState(false);
   const [examTimeLeft, setExamTimeLeft] = useState(0);
   const [examQuestions, setExamQuestions] = useState([]);
-  const [examResults, setExamResults] = useState([]); 
+  const [examResults, setExamResults] = useState([]); // Array of { id, category, success }
   const [showReportCard, setShowReportCard] = useState(false);
 
   const terminalEndRef = useRef(null);
@@ -355,7 +355,7 @@ export default function App() {
       const selected = shuffled.slice(0, 15);
       
       setExamQuestions(selected);
-      setExamResults([]); 
+      setExamResults([]); // Reset results
       setExamMode(true);
       setShowReportCard(false);
       setExamTimeLeft(20 * 60); 
@@ -451,6 +451,10 @@ export default function App() {
           } else if (!UTILITY_COMMANDS.includes(base) && base !== currentMission.tool) {
               addToTerm(`> Wrong tool. Try again.`, 'error');
           }
+      } else {
+          // In exam mode, if they fail, maybe we should track it as a fail attempts? 
+          // For now, we just let them retry until time runs out or they get it.
+          // Optional: Skip button implementation could go here.
       }
     }
 
@@ -504,6 +508,7 @@ export default function App() {
              }
           }
           break;
+      // ... (Other sims)
       case 'id': addToTerm("uid=0(root) gid=0(root) groups=0(root)"); break;
       case 'nmcli': addToTerm("Connection successfully added."); break;
       case 'systemctl': addToTerm("Active: active (running)"); break;
@@ -648,6 +653,7 @@ export default function App() {
                   <CodeBlock>ls &gt; file.txt</CodeBlock>
                   <CodeBlock>ls 2&gt; error.log</CodeBlock>
                 </div>
+                {/* NEW CARDS */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                    <h3 className="font-bold text-lg mb-4 text-slate-800">Shell Scripting</h3>
                    <div className="text-xs text-slate-600 space-y-2">
@@ -688,6 +694,7 @@ export default function App() {
                       <p>5. <code>exec /sbin/init</code></p>
                    </div>
                 </div>
+                 {/* NEW CARDS */}
                  <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                    <h3 className="font-bold text-lg mb-4 text-slate-800">Systemd Units</h3>
                    <CodeBlock>systemctl enable --now httpd</CodeBlock>
@@ -719,6 +726,7 @@ export default function App() {
                    <h3 className="font-bold text-lg mb-4 text-slate-800">AutoFS</h3>
                    <CodeBlock>/shares /etc/auto.shares</CodeBlock>
                 </div>
+                 {/* NEW CARDS */}
                  <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                    <h3 className="font-bold text-lg mb-4 text-slate-800">Partitions</h3>
                    <p className="text-xs text-slate-600 mb-2">Use <code>fdisk</code> or <code>parted</code> for GPT/MBR.</p>
@@ -750,6 +758,7 @@ export default function App() {
                    <h3 className="font-bold text-lg mb-4 text-slate-800">Cron</h3>
                    <CodeBlock>*/5 * * * * /script.sh</CodeBlock>
                 </div>
+                 {/* NEW CARD */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                    <h3 className="font-bold text-lg mb-4 text-slate-800">Repositories</h3>
                    <p className="text-xs text-slate-600 mb-2">Config in <code>/etc/yum.repos.d/</code></p>
@@ -774,6 +783,7 @@ export default function App() {
                    <h3 className="font-bold text-lg mb-4 text-slate-800">Firewall</h3>
                    <CodeBlock>firewall-cmd --permanent --add-service=http</CodeBlock>
                 </div>
+                 {/* NEW CARDS */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                    <h3 className="font-bold text-lg mb-4 text-slate-800">Access Control Lists</h3>
                    <CodeBlock>setfacl -m u:student:rw file</CodeBlock>
