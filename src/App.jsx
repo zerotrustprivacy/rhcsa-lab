@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 // --- 1. ICONS (Inline SVGs) ---
+// (Keeping all existing icons)
 const TerminalIcon = ({ size = 24, className = "" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
 );
@@ -74,12 +75,13 @@ const ListIcon = ({ size = 24, className = "" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
 );
 
-// --- 2. COMPONENTS (Defined BEFORE App) ---
+// --- 2. COMPONENTS ---
 
 const CopyButton = ({ text }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
+    // Safely handle text
     const textToCopy = text ? String(text) : "";
     try {
         await navigator.clipboard.writeText(textToCopy);
@@ -276,7 +278,6 @@ const CheatSheetModal = ({ bookmarks, missions, onClose }) => {
     );
 };
 
-
 // --- 3. CONSTANTS & DATA ---
 const MAX_INPUT_LENGTH = 256; 
 const ILLEGAL_CHARS = /<script\b[^>]*>([\s\S]*?)<\/script>/gm; 
@@ -301,7 +302,7 @@ const FLASHCARDS = [
     { id: 2, front: "nmcli command to add a static Ethernet connection", back: "nmcli con add con-name <name> type ethernet ifname <interface> ip4 <ip/mask> gw4 <gateway>" },
     { id: 3, front: "Octal Permission: Read + Execute", back: "5 (4+1)" },
     { id: 4, front: "Octal Permission: Read + Write", back: "6 (4+2)" },
-    { id: 5, front: "Kernel argument to interrupt boot for password reset", back: "init=/bin/bash" },
+    { id: 5, front: "Kernel argument to interrupt boot for password reset", back: "init=/bin/bash (Recommended: init=/bin/bash)" },
     { id: 6, front: "Step to ensure SELinux relabeling after password reset", back: "touch /.autorelabel" },
     { id: 7, front: "Command to make a firewall rule persistent", back: "--permanent" },
     { id: 8, front: "Command to reload firewall configuration", back: "firewall-cmd --reload" },
@@ -374,7 +375,7 @@ const MISSIONS = [
   { id: 49, category: "Deploy", tool: "firewall-cmd", title: "Firewall Service", desc: "Allow 'http' permanently.", lesson: "Network security.", hint: "firewall-cmd --add-service=http --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-service=http/.test(cmd) && /--permanent/.test(cmd) },
   { id: 50, category: "Deploy", tool: "dnf", title: "Module Streams", desc: "Install the 'nodejs:18' module stream.", lesson: "AppStream allows different versions of software. Syntax: `module:stream`.", hint: "dnf module install nodejs:18", check: (cmd) => /^dnf\s+module\s+install\s+nodejs:18$/.test(cmd) },
   { id: 51, category: "Deploy", tool: "tuned-adm", title: "Recommended Tuning", desc: "Apply the recommended tuning profile for this system.", lesson: "`recommend` asks TuneD to detect the best profile.", hint: "tuned-adm recommend", check: (cmd) => /^tuned-adm\s+recommend$/.test(cmd) },
-
+  
   // PILLAR 5: SECURITY
   { id: 52, category: "Security", tool: "nmcli", title: "Network", desc: "Add ethernet connection 'static-eth0'.", lesson: "NetworkManager.", hint: "nmcli con add con-name static-eth0 type ethernet ifname eth0", check: (cmd) => /^nmcli\s+con\s+add/.test(cmd) },
   { id: 53, category: "Security", tool: "firewall-cmd", title: "Firewall", desc: "Permanently allow 'ftp'.", lesson: "Firewalld.", hint: "firewall-cmd --add-service=ftp --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-service=ftp/.test(cmd) && /--permanent/.test(cmd) },
@@ -417,6 +418,9 @@ export default function App() {
   const [showFlashcards, setShowFlashcards] = useState(false);
   const [showCheatSheet, setShowCheatSheet] = useState(false);
   const [bookmarkedMissions, setBookmarkedMissions] = useState([]);
+  
+  // NEW: ACTIVE TAB STATE
+  const [activeTab, setActiveTab] = useState('pillar-1');
 
   const terminalEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -452,11 +456,12 @@ export default function App() {
       return () => clearInterval(interval);
   }, [examMode, examTimeLeft]);
 
-  // Auto-scroll
+  // Auto-scroll terminal
   useEffect(() => {
     terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [terminalHistory]);
 
+  // Reset hint when mission changes
   useEffect(() => {
     setShowHint(false);
   }, [currentMissionId]);
@@ -478,6 +483,7 @@ export default function App() {
   };
 
   const startExamMode = () => {
+      // Pick 15 random missions
       const shuffled = [...MISSIONS].sort(() => 0.5 - Math.random());
       const selected = shuffled.slice(0, 15);
       
@@ -586,6 +592,10 @@ export default function App() {
           } else if (!UTILITY_COMMANDS.includes(base) && base !== currentMission.tool) {
               addToTerm(`> Wrong tool. Try again.`, 'error');
           }
+      } else {
+          // In exam mode, if they fail, maybe we should track it as a fail attempts? 
+          // For now, we just let them retry until time runs out or they get it.
+          // Optional: Skip button implementation could go here.
       }
     }
 
@@ -730,19 +740,17 @@ export default function App() {
              <ProgressBar completed={completedMissions.length} total={MISSIONS.length} />
           </div>
 
-          <div className="space-y-2 mb-6">
-            <button onClick={startExamMode} disabled={examMode} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-red-600 text-white font-bold hover:bg-red-700 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                <TimerIcon size={16}/> {examMode ? "Exam in Progress" : "Start Mock Exam"}
-            </button>
+          <button onClick={startExamMode} disabled={examMode} className="w-full flex items-center justify-center gap-2 mb-6 px-3 py-2 rounded-md bg-red-600 text-white font-bold hover:bg-red-700 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+             <TimerIcon size={16}/> {examMode ? "Exam in Progress" : "Start Mock Exam"}
+          </button>
 
-            <button onClick={() => setShowFlashcards(true)} disabled={examMode} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-indigo-600 text-white font-bold hover:bg-indigo-700 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+          <button onClick={() => setShowFlashcards(true)} disabled={examMode} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-indigo-600 text-white font-bold hover:bg-indigo-700 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed mb-2">
                 <CardIcon size={16}/> Flashcards
             </button>
 
-            <button onClick={() => setShowCheatSheet(true)} disabled={examMode} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-slate-700 text-white font-bold hover:bg-slate-600 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+            <button onClick={() => setShowCheatSheet(true)} disabled={examMode} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-slate-700 text-white font-bold hover:bg-slate-600 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed mb-6">
                 <ListIcon size={16}/> My Cheat Sheet
             </button>
-          </div>
           
           <button onClick={cycleTheme} className="w-full flex items-center justify-center gap-2 mb-6 px-3 py-2 rounded-md bg-slate-800 text-slate-300 font-bold hover:bg-slate-700 text-sm transition-colors border border-slate-700">
              <PaletteIcon size={16}/> {currentTheme.name}
@@ -752,11 +760,13 @@ export default function App() {
             <li><button onClick={() => { setExamMode(false); setCurrentMissionId(0); }} className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors w-full text-left"><TerminalIcon size={16}/> Practice Lab</button></li>
             <div className="my-2 border-t border-slate-800"></div>
             <li className="text-xs text-slate-500 uppercase tracking-wider mt-4 mb-2 px-3">Quick Links</li>
-            <li><a href="#pillar-1" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors"><FileTextIcon size={16}/> Tools & Scripting</a></li>
-            <li><a href="#pillar-2" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors"><CpuIcon size={16}/> Running Systems</a></li>
-            <li><a href="#pillar-3" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors"><HardDriveIcon size={16}/> Storage</a></li>
-            <li><a href="#pillar-4" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors"><SettingsIcon size={16}/> Deploy & Maintain</a></li>
-            <li><a href="#pillar-5" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors"><ShieldIcon size={16}/> Users & Security</a></li>
+            
+            {/* TABS IN SIDEBAR FOR MOBILE/QUICK ACCESS */}
+            <li><button onClick={() => setActiveTab('pillar-1')} className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors w-full text-left ${activeTab === 'pillar-1' ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 text-slate-400'}`}><FileTextIcon size={16}/> Tools & Scripting</button></li>
+            <li><button onClick={() => setActiveTab('pillar-2')} className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors w-full text-left ${activeTab === 'pillar-2' ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 text-slate-400'}`}><CpuIcon size={16}/> Running Systems</button></li>
+            <li><button onClick={() => setActiveTab('pillar-3')} className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors w-full text-left ${activeTab === 'pillar-3' ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 text-slate-400'}`}><HardDriveIcon size={16}/> Storage</button></li>
+            <li><button onClick={() => setActiveTab('pillar-4')} className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors w-full text-left ${activeTab === 'pillar-4' ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 text-slate-400'}`}><SettingsIcon size={16}/> Deploy & Maintain</button></li>
+            <li><button onClick={() => setActiveTab('pillar-5')} className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors w-full text-left ${activeTab === 'pillar-5' ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 text-slate-400'}`}><ShieldIcon size={16}/> Users & Security</button></li>
           </ul>
         </div>
       </nav>
@@ -789,8 +799,23 @@ export default function App() {
               <p className="text-lg text-slate-600">Study the concepts below, then test them in the terminal below.</p>
             </header>
 
-            {/* PILLARS CONTENT */}
-            <section id="pillar-1" className="mb-16 scroll-mt-8">
+            {/* TAB NAVIGATION */}
+            <div className="flex border-b border-slate-200 mb-8 overflow-x-auto">
+                {['pillar-1', 'pillar-2', 'pillar-3', 'pillar-4', 'pillar-5', 'tips'].map((tab) => (
+                    <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`px-4 py-2 text-sm font-medium whitespace-nowrap ${activeTab === tab ? 'border-b-2 border-red-500 text-red-600' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                        {tab === 'tips' ? 'Exam Tips' : tab.replace('-', ' ').toUpperCase().replace('PILLAR', 'PILLAR ')}
+                    </button>
+                ))}
+            </div>
+
+            {/* PILLARS CONTENT (CONDITIONAL RENDERING) */}
+            
+            {activeTab === 'pillar-1' && (
+            <section id="pillar-1" className="mb-16 scroll-mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
                 <div className="p-3 bg-blue-100 text-blue-600 rounded-lg"><TerminalIcon size={24} /></div>
                 <div><h2 className="text-2xl font-bold text-slate-900">Pillar 1: Tools & Scripting</h2></div>
@@ -846,8 +871,10 @@ export default function App() {
                 </div>
               </div>
             </section>
+            )}
             
-            <section id="pillar-2" className="mb-16 scroll-mt-8">
+            {activeTab === 'pillar-2' && (
+            <section id="pillar-2" className="mb-16 scroll-mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
                 <div className="p-3 bg-red-100 text-red-600 rounded-lg"><CpuIcon size={24} /></div>
                 <div><h2 className="text-2xl font-bold text-slate-900">Pillar 2: Operate Running Systems</h2></div>
@@ -890,8 +917,10 @@ export default function App() {
                 </div>
               </div>
             </section>
+            )}
 
-             <section id="pillar-3" className="mb-16 scroll-mt-8">
+            {activeTab === 'pillar-3' && (
+             <section id="pillar-3" className="mb-16 scroll-mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
                 <div className="p-3 bg-amber-100 text-amber-600 rounded-lg"><HardDriveIcon size={24} /></div>
                 <div><h2 className="text-2xl font-bold text-slate-900">Pillar 3: Storage</h2></div>
@@ -962,8 +991,10 @@ export default function App() {
                 </div>
               </div>
             </section>
+            )}
 
-             <section id="pillar-4" className="mb-16 scroll-mt-8">
+            {activeTab === 'pillar-4' && (
+             <section id="pillar-4" className="mb-16 scroll-mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
                 <div className="p-3 bg-purple-100 text-purple-600 rounded-lg"><SettingsIcon size={24} /></div>
                 <div><h2 className="text-2xl font-bold text-slate-900">Pillar 4: Deploy & Maintain</h2></div>
@@ -1003,8 +1034,10 @@ export default function App() {
                 </div>
               </div>
             </section>
+            )}
 
-             <section id="pillar-5" className="mb-24 scroll-mt-8">
+            {activeTab === 'pillar-5' && (
+             <section id="pillar-5" className="mb-24 scroll-mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
                 <div className="p-3 bg-emerald-100 text-emerald-600 rounded-lg"><ShieldIcon size={24} /></div>
                 <div><h2 className="text-2xl font-bold text-slate-900">Pillar 5: Security & Networking</h2></div>
@@ -1058,6 +1091,7 @@ export default function App() {
                     <div className="text-sm">
                         <p className="text-xs font-bold text-slate-600 mb-1 flex items-center gap-1"><NetworkIcon size={12}/> NetworkManager:</p>
                         <CodeBlock>nmcli con add type ethernet con-name ...</CodeBlock>
+                        <p className="text-[10px] text-slate-500 mt-1">Tip: Use <code>nmtui</code> for a visual menu.</p>
                     </div>
                     <div className="text-sm">
                         <p className="text-xs font-bold text-slate-600 mb-1">User Aging:</p>
@@ -1067,9 +1101,10 @@ export default function App() {
                 </div>
               </div>
             </section>
+            )}
             
-            {/* EXAM TIPS */}
-            <section className="mb-24 scroll-mt-8">
+            {activeTab === 'tips' && (
+            <section className="mb-24 scroll-mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
                  <div className="p-3 bg-indigo-100 text-indigo-600 rounded-lg"><BookOpenIcon size={24} /></div>
                  <div><h2 className="text-2xl font-bold text-slate-900">Exam Strategy & Tips</h2></div>
@@ -1097,6 +1132,7 @@ export default function App() {
                    </div>
               </div>
             </section>
+            )}
 
           </div>
         </main>
@@ -1223,14 +1259,17 @@ export default function App() {
                 <div className="flex items-center gap-2 mb-1 text-amber-700 font-bold text-[10px] uppercase tracking-wider">
                   <BookOpenIcon size={10} /> Quick Lesson
                 </div>
-                <p className="text-[10px] text-amber-900 leading-relaxed">
-                  {currentMissionId === 0 
-                    ? "Lessons appear here." 
-                    : examMode 
-                      ? "No lessons during exam mode!"
-                      : (activeMission ? activeMission.lesson : "")
-                  }
-                </p>
+                {/* HIDE LESSON IF FLASHCARD MODE IS ON */}
+                {!showFlashcards && (
+                    <p className="text-[10px] text-amber-900 leading-relaxed">
+                    {currentMissionId === 0 
+                        ? "Lessons appear here." 
+                        : examMode 
+                        ? "No lessons during exam mode!"
+                        : (activeMission ? activeMission.lesson : "")
+                    }
+                    </p>
+                )}
               </div>
             </div>
 
