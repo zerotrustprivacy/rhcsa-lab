@@ -305,7 +305,7 @@ const FLASHCARDS = [
     { id: 2, front: "nmcli command to add a static Ethernet connection", back: "nmcli con add con-name <name> type ethernet ifname <interface> ip4 <ip/mask> gw4 <gateway>" },
     { id: 3, front: "Octal Permission: Read + Execute", back: "5 (4+1)" },
     { id: 4, front: "Octal Permission: Read + Write", back: "6 (4+2)" },
-    { id: 5, front: "Kernel argument to interrupt boot for password reset", back: "rd.break OR init=/bin/bash (Recommended: init=/bin/bash)" },
+    { id: 5, front: "Kernel argument to interrupt boot for password reset", back: "init=/bin/bash" },
     { id: 6, front: "Step to ensure SELinux relabeling after password reset", back: "touch /.autorelabel" },
     { id: 7, front: "Command to make a firewall rule persistent", back: "--permanent" },
     { id: 8, front: "Command to reload firewall configuration", back: "firewall-cmd --reload" },
