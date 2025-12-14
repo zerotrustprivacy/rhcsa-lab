@@ -73,6 +73,9 @@ const CardIcon = ({ size = 24, className = "" }) => (
 const ListIcon = ({ size = 24, className = "" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
 );
+const WrenchIcon = ({ size = 24, className = "" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+);
 
 // --- 2. COMPONENTS (Defined BEFORE App) ---
 
@@ -278,6 +281,181 @@ const CheatSheetModal = ({ bookmarks, missions, onClose }) => {
     );
 };
 
+const TroubleshootingModal = ({ onClose }) => {
+    const [currentNode, setCurrentNode] = useState(null);
+    const [treeType, setTreeType] = useState(null);
+
+    const TROUBLESHOOTING_TREES = {
+        service: {
+            title: "Service Won't Start",
+            startNode: 'status',
+            nodes: {
+                status: {
+                    text: "Check the service status. Is it active (running)?",
+                    cmd: "systemctl status <service>",
+                    yes: 'firewall',
+                    no: 'start'
+                },
+                start: {
+                    text: "Try starting the service. Did it fail?",
+                    cmd: "systemctl start <service>",
+                    yes: 'logs',
+                    no: 'enable' 
+                },
+                logs: {
+                    text: "Check the system logs for specific error messages.",
+                    cmd: "journalctl -u <service> -e",
+                    action: "Fix configuration error based on logs."
+                },
+                firewall: {
+                    text: "Is the firewall allowing the service port?",
+                    cmd: "firewall-cmd --list-all",
+                    yes: 'selinux',
+                    no: 'open_port'
+                },
+                open_port: {
+                    text: "Open the port permanently and reload.",
+                    cmd: "firewall-cmd --permanent --add-service=<service> && firewall-cmd --reload",
+                    action: "Retry connection."
+                },
+                selinux: {
+                    text: "Check for SELinux denials.",
+                    cmd: "grep AVC /var/log/audit/audit.log",
+                    yes: 'restorecon',
+                    no: 'network'
+                },
+                restorecon: {
+                    text: "Restore default file contexts.",
+                    cmd: "restorecon -Rv /var/www/html",
+                    action: "Retry connection."
+                },
+                enable: {
+                     text: "Service started successfully. Ensure it's enabled.",
+                     cmd: "systemctl enable <service>",
+                     action: "Done."
+                },
+                network: {
+                    text: "Verify network connectivity.",
+                    cmd: "ping -c 4 <gateway>",
+                    action: "Check routing table."
+                }
+            }
+        },
+        ssh: {
+            title: "Cannot SSH to Server",
+            startNode: 'ping',
+            nodes: {
+                ping: {
+                    text: "Can you ping the server IP?",
+                    cmd: "ping <ip_address>",
+                    yes: 'ssh_port',
+                    no: 'local_ip'
+                },
+                local_ip: {
+                    text: "Do you have a valid IP address?",
+                    cmd: "ip a",
+                    yes: 'route',
+                    no: 'nmcli'
+                },
+                nmcli: {
+                    text: "Configure static IP.",
+                    cmd: "nmcli con add ...",
+                    action: "Retry ping."
+                },
+                route: {
+                    text: "Check IP route.",
+                    cmd: "ip route",
+                    action: "Fix gateway."
+                },
+                ssh_port: {
+                    text: "Is the SSH service running on the target?",
+                    cmd: "systemctl status sshd",
+                    yes: 'firewall_ssh',
+                    no: 'start_ssh'
+                },
+                 firewall_ssh: {
+                    text: "Is port 22 open on the firewall?",
+                    cmd: "firewall-cmd --list-all",
+                    yes: 'perm_denied',
+                    no: 'open_ssh'
+                },
+                start_ssh: {
+                     text: "Start SSH service on target.",
+                     cmd: "systemctl start sshd",
+                     action: "Retry connection."
+                },
+                open_ssh: {
+                    text: "Allow SSH service.",
+                    cmd: "firewall-cmd --permanent --add-service=ssh && firewall-cmd --reload",
+                    action: "Retry connection."
+                },
+                perm_denied: {
+                    text: "Permission Denied? Check root login settings.",
+                    cmd: "grep PermitRootLogin /etc/ssh/sshd_config",
+                    action: "Edit config to 'yes' or use user account."
+                }
+            }
+        }
+    };
+
+    const startTree = (type) => {
+        setTreeType(type);
+        setCurrentNode(TROUBLESHOOTING_TREES[type].startNode);
+    };
+
+    const node = treeType && currentNode ? TROUBLESHOOTING_TREES[treeType].nodes[currentNode] : null;
+
+    return (
+        <div className="absolute inset-0 bg-slate-900/95 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg w-full max-w-lg shadow-2xl border-4 border-slate-700 p-6">
+                 <div className="flex justify-between items-center mb-6 border-b pb-4">
+                    <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                        <WrenchIcon className="text-blue-500" size={24}/> Troubleshooter
+                    </h2>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600">Close</button>
+                </div>
+
+                {!treeType ? (
+                    <div className="grid grid-cols-1 gap-4">
+                        <p className="text-slate-600 text-center mb-2">Select a scenario to troubleshoot:</p>
+                        <button onClick={() => startTree('service')} className="p-4 bg-slate-100 hover:bg-slate-200 rounded text-left font-semibold text-slate-700">
+                            🚀 Service Won't Start
+                        </button>
+                        <button onClick={() => startTree('ssh')} className="p-4 bg-slate-100 hover:bg-slate-200 rounded text-left font-semibold text-slate-700">
+                            🔒 Cannot SSH to Server
+                        </button>
+                    </div>
+                ) : (
+                    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                        <div className="mb-4">
+                             <h3 className="font-bold text-lg text-blue-600 mb-2">{TROUBLESHOOTING_TREES[treeType].title}</h3>
+                             <p className="text-slate-700 text-lg mb-4">{node.text}</p>
+                             {node.cmd && (
+                                 <div className="bg-slate-900 p-3 rounded text-green-400 font-mono text-sm mb-4">
+                                     &gt; {node.cmd}
+                                 </div>
+                             )}
+                        </div>
+                        
+                        {node.action ? (
+                             <div className="bg-green-100 p-4 rounded text-green-800 font-bold text-center border border-green-200">
+                                 ✅ Solution: {node.action}
+                                 <button onClick={() => setTreeType(null)} className="block mx-auto mt-4 text-sm font-normal underline">Start Over</button>
+                             </div>
+                        ) : (
+                             <div className="grid grid-cols-2 gap-4">
+                                 <button onClick={() => setCurrentNode(node.yes)} className="p-3 bg-green-500 hover:bg-green-600 text-white rounded font-bold">YES</button>
+                                 <button onClick={() => setCurrentNode(node.no)} className="p-3 bg-red-500 hover:bg-red-600 text-white rounded font-bold">NO</button>
+                             </div>
+                        )}
+                        <button onClick={() => setTreeType(null)} className="mt-4 text-xs text-slate-400 hover:text-slate-600">← Back to Menu</button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
 
 // --- 3. CONSTANTS & DATA ---
 const MAX_INPUT_LENGTH = 256; 
@@ -422,10 +600,11 @@ export default function App() {
   const [examMode, setExamMode] = useState(false);
   const [examTimeLeft, setExamTimeLeft] = useState(0);
   const [examQuestions, setExamQuestions] = useState([]);
-  const [examResults, setExamResults] = useState([]); 
+  const [examResults, setExamResults] = useState([]); // Array of { id, category, success }
   const [showReportCard, setShowReportCard] = useState(false);
   const [showFlashcards, setShowFlashcards] = useState(false);
   const [showCheatSheet, setShowCheatSheet] = useState(false);
+  const [showTroubleshoot, setShowTroubleshoot] = useState(false); // NEW
   const [bookmarkedMissions, setBookmarkedMissions] = useState([]);
   
   const [activeTab, setActiveTab] = useState('pillar-1');
@@ -467,7 +646,7 @@ export default function App() {
   // Auto-scroll terminal
   useEffect(() => {
     terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [terminalHistory, isPaging]); // Added isPaging dependency
+  }, [terminalHistory, isPaging]); 
 
   // Reset hint when mission changes
   useEffect(() => {
@@ -538,8 +717,7 @@ export default function App() {
     if (base === 'man') {
         const page = MAN_PAGES[args[1]] || MAN_PAGES['default'];
         addToTerm(page);
-        setIsPaging(true); // Enter paging mode
-        // Removed early return to allow mission logic to proceed
+        setIsPaging(true); 
     }
 
     // MISSION LOGIC
@@ -558,7 +736,9 @@ export default function App() {
         // Track Result for Report Card
         if (examMode) {
              setExamResults(prev => [...prev, { ...currentMission, success: true }]);
-        } else if (!completedMissions.includes(currentMission.id)) {
+        }
+        
+        if (!examMode && !completedMissions.includes(currentMission.id)) {
             setCompletedMissions(prev => [...prev, currentMission.id]);
         }
 
@@ -599,15 +779,11 @@ export default function App() {
           } else if (!UTILITY_COMMANDS.includes(base) && base !== currentMission.tool) {
               addToTerm(`> Wrong tool. Try again.`, 'error');
           }
-      } else {
-          // In exam mode, if they fail, maybe we should track it as a fail attempts? 
-          // For now, we just let them retry until time runs out or they get it.
-          // Optional: Skip button implementation could go here.
       }
     }
 
     // SIMULATION
-    if (base !== 'man') { // Avoid double processing man
+    if (base !== 'man') {
         switch (base) {
           case 'clear': setTerminalHistory([]); break;
           case 'exit': 
@@ -629,7 +805,6 @@ export default function App() {
               if (args[1] === 'serverb' || args[1] === 'student@serverb') {
                   setCurrentServer('serverb');
                   addToTerm(`root@${args[1]}'s password:`, 'system'); 
-                  // In a real app we'd pause for input, here we just simulate success
                   setTimeout(() => {
                       addToTerm(`Last login: ${new Date().toString()} from 192.168.1.1`);
                   }, 500);
@@ -673,7 +848,6 @@ export default function App() {
                  }
               }
               break;
-          // ... (Other sims)
           case 'id': addToTerm("uid=0(root) gid=0(root) groups=0(root)"); break;
           case 'nmcli': addToTerm("Connection successfully added."); break;
           case 'systemctl': addToTerm("Active: active (running)"); break;
@@ -697,7 +871,6 @@ export default function App() {
   const handleKeyDown = (e) => {
     if (isPaging) {
         e.preventDefault();
-        // Allow 'q', 'Q', or Ctrl+C to exit paging mode
         if (e.key === 'q' || e.key === 'Q' || (e.key === 'c' && e.ctrlKey)) {
             setIsPaging(false);
             addToTerm("End of manual page", 'system');
@@ -778,6 +951,10 @@ export default function App() {
           <button onClick={startExamMode} disabled={examMode} className="w-full flex items-center justify-center gap-2 mb-6 px-3 py-2 rounded-md bg-red-600 text-white font-bold hover:bg-red-700 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
              <TimerIcon size={16}/> {examMode ? "Exam in Progress" : "Start Mock Exam"}
           </button>
+          
+          <button onClick={() => setShowTroubleshoot(true)} disabled={examMode} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-teal-600 text-white font-bold hover:bg-teal-700 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed mb-2">
+                <WrenchIcon size={16}/> Troubleshooter
+          </button>
 
           <button onClick={() => setShowFlashcards(true)} disabled={examMode} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-indigo-600 text-white font-bold hover:bg-indigo-700 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed mb-2">
                 <CardIcon size={16}/> Flashcards
@@ -812,6 +989,9 @@ export default function App() {
       )}
       {showCheatSheet && (
           <CheatSheetModal bookmarks={bookmarkedMissions} missions={MISSIONS} onClose={() => setShowCheatSheet(false)} />
+      )}
+      {showTroubleshoot && (
+        <TroubleshootingModal onClose={() => setShowTroubleshoot(false)} />
       )}
       {/* Report Card Overlay */}
       {showReportCard && (
