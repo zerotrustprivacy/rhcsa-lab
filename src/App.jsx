@@ -82,6 +82,9 @@ const TrashIcon = ({ size = 24, className = "" }) => (
 const SearchIcon = ({ size = 24, className = "" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
 );
+const UserPlusIcon = ({ size = 24, className = "" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+);
 
 // --- 2. COMPONENTS (Defined BEFORE App) ---
 
@@ -302,6 +305,81 @@ const NetworkBuilder = () => {
             </div>
             <CodeBlock color="green">{cmd}</CodeBlock>
             <p className="text-[10px] text-slate-400 mt-2">Don't forget: <code className="bg-slate-100 px-1 rounded">nmcli con up {con}</code> afterwards.</p>
+        </div>
+    );
+};
+
+// --- NEW: FSTAB BUILDER ---
+const FstabBuilder = () => {
+    const [uuid, setUuid] = useState('5b327b...a2');
+    const [mount, setMount] = useState('/data');
+    const [type, setType] = useState('xfs');
+    const [opts, setOpts] = useState('defaults');
+    const [dump, setDump] = useState('0');
+    const [pass, setPass] = useState('0');
+
+    const line = `UUID=${uuid}  ${mount}  ${type}  ${opts}  ${dump}  ${pass}`;
+
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><HardDriveIcon size={16} className="text-amber-500"/> FSTAB Generator</h3>
+            <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="col-span-2"><label className="text-[10px] uppercase font-bold text-slate-500">UUID (blkid)</label><input value={uuid} onChange={e=>setUuid(e.target.value)} className="w-full border rounded p-1 text-sm font-mono"/></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Type</label>
+                    <select value={type} onChange={e=>setType(e.target.value)} className="w-full border rounded p-1 text-sm bg-white">
+                        <option value="xfs">xfs</option>
+                        <option value="ext4">ext4</option>
+                        <option value="vfat">vfat</option>
+                        <option value="swap">swap</option>
+                    </select>
+                </div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Mount Point</label><input value={mount} onChange={e=>setMount(e.target.value)} className="w-full border rounded p-1 text-sm font-mono"/></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Options</label><input value={opts} onChange={e=>setOpts(e.target.value)} className="w-full border rounded p-1 text-sm font-mono"/></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Dump / Pass</label>
+                    <div className="flex gap-1">
+                        <input value={dump} onChange={e=>setDump(e.target.value)} className="w-1/2 border rounded p-1 text-sm font-mono text-center"/>
+                        <input value={pass} onChange={e=>setPass(e.target.value)} className="w-1/2 border rounded p-1 text-sm font-mono text-center"/>
+                    </div>
+                </div>
+            </div>
+            <CodeBlock color="blue">{line}</CodeBlock>
+            <p className="text-[10px] text-slate-400 mt-2">Add this to <code>/etc/fstab</code>. Use <code>mount -a</code> to test.</p>
+        </div>
+    );
+};
+
+// --- NEW: USER COMMAND BUILDER ---
+const UserBuilder = () => {
+    const [user, setUser] = useState('alex');
+    const [uid, setUid] = useState('');
+    const [gid, setGid] = useState('');
+    const [groups, setGroups] = useState('');
+    const [shell, setShell] = useState('/bin/bash');
+
+    let cmd = `useradd`;
+    if (uid) cmd += ` -u ${uid}`;
+    if (gid) cmd += ` -g ${gid}`;
+    if (groups) cmd += ` -G ${groups}`;
+    if (shell !== '/bin/bash') cmd += ` -s ${shell}`;
+    cmd += ` ${user}`;
+
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><UserPlusIcon size={16} className="text-blue-500"/> User Wizard</h3>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Username</label><input value={user} onChange={e=>setUser(e.target.value)} className="w-full border rounded p-1 text-sm font-mono"/></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Shell</label>
+                    <select value={shell} onChange={e=>setShell(e.target.value)} className="w-full border rounded p-1 text-sm bg-white">
+                        <option value="/bin/bash">/bin/bash</option>
+                        <option value="/sbin/nologin">/sbin/nologin</option>
+                        <option value="/bin/sh">/bin/sh</option>
+                    </select>
+                </div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">UID (Optional)</label><input value={uid} onChange={e=>setUid(e.target.value)} placeholder="1001" className="w-full border rounded p-1 text-sm font-mono"/></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Primary GID (Optional)</label><input value={gid} onChange={e=>setGid(e.target.value)} placeholder="1001" className="w-full border rounded p-1 text-sm font-mono"/></div>
+                <div className="col-span-2"><label className="text-[10px] uppercase font-bold text-slate-500">Secondary Groups (Comma sep)</label><input value={groups} onChange={e=>setGroups(e.target.value)} placeholder="wheel,devops" className="w-full border rounded p-1 text-sm font-mono"/></div>
+            </div>
+            <CodeBlock color="green">{cmd}</CodeBlock>
         </div>
     );
 };
@@ -1222,6 +1300,7 @@ export default function App() {
                 </div>
 
                 <PermissionsCalculator />
+                <UserBuilder />
                 <FindBuilder />
 
               </div>
@@ -1317,6 +1396,7 @@ export default function App() {
                    <CodeBlock>stratis pool create mypool /dev/sdb</CodeBlock>
                    <CodeBlock>stratis fs create mypool myfs</CodeBlock>
                 </div>
+                <FstabBuilder />
               </div>
             </section>
             )}
