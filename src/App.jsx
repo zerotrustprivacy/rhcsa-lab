@@ -85,6 +85,12 @@ const SearchIcon = ({ size = 24, className = "" }) => (
 const UserPlusIcon = ({ size = 24, className = "" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
 );
+const ChevronDownIcon = ({ size = 24, className = "" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="6 9 12 15 18 9"></polyline></svg>
+);
+const ChevronUpIcon = ({ size = 24, className = "" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="18 15 12 9 6 15"></polyline></svg>
+);
 
 // --- 2. COMPONENTS (Defined BEFORE App) ---
 
@@ -757,6 +763,7 @@ export default function App() {
   const [successFlash, setSuccessFlash] = useState(false);
   const [fs, setFs] = useState(INITIAL_FS);
   const [cwd, setCwd] = useState('/root');
+  const [isTerminalOpen, setIsTerminalOpen] = useState(true);
   
   // New Paging State
   const [isPaging, setIsPaging] = useState(false);
@@ -1535,8 +1542,22 @@ export default function App() {
         </main>
 
         {/* BOTTOM FIXED TERMINAL SECTION */}
-        <section id="practice-lab" className="shrink-0 bg-slate-200 border-t border-slate-300 p-4 shadow-[0_-4px_10px_rgba(0,0,0,0.1)]">
-          <div className="max-w-5xl mx-auto flex gap-4 h-64">
+        <section id="practice-lab" className={`shrink-0 bg-slate-200 border-t border-slate-300 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] transition-all duration-300 ease-in-out flex flex-col ${isTerminalOpen ? 'h-80' : 'h-10'}`}>
+          <div 
+              className="h-10 bg-slate-300 border-b border-slate-400 flex items-center justify-between px-4 cursor-pointer hover:bg-slate-400 transition-colors shrink-0"
+              onClick={() => setIsTerminalOpen(!isTerminalOpen)}
+          >
+              <div className="flex items-center gap-2 font-bold text-slate-700 text-xs uppercase tracking-wider">
+                  <TerminalIcon size={16} /> Practice Lab & Missions
+              </div>
+              <div className="flex items-center gap-2 text-xs text-slate-600 font-bold">
+                  {isTerminalOpen ? "Minimize" : "Restore"}
+                  {isTerminalOpen ? <ChevronDownIcon size={16}/> : <ChevronUpIcon size={16}/>}
+              </div>
+          </div>
+
+          <div className={`flex-1 p-4 pt-0 overflow-hidden flex gap-4 ${!isTerminalOpen && 'invisible'}`}>
+            <div className="max-w-5xl mx-auto flex gap-4 w-full h-full pt-4">
             
             {/* Terminal Container */}
             <div className={`flex-1 rounded-lg overflow-hidden flex flex-col shadow-lg border border-slate-700 relative bg-slate-900 ${successFlash ? 'animate-success-pulse' : ''}`}>
@@ -1669,7 +1690,7 @@ export default function App() {
                 )}
               </div>
             </div>
-
+            </div>
           </div>
         </section>
 
