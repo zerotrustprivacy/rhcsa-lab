@@ -622,7 +622,7 @@ const TroubleshootingModal = ({ onClose }) => {
 // --- 3. CONSTANTS & DATA ---
 const MAX_INPUT_LENGTH = 256; 
 const ILLEGAL_CHARS = /<script\b[^>]*>([\s\S]*?)<\/script>/gm; 
-const UTILITY_COMMANDS = ['clear', 'help', 'ls', 'pwd', 'whoami', 'history', 'id', 'exit', 'man', 'cat', 'touch', 'mkdir', 'rm', 'cd', 'cp', 'mv'];
+const UTILITY_COMMANDS = ['clear', 'help', 'ls', 'pwd', 'whoami', 'history', 'id', 'exit', 'man', 'cat', 'touch', 'mkdir', 'rm', 'cd', 'cp', 'mv', 'chgrp'];
 
 const THEMES = [
     { id: 'rhel', name: 'RHEL (Default)', bg: 'bg-slate-900', text: 'text-slate-300', prompt: 'text-green-400', cursor: 'bg-green-400' },
@@ -727,6 +727,11 @@ const MISSIONS = [
   { id: 51, category: "Deploy", tool: "tuned-adm", title: "Recommended Tuning", desc: "Apply the recommended tuning profile for this system.", lesson: "`recommend` asks TuneD to detect the best profile.", hint: "tuned-adm recommend", check: (cmd) => /^tuned-adm\s+recommend$/.test(cmd) },
   // EXAM PREP: DEPLOY QUESTIONS
   { id: 105, category: "Exam Prep", tool: "crontab", title: "Cron (Natasha)", desc: "User natasha: echo 'hiya' daily at 14:23.", lesson: "Exam Q6", hint: "crontab -e -u natasha", check: (cmd) => /^crontab\s+/.test(cmd) && /-u\s+natasha/.test(cmd) },
+  // ADDED MISSIONS (Full coverage)
+  { id: 111, category: "Exam Prep", tool: "chgrp", title: "Change Group", desc: "Change group of '/home/manager' to 'sysadmin'.", lesson: "File ownership.", hint: "chgrp sysadmin /home/manager", check: (cmd) => /^chgrp\s+sysadmin\s+\/home\/manager/.test(cmd) },
+  { id: 112, category: "Exam Prep", tool: "grep", title: "IO Redirection", desc: "Save lines containing 'root' from /etc/passwd to root_users.txt.", lesson: "Redirect stdout (>).", hint: "grep root /etc/passwd > root_users.txt", check: (cmd) => /^grep\s+root\s+\/etc\/passwd\s+>\s+root_users\.txt/.test(cmd) },
+  { id: 113, category: "Exam Prep", tool: "dnf", title: "System Roles", desc: "Install RHEL System Roles.", lesson: "Ansible automation.", hint: "dnf install rhel-system-roles", check: (cmd) => /^dnf\s+install\s+rhel-system-roles/.test(cmd) },
+
 
   // PILLAR 5: SECURITY
   { id: 52, category: "Security", tool: "nmcli", title: "Network", desc: "Add ethernet connection 'static-eth0'.", lesson: "NetworkManager.", hint: "nmcli con add con-name static-eth0 type ethernet ifname eth0", check: (cmd) => /^nmcli\s+con\s+add/.test(cmd) },
