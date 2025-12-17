@@ -545,10 +545,7 @@ const ILLEGAL_CHARS = /<script\b[^>]*>([\s\S]*?)<\/script>/gm;
 const UTILITY_COMMANDS = ['clear', 'help', 'ls', 'pwd', 'whoami', 'history', 'id', 'exit', 'man', 'cat', 'touch', 'mkdir', 'rm', 'cd', 'cp', 'mv'];
 
 const THEMES = [
-    { id: 'rhel', name: 'RHEL (Default)', bg: 'bg-slate-900', text: 'text-slate-300', prompt: 'text-green-400', cursor: 'bg-green-400' },
-    { id: 'matrix', name: 'Hacker Green', bg: 'bg-black', text: 'text-green-500', prompt: 'text-green-400', cursor: 'bg-green-500' },
-    { id: 'dracula', name: 'Dracula', bg: 'bg-[#282a36]', text: 'text-[#f8f8f2]', prompt: 'text-[#ff79c6]', cursor: 'bg-[#bd93f9]' },
-    { id: 'amber', name: 'Retro Amber', bg: 'bg-[#1a1200]', text: 'text-[#ffb000]', prompt: 'text-[#ffb000]', cursor: 'bg-[#ffb000]' }
+    { id: 'rhel', name: 'RHEL (Default)', bg: 'bg-slate-900', text: 'text-slate-300', prompt: 'text-green-400', cursor: 'bg-green-400' }
 ];
 
 const MAN_PAGES = {
@@ -1125,9 +1122,6 @@ export default function App() {
                 <ListIcon size={16}/> My Cheat Sheet
             </button>
           
-          <button onClick={cycleTheme} className="w-full flex items-center justify-center gap-2 mb-6 px-3 py-2 rounded-md bg-slate-800 text-slate-300 font-bold hover:bg-slate-700 text-sm transition-colors border border-slate-700">
-             <PaletteIcon size={16}/> {currentTheme.name}
-          </button>
 
           <ul className="space-y-1 overflow-y-auto flex-1 scrollbar-hide">
             <li><button onClick={() => { setExamMode(false); setCurrentMissionId(0); }} className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors w-full text-left"><TerminalIcon size={16}/> Practice Lab</button></li>
