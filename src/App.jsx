@@ -76,6 +76,9 @@ const ListIcon = ({ size = 24, className = "" }) => (
 const WrenchIcon = ({ size = 24, className = "" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
 );
+const TrashIcon = ({ size = 24, className = "" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+);
 
 // --- 2. COMPONENTS (Defined BEFORE App) ---
 
@@ -83,7 +86,6 @@ const CopyButton = ({ text }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    // Safely handle text
     const textToCopy = text ? String(text) : "";
     try {
         await navigator.clipboard.writeText(textToCopy);
@@ -132,6 +134,86 @@ const ProgressBar = ({ completed, total }) => {
     return (
         <div className="w-full bg-slate-700 rounded-full h-2.5 mb-4">
             <div className="bg-green-500 h-2.5 rounded-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
+        </div>
+    );
+};
+
+// --- NEW COMPONENT: DYNAMIC LVM VISUALIZER ---
+const LVMVisualizer = ({ lvmState }) => {
+    // Helper to check if a PV is used in any VG
+    const getVgForPv = (pvName) => lvmState.vgs.find(vg => vg.pvs.includes(pvName));
+
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                    <LayersIcon size={16} className="text-amber-500"/> Live LVM Stack
+                </h3>
+                <button 
+                    className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded"
+                    onClick={() => alert("Type commands like 'pvcreate /dev/vdb1' in the terminal to see this update!")}
+                >
+                    Info
+                </button>
+            </div>
+            
+            <div className="space-y-4">
+                {/* 1. PHYSICAL DISKS LAYER (Always present) */}
+                <div className="bg-slate-100 p-3 rounded-lg border border-slate-300 relative">
+                    <div className="absolute top-0 right-0 bg-slate-300 text-slate-600 text-[9px] px-1 rounded-bl">Physical Disks</div>
+                    <div className="flex gap-2 mt-2">
+                        {['/dev/vdb1', '/dev/vdb2'].map(disk => {
+                            const isPv = lvmState.pvs.includes(disk);
+                            const assignedVg = getVgForPv(disk);
+                            
+                            return (
+                                <div key={disk} className={`flex-1 p-2 rounded transition-all duration-500 border-2 ${isPv ? 'bg-amber-50 border-amber-400' : 'bg-slate-200 border-slate-300'}`}>
+                                    <div className="flex items-center justify-center gap-1 text-xs font-bold text-slate-700">
+                                        <HardDriveIcon size={12}/> {disk}
+                                    </div>
+                                    <div className="text-[10px] text-center text-slate-500">{isPv ? "PV Initialized" : "Raw Partition"}</div>
+                                    
+                                    {/* 2. VOLUME GROUP LAYER (Overlay) */}
+                                    {assignedVg && (
+                                        <div className="mt-2 bg-amber-100 border border-amber-500 rounded p-1 animate-in fade-in slide-in-from-bottom-2">
+                                            <div className="text-[10px] font-bold text-amber-800 text-center">VG: {assignedVg.name}</div>
+                                            
+                                            {/* 3. LOGICAL VOLUME LAYER */}
+                                            <div className="mt-1 flex flex-col gap-1">
+                                                {lvmState.lvs.filter(lv => lv.vg === assignedVg.name).map(lv => (
+                                                    <div key={lv.name} className="bg-amber-200 border border-amber-600 rounded px-1 py-1 relative group">
+                                                         <div className="flex justify-between items-center">
+                                                            <span className="text-[10px] font-bold text-amber-900">LV: {lv.name}</span>
+                                                            <span className="text-[9px] text-amber-800">{lv.size}</span>
+                                                         </div>
+                                                         
+                                                         {/* 4. FILESYSTEM LAYER */}
+                                                         {lv.fs && (
+                                                             <div className="mt-1 bg-green-500 text-white text-[9px] font-bold text-center rounded shadow-sm">
+                                                                 FS: {lv.fs.toUpperCase()}
+                                                             </div>
+                                                         )}
+                                                    </div>
+                                                ))}
+                                                {lvmState.lvs.filter(lv => lv.vg === assignedVg.name).length === 0 && (
+                                                    <div className="text-[9px] text-amber-600 text-center italic py-1">Free Space</div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+                
+                {/* LEGEND / STATUS */}
+                <div className="grid grid-cols-3 gap-2 text-[10px] text-slate-500">
+                    <div className="flex items-center gap-1"><div className="w-2 h-2 bg-slate-300 rounded"></div> Unused Disk</div>
+                    <div className="flex items-center gap-1"><div className="w-2 h-2 bg-amber-100 border border-amber-400 rounded"></div> PV/VG Active</div>
+                    <div className="flex items-center gap-1"><div className="w-2 h-2 bg-green-500 rounded"></div> Formatted FS</div>
+                </div>
+            </div>
         </div>
     );
 };
@@ -608,6 +690,14 @@ export default function App() {
   const [bookmarkedMissions, setBookmarkedMissions] = useState([]);
   
   const [activeTab, setActiveTab] = useState('pillar-1');
+  
+  // --- LVM STATE (NEW) ---
+  const [lvmState, setLvmState] = useState({
+    pvs: [], // e.g., ['/dev/vdb1']
+    vgs: [], // e.g., [{ name: 'myvg', pvs: ['/dev/vdb1'] }]
+    lvs: [], // e.g., [{ name: 'mylv', vg: 'myvg', fs: null, size: '500M' }]
+    mounts: []
+  });
 
   const terminalEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -799,8 +889,79 @@ export default function App() {
                 setCurrentMissionId(0);
                 setMissionComplete(false);
                 addToTerm("Session reset.", 'system');
+                setLvmState({ pvs: [], vgs: [], lvs: [], mounts: [] }); // Reset LVM on logout
             }
             break;
+          // --- LVM SIMULATION ---
+          case 'pvcreate':
+             const pvDev = args[args.length - 1];
+             if (pvDev && (pvDev === '/dev/vdb1' || pvDev === '/dev/vdb2')) {
+                 if (!lvmState.pvs.includes(pvDev)) {
+                     setLvmState(prev => ({ ...prev, pvs: [...prev.pvs, pvDev] }));
+                     addToTerm(`Physical volume "${pvDev}" successfully created.`);
+                 } else {
+                     addToTerm(`Physical volume "${pvDev}" already exists.`, 'system');
+                 }
+             } else {
+                 addToTerm("Device not found (Try /dev/vdb1 or /dev/vdb2)", 'error');
+             }
+             break;
+          case 'vgcreate':
+             // vgcreate myvg /dev/vdb1
+             const vgName = args[1];
+             const vgPv = args[2];
+             if (vgName && vgPv) {
+                 if (!lvmState.pvs.includes(vgPv)) {
+                      addToTerm(`Physical volume "${vgPv}" not initialized.`, 'error');
+                 } else if (lvmState.vgs.find(v => v.name === vgName)) {
+                      addToTerm(`Volume group "${vgName}" already exists.`, 'error');
+                 } else {
+                      setLvmState(prev => ({ ...prev, vgs: [...prev.vgs, { name: vgName, pvs: [vgPv] }] }));
+                      addToTerm(`Volume group "${vgName}" successfully created`);
+                 }
+             }
+             break;
+          case 'lvcreate':
+             // lvcreate -L 500M -n mylv myvg  OR lvcreate -n mylv -L 500M myvg
+             let lvName, lvSize, lvVg;
+             
+             // Simple args parsing
+             const nIdx = args.indexOf('-n');
+             const lIdx = args.indexOf('-L');
+             
+             if (nIdx !== -1) lvName = args[nIdx + 1];
+             if (lIdx !== -1) lvSize = args[lIdx + 1];
+             
+             // Assume VG is the last argument that isn't a flag value
+             lvVg = args[args.length - 1];
+             
+             if (lvName && lvVg && lvmState.vgs.find(v => v.name === lvVg)) {
+                 setLvmState(prev => ({ ...prev, lvs: [...prev.lvs, { name: lvName, vg: lvVg, fs: null, size: lvSize || 'Unknown' }] }));
+                 addToTerm(`Logical volume "${lvName}" created.`);
+             } else {
+                 addToTerm("Invalid arguments or VG not found.", 'error');
+             }
+             break;
+          case 'mkfs.xfs':
+             // mkfs.xfs /dev/myvg/mylv
+             const targetDev = args[1];
+             if (targetDev) {
+                 const parts = targetDev.split('/');
+                 const potentialLvName = parts[parts.length - 1];
+                 const lvExists = lvmState.lvs.find(l => l.name === potentialLvName);
+                 
+                 if (lvExists) {
+                     setLvmState(prev => ({
+                        ...prev,
+                        lvs: prev.lvs.map(l => l.name === potentialLvName ? { ...l, fs: 'xfs' } : l)
+                    }));
+                    addToTerm(`meta-data=${targetDev} isize=512...`);
+                 } else {
+                     addToTerm(`Could not access ${targetDev}: No such file or directory`, 'error');
+                 }
+             }
+             break;
+          // --- END LVM SIMULATION ---
           case 'ssh':
               if (args[1] === 'serverb' || args[1] === 'student@serverb') {
                   setCurrentServer('serverb');
@@ -859,7 +1020,7 @@ export default function App() {
           case 'semanage': addToTerm("Port label added."); break;
           case 'restorecon': addToTerm("Relabeled."); break;
           default: 
-            if (!['useradd','groupadd','usermod','tar','chmod','ln','find','setfacl','tuned-adm','nice','chronyc','journalctl','pvcreate','vgcreate','lvcreate','lvextend','mkfs.xfs','mkswap','mount','crontab','firewall-cmd','ssh-keygen','chage','fdisk','scp','kill'].includes(base)) {
+            if (!['useradd','groupadd','usermod','tar','chmod','ln','find','setfacl','tuned-adm','nice','chronyc','journalctl','lvextend','mkswap','mount','crontab','firewall-cmd','ssh-keygen','chage','fdisk','scp','kill'].includes(base)) {
                  addToTerm(`bash: ${base}: command not found`, 'error');
             } else {
                  addToTerm("Command executed (Simulated).");
@@ -1142,35 +1303,8 @@ export default function App() {
               </div>
               <div className="grid md:grid-cols-2 gap-6">
                 
-                {/* Visual: LVM Stack */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                    <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><LayersIcon size={16} className="text-amber-500"/> The LVM Stack</h3>
-                    <div className="space-y-1">
-                        <div className="bg-slate-100 p-2 rounded text-center text-xs text-slate-500 border border-slate-200">
-                            /dev/vdb (Raw Partition)
-                        </div>
-                        <div className="flex justify-center"><div className="h-4 w-0.5 bg-slate-300"></div></div>
-                        <div className="bg-amber-50 p-2 rounded text-center text-xs font-bold text-amber-700 border border-amber-200">
-                            PV (Physical Volume)
-                            <div className="font-mono font-normal text-[10px] opacity-70">pvcreate</div>
-                        </div>
-                        <div className="flex justify-center"><div className="h-4 w-0.5 bg-slate-300"></div></div>
-                        <div className="bg-amber-100 p-2 rounded text-center text-xs font-bold text-amber-800 border border-amber-300">
-                            VG (Volume Group)
-                            <div className="font-mono font-normal text-[10px] opacity-70">vgcreate</div>
-                        </div>
-                        <div className="flex justify-center"><div className="h-4 w-0.5 bg-slate-300"></div></div>
-                        <div className="bg-amber-200 p-2 rounded text-center text-xs font-bold text-amber-900 border border-amber-400">
-                            LV (Logical Volume)
-                            <div className="font-mono font-normal text-[10px] opacity-70">lvcreate</div>
-                        </div>
-                        <div className="flex justify-center"><div className="h-4 w-0.5 bg-slate-300"></div></div>
-                        <div className="bg-green-100 p-2 rounded text-center text-xs font-bold text-green-800 border border-green-200">
-                            Filesystem (xfs/ext4)
-                            <div className="font-mono font-normal text-[10px] opacity-70">mkfs.xfs</div>
-                        </div>
-                    </div>
-                </div>
+                {/* Dynamic LVM Visualizer - Replaced Static Component */}
+                <LVMVisualizer lvmState={lvmState} />
 
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                   <h3 className="font-bold text-lg mb-4 text-slate-800">FSTAB Anatomy</h3>
