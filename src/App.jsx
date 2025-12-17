@@ -284,9 +284,9 @@ const FindBuilder = () => {
 const NetworkBuilder = () => {
     const [con, setCon] = useState('static-eth0');
     const [iface, setIface] = useState('eth0');
-    const [ip, setIp] = useState('192.168.1.10');
-    const [gw, setGw] = useState('192.168.1.1');
-    const [dns, setDns] = useState('8.8.8.8');
+    const [ip, setIp] = useState('172.25.250.10');
+    const [gw, setGw] = useState('172.25.250.254');
+    const [dns, setDns] = useState('172.25.250.220');
 
     const cmd = `nmcli con add con-name ${con} ifname ${iface} type ethernet ipv4.method manual ipv4.addresses ${ip}/24 ipv4.gateway ${gw} ipv4.dns ${dns}`;
 
@@ -302,6 +302,54 @@ const NetworkBuilder = () => {
             </div>
             <CodeBlock color="green">{cmd}</CodeBlock>
             <p className="text-[10px] text-slate-400 mt-2">Don't forget: <code className="bg-slate-100 px-1 rounded">nmcli con up {con}</code> afterwards.</p>
+        </div>
+    );
+};
+
+// --- NEW: SELINUX REFERENCE ---
+const SELinuxReference = () => {
+    const [service, setService] = useState('httpd');
+    
+    const data = {
+        httpd: { file: 'httpd_sys_content_t', port: 'http_port_t', bool: 'httpd_enable_homedirs' },
+        samba: { file: 'samba_share_t', port: 'smbd_port_t', bool: 'samba_enable_home_dirs' },
+        ssh: { file: 'ssh_home_t', port: 'ssh_port_t', bool: 'N/A' },
+        ftp: { file: 'public_content_t', port: 'ftp_port_t', bool: 'ftpd_anon_write' }
+    };
+
+    const ctx = data[service];
+
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><ShieldIcon size={16} className="text-emerald-500"/> SELinux Quick Ref</h3>
+            <div className="mb-4">
+                <label className="text-[10px] uppercase font-bold text-slate-500">Select Service</label>
+                <select value={service} onChange={e=>setService(e.target.value)} className="w-full border rounded p-2 text-sm bg-white font-bold text-slate-700">
+                    <option value="httpd">Apache Web Server (httpd)</option>
+                    <option value="samba">Samba File Share (smb)</option>
+                    <option value="ssh">SSH Server</option>
+                    <option value="ftp">FTP Server</option>
+                </select>
+            </div>
+            <div className="space-y-2 text-sm">
+                <div className="flex justify-between border-b pb-1">
+                    <span className="text-slate-600">File Context:</span>
+                    <span className="font-mono text-emerald-600 font-bold">{ctx.file}</span>
+                </div>
+                <div className="flex justify-between border-b pb-1">
+                    <span className="text-slate-600">Port Type:</span>
+                    <span className="font-mono text-emerald-600 font-bold">{ctx.port}</span>
+                </div>
+                <div className="flex justify-between pb-1">
+                    <span className="text-slate-600">Common Boolean:</span>
+                    <span className="font-mono text-emerald-600 font-bold">{ctx.bool}</span>
+                </div>
+            </div>
+            <div className="mt-4 pt-4 border-t border-slate-100">
+                <div className="text-[9px] text-slate-400 font-bold uppercase mb-1">Fix Context</div>
+                <CodeBlock>semanage fcontext -a -t {ctx.file} "/dir(/.*)?"</CodeBlock>
+                <CodeBlock>restorecon -Rv /dir</CodeBlock>
+            </div>
         </div>
     );
 };
@@ -492,6 +540,13 @@ const MAX_INPUT_LENGTH = 256;
 const ILLEGAL_CHARS = /<script\b[^>]*>([\s\S]*?)<\/script>/gm; 
 const UTILITY_COMMANDS = ['clear', 'help', 'ls', 'pwd', 'whoami', 'history', 'id', 'exit', 'man', 'cat', 'touch', 'mkdir', 'rm', 'cd', 'cp', 'mv'];
 
+const THEMES = [
+    { id: 'rhel', name: 'RHEL (Default)', bg: 'bg-slate-900', text: 'text-slate-300', prompt: 'text-green-400', cursor: 'bg-green-400' },
+    { id: 'matrix', name: 'Hacker Green', bg: 'bg-black', text: 'text-green-500', prompt: 'text-green-400', cursor: 'bg-green-500' },
+    { id: 'dracula', name: 'Dracula', bg: 'bg-[#282a36]', text: 'text-[#f8f8f2]', prompt: 'text-[#ff79c6]', cursor: 'bg-[#bd93f9]' },
+    { id: 'amber', name: 'Retro Amber', bg: 'bg-[#1a1200]', text: 'text-[#ffb000]', prompt: 'text-[#ffb000]', cursor: 'bg-[#ffb000]' }
+];
+
 const MAN_PAGES = {
     useradd: "NAME\n  useradd - create a new user\nSYNOPSIS\n  useradd [options] LOGIN\nOPTIONS\n  -u UID\n  -g GID\n  -G GROUPS",
     tar: "NAME\n  tar - archive utility\nOPTIONS\n  -c Create\n  -x Extract\n  -f File\n  -v Verbose\n  -z Gzip",
@@ -535,6 +590,10 @@ const MISSIONS = [
   { id: 11, category: "Tools", tool: "touch", title: "Create Script", desc: "Create an empty shell script named 'myscript.sh'.", lesson: "Scripts automate tasks.", hint: "touch myscript.sh", check: (cmd) => /^touch\s+myscript\.sh$/.test(cmd) },
   { id: 12, category: "Tools", tool: "chmod", title: "Make Executable", desc: "Make 'myscript.sh' executable.", lesson: "chmod +x adds execution bit.", hint: "chmod +x myscript.sh", check: (cmd) => /^chmod\s+\+x\s+myscript\.sh$/.test(cmd) },
   { id: 13, category: "Tools", tool: "echo", title: "Script Inputs", desc: "Echo the first argument ($1).", lesson: "$1, $2 are positional arguments.", hint: "echo $1", check: (cmd) => /^echo\s+\$1$/.test(cmd) },
+  // EXAM PREP: NEW TOOLS QUESTIONS
+  { id: 101, category: "Exam Prep", tool: "useradd", title: "User Sarah (No Login)", desc: "Create user 'sarah' with no login shell.", lesson: "Exam Q4", hint: "useradd -s /sbin/nologin sarah", check: (cmd) => /^useradd\s+/.test(cmd) && /-s\s+\/sbin\/nologin\s+sarah/.test(cmd) },
+  { id: 102, category: "Exam Prep", tool: "useradd", title: "User Alex (UID)", desc: "Create user 'alex' with UID 3456.", lesson: "Exam Q10", hint: "useradd -u 3456 alex", check: (cmd) => /^useradd\s+/.test(cmd) && /-u\s+3456\s+alex/.test(cmd) },
+  { id: 103, category: "Exam Prep", tool: "find", title: "Find & Copy (Exec)", desc: "Find 'harry' files and copy to /root/harry-files.", lesson: "Exam Q11", hint: "find / -user harry -type f -exec cp ...", check: (cmd) => /^find\s+/.test(cmd) && /-user\s+harry/.test(cmd) && /-exec\s+cp/.test(cmd) },
 
   // PILLAR 2: SYSTEMS
   { id: 14, category: "Systems", tool: "systemctl", title: "Service Status", desc: "Check status of 'httpd'.", lesson: "Systemd control.", hint: "systemctl status httpd", check: (cmd) => /^systemctl\s+status\s+httpd$/.test(cmd) },
@@ -566,6 +625,9 @@ const MISSIONS = [
   { id: 38, category: "Storage", tool: "mkfs.ext4", title: "Format Ext4", desc: "Format '/dev/myvg/mylv' as Ext4.", lesson: "Filesystem creation.", hint: "mkfs.ext4 /dev/myvg/mylv", check: (cmd) => /^mkfs\.ext4\s+\/dev\/myvg\/mylv$/.test(cmd) },
   { id: 39, category: "Storage", tool: "mount", title: "Mount FS", desc: "Mount '/dev/myvg/mylv' to '/mnt'.", lesson: "Manual mounting.", hint: "mount /dev/myvg/mylv /mnt", check: (cmd) => /^mount\s+\/dev\/myvg\/mylv\s+\/mnt$/.test(cmd) },
   { id: 40, category: "Storage", tool: "dnf", title: "AutoFS", desc: "Install 'autofs'.", lesson: "Automounting utility.", hint: "dnf install autofs", check: (cmd) => /^dnf\s+install\s+autofs$/.test(cmd) },
+  // EXAM PREP: STORAGE QUESTIONS
+  { id: 104, category: "Exam Prep", tool: "lvresize", title: "Resize LV (Exact)", desc: "Resize wshare to 300MB (Exact).", lesson: "Exam Q20", hint: "lvresize -r -L 300M /dev/wgroup/wshare", check: (cmd) => /^lv(resize|extend|reduce)\s+/.test(cmd) && /-L\s+300M/.test(cmd) },
+  { id: 109, category: "Exam Prep", tool: "lvcreate", title: "LVM Extents", desc: "Create LV 'wshare' with 50 extents in 'wgroup'.", lesson: "Exam Q18 (-l is for extents, -L for size)", hint: "lvcreate -l 50 -n wshare wgroup", check: (cmd) => /^lvcreate\s+/.test(cmd) && /-l\s+50/.test(cmd) && /wshare/.test(cmd) },
 
   // PILLAR 4: DEPLOY
   { id: 41, category: "Deploy", tool: "dnf", title: "Install Software", desc: "Install 'httpd'.", lesson: "Package manager.", hint: "dnf install httpd", check: (cmd) => /^dnf\s+install\s+httpd$/.test(cmd) },
@@ -579,7 +641,9 @@ const MISSIONS = [
   { id: 49, category: "Deploy", tool: "firewall-cmd", title: "Firewall Service", desc: "Allow 'http' permanently.", lesson: "Network security.", hint: "firewall-cmd --add-service=http --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-service=http/.test(cmd) && /--permanent/.test(cmd) },
   { id: 50, category: "Deploy", tool: "dnf", title: "Module Streams", desc: "Install the 'nodejs:18' module stream.", lesson: "AppStream allows different versions of software. Syntax: `module:stream`.", hint: "dnf module install nodejs:18", check: (cmd) => /^dnf\s+module\s+install\s+nodejs:18$/.test(cmd) },
   { id: 51, category: "Deploy", tool: "tuned-adm", title: "Recommended Tuning", desc: "Apply the recommended tuning profile for this system.", lesson: "`recommend` asks TuneD to detect the best profile.", hint: "tuned-adm recommend", check: (cmd) => /^tuned-adm\s+recommend$/.test(cmd) },
-  
+  // EXAM PREP: DEPLOY QUESTIONS
+  { id: 105, category: "Exam Prep", tool: "crontab", title: "Cron (Natasha)", desc: "User natasha: echo 'hiya' daily at 14:23.", lesson: "Exam Q6", hint: "crontab -e -u natasha", check: (cmd) => /^crontab\s+/.test(cmd) && /-u\s+natasha/.test(cmd) },
+
   // PILLAR 5: SECURITY
   { id: 52, category: "Security", tool: "nmcli", title: "Network", desc: "Add ethernet connection 'static-eth0'.", lesson: "NetworkManager.", hint: "nmcli con add con-name static-eth0 type ethernet ifname eth0", check: (cmd) => /^nmcli\s+con\s+add/.test(cmd) },
   { id: 53, category: "Security", tool: "firewall-cmd", title: "Firewall", desc: "Permanently allow 'ftp'.", lesson: "Firewalld.", hint: "firewall-cmd --add-service=ftp --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-service=ftp/.test(cmd) && /--permanent/.test(cmd) },
@@ -593,7 +657,11 @@ const MISSIONS = [
   { id: 61, category: "Security", tool: "semanage", title: "Port Label", desc: "Add port 81 to http_port_t.", lesson: "SELinux ports.", hint: "semanage port -a -t http_port_t -p tcp 81", check: (cmd) => /^semanage\s+port\s+/.test(cmd) && /-a/.test(cmd) },
   { id: 62, category: "Security", tool: "setsebool", title: "Boolean", desc: "Enable httpd home dirs.", lesson: "SELinux booleans.", hint: "setsebool -P httpd_enable_homedirs 1", check: (cmd) => /^setsebool\s+/.test(cmd) && /-P/.test(cmd) },
   { id: 63, category: "Users", tool: "userdel", title: "Delete User", desc: "Delete user 'harry'.", lesson: "User mgmt.", hint: "userdel harry", check: (cmd) => /^userdel\s+harry$/.test(cmd) },
-  { id: 64, category: "Users", tool: "groupdel", title: "Delete Group", desc: "Delete group 'sales'.", lesson: "Group mgmt.", hint: "groupdel sales", check: (cmd) => /^groupdel\s+sales$/.test(cmd) }
+  { id: 64, category: "Users", tool: "groupdel", title: "Delete Group", desc: "Delete group 'sales'.", lesson: "Group mgmt.", hint: "groupdel sales", check: (cmd) => /^groupdel\s+sales$/.test(cmd) },
+  // EXAM PREP: SECURITY QUESTIONS
+  { id: 106, category: "Exam Prep", tool: "chmod", title: "Collab Dir (2770)", desc: "Set permission 2770 on /home/manager.", lesson: "Exam Q5", hint: "chmod 2770 /home/manager", check: (cmd) => /^chmod\s+2770\s+/.test(cmd) },
+  { id: 107, category: "Exam Prep", tool: "nmcli", title: "Static IP (Exam)", desc: "Set IP 172.25.250.10 for 'System eth0'.", lesson: "Exam Q1", hint: "nmcli con mod \"System eth0\" ipv4.addresses 172.25.250.10/24 ...", check: (cmd) => /^nmcli\s+con\s+mod\s+/.test(cmd) && /172\.25\.250\.10\/24/.test(cmd) },
+  { id: 108, category: "Exam Prep", tool: "semanage", title: "SELinux Port 82", desc: "Allow httpd to listen on tcp port 82.", lesson: "Exam Q3", hint: "semanage port -a -t http_port_t -p tcp 82", check: (cmd) => /^semanage\s+port\s+/.test(cmd) && /-p\s+tcp\s+82/.test(cmd) }
 ];
 
 // --- 4. MAIN APP COMPONENT ---
@@ -607,6 +675,7 @@ export default function App() {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [showHint, setShowHint] = useState(false); 
   const [missions] = useState(MISSIONS);
+  const [currentTheme, setCurrentTheme] = useState(THEMES[0]);
   const [successFlash, setSuccessFlash] = useState(false);
   const [fs, setFs] = useState(INITIAL_FS);
   const [cwd, setCwd] = useState('/root');
@@ -682,6 +751,12 @@ export default function App() {
   useEffect(() => {
     setShowHint(false);
   }, [currentMissionId]);
+
+  const cycleTheme = () => {
+    const currentIndex = THEMES.indexOf(currentTheme);
+    const nextIndex = (currentIndex + 1) % THEMES.length;
+    setCurrentTheme(THEMES[nextIndex]);
+  };
 
   const addToTerm = (text, type = 'output') => {
     if (typeof text !== 'string') return;
@@ -1339,6 +1414,7 @@ export default function App() {
                 </div>
                  
                  <NetworkBuilder />
+                 <SELinuxReference />
 
               </div>
             </section>
