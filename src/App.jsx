@@ -79,6 +79,9 @@ const WrenchIcon = ({ size = 24, className = "" }) => (
 const TrashIcon = ({ size = 24, className = "" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
 );
+const SearchIcon = ({ size = 24, className = "" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+);
 
 // --- 2. COMPONENTS (Defined BEFORE App) ---
 
@@ -138,9 +141,9 @@ const ProgressBar = ({ completed, total }) => {
     );
 };
 
-// --- NEW COMPONENT: DYNAMIC LVM VISUALIZER ---
+// --- VISUALIZERS & TOOLS ---
+
 const LVMVisualizer = ({ lvmState }) => {
-    // Helper to check if a PV is used in any VG
     const getVgForPv = (pvName) => lvmState.vgs.find(vg => vg.pvs.includes(pvName));
 
     return (
@@ -149,36 +152,22 @@ const LVMVisualizer = ({ lvmState }) => {
                 <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
                     <LayersIcon size={16} className="text-amber-500"/> Live LVM Stack
                 </h3>
-                <button 
-                    className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded"
-                    onClick={() => alert("Type commands like 'pvcreate /dev/vdb1' in the terminal to see this update!")}
-                >
-                    Info
-                </button>
+                <button className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded" onClick={() => alert("Type commands like 'pvcreate /dev/vdb1' in the terminal to see this update!")}>Info</button>
             </div>
-            
             <div className="space-y-4">
-                {/* 1. PHYSICAL DISKS LAYER (Always present) */}
                 <div className="bg-slate-100 p-3 rounded-lg border border-slate-300 relative">
                     <div className="absolute top-0 right-0 bg-slate-300 text-slate-600 text-[9px] px-1 rounded-bl">Physical Disks</div>
                     <div className="flex gap-2 mt-2">
                         {['/dev/vdb1', '/dev/vdb2'].map(disk => {
                             const isPv = lvmState.pvs.includes(disk);
                             const assignedVg = getVgForPv(disk);
-                            
                             return (
                                 <div key={disk} className={`flex-1 p-2 rounded transition-all duration-500 border-2 ${isPv ? 'bg-amber-50 border-amber-400' : 'bg-slate-200 border-slate-300'}`}>
-                                    <div className="flex items-center justify-center gap-1 text-xs font-bold text-slate-700">
-                                        <HardDriveIcon size={12}/> {disk}
-                                    </div>
+                                    <div className="flex items-center justify-center gap-1 text-xs font-bold text-slate-700"><HardDriveIcon size={12}/> {disk}</div>
                                     <div className="text-[10px] text-center text-slate-500">{isPv ? "PV Initialized" : "Raw Partition"}</div>
-                                    
-                                    {/* 2. VOLUME GROUP LAYER (Overlay) */}
                                     {assignedVg && (
                                         <div className="mt-2 bg-amber-100 border border-amber-500 rounded p-1 animate-in fade-in slide-in-from-bottom-2">
                                             <div className="text-[10px] font-bold text-amber-800 text-center">VG: {assignedVg.name}</div>
-                                            
-                                            {/* 3. LOGICAL VOLUME LAYER */}
                                             <div className="mt-1 flex flex-col gap-1">
                                                 {lvmState.lvs.filter(lv => lv.vg === assignedVg.name).map(lv => (
                                                     <div key={lv.name} className="bg-amber-200 border border-amber-600 rounded px-1 py-1 relative group">
@@ -186,18 +175,10 @@ const LVMVisualizer = ({ lvmState }) => {
                                                             <span className="text-[10px] font-bold text-amber-900">LV: {lv.name}</span>
                                                             <span className="text-[9px] text-amber-800">{lv.size}</span>
                                                          </div>
-                                                         
-                                                         {/* 4. FILESYSTEM LAYER */}
-                                                         {lv.fs && (
-                                                             <div className="mt-1 bg-green-500 text-white text-[9px] font-bold text-center rounded shadow-sm">
-                                                                 FS: {lv.fs.toUpperCase()}
-                                                             </div>
-                                                         )}
+                                                         {lv.fs && <div className="mt-1 bg-green-500 text-white text-[9px] font-bold text-center rounded shadow-sm">FS: {lv.fs.toUpperCase()}</div>}
                                                     </div>
                                                 ))}
-                                                {lvmState.lvs.filter(lv => lv.vg === assignedVg.name).length === 0 && (
-                                                    <div className="text-[9px] text-amber-600 text-center italic py-1">Free Space</div>
-                                                )}
+                                                {lvmState.lvs.filter(lv => lv.vg === assignedVg.name).length === 0 && <div className="text-[9px] text-amber-600 text-center italic py-1">Free Space</div>}
                                             </div>
                                         </div>
                                     )}
@@ -206,14 +187,121 @@ const LVMVisualizer = ({ lvmState }) => {
                         })}
                     </div>
                 </div>
-                
-                {/* LEGEND / STATUS */}
-                <div className="grid grid-cols-3 gap-2 text-[10px] text-slate-500">
-                    <div className="flex items-center gap-1"><div className="w-2 h-2 bg-slate-300 rounded"></div> Unused Disk</div>
-                    <div className="flex items-center gap-1"><div className="w-2 h-2 bg-amber-100 border border-amber-400 rounded"></div> PV/VG Active</div>
-                    <div className="flex items-center gap-1"><div className="w-2 h-2 bg-green-500 rounded"></div> Formatted FS</div>
+            </div>
+        </div>
+    );
+};
+
+const PermissionsCalculator = () => {
+    const [perms, setPerms] = useState({ u: { r: true, w: true, x: true }, g: { r: true, w: false, x: true }, o: { r: true, w: false, x: true } });
+    const toggle = (who, what) => setPerms(p => ({ ...p, [who]: { ...p[who], [what]: !p[who][what] } }));
+    const calcOctal = (p) => (p.r ? 4 : 0) + (p.w ? 2 : 0) + (p.x ? 1 : 0);
+    const octal = `${calcOctal(perms.u)}${calcOctal(perms.g)}${calcOctal(perms.o)}`;
+    const sym = (p) => `${p.r ? 'r' : '-'}${p.w ? 'w' : '-'}${p.x ? 'x' : '-'}`;
+    const symbolic = `${sym(perms.u)}${sym(perms.g)}${sym(perms.o)}`;
+
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><LockIcon size={16} className="text-blue-500"/> Permission Calculator</h3>
+            <div className="flex justify-between mb-6">
+                {['u', 'g', 'o'].map(who => (
+                    <div key={who} className="flex flex-col gap-2 items-center w-1/3 border-r last:border-0 border-slate-100">
+                        <div className="text-xs font-bold text-slate-500 uppercase mb-2">{who === 'u' ? 'User' : who === 'g' ? 'Group' : 'Other'}</div>
+                        {['r', 'w', 'x'].map(what => (
+                            <label key={what} className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 px-2 py-1 rounded w-full justify-center">
+                                <input type="checkbox" checked={perms[who][what]} onChange={() => toggle(who, what)} className="accent-blue-600"/>
+                                <span className="font-mono font-bold text-slate-700">{what.toUpperCase()}</span>
+                            </label>
+                        ))}
+                    </div>
+                ))}
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+                <div className="bg-slate-100 p-2 rounded text-center"><div className="text-[10px] text-slate-500 uppercase">Octal</div><div className="font-mono text-xl font-bold text-blue-600">{octal}</div></div>
+                <div className="bg-slate-100 p-2 rounded text-center"><div className="text-[10px] text-slate-500 uppercase">Symbolic</div><div className="font-mono text-xl font-bold text-blue-600">{symbolic}</div></div>
+            </div>
+            <div className="mt-4 pt-4 border-t border-slate-100 text-center"><CodeBlock color="blue">{`chmod ${octal} filename`}</CodeBlock></div>
+        </div>
+    );
+};
+
+const CronBuilder = () => {
+    const [val, setVal] = useState({ m: '0', h: '2', dom: '*', mon: '*', dow: '*' });
+    const update = (k, v) => setVal(p => ({ ...p, [k]: v }));
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+             <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><TimerIcon size={16} className="text-purple-500"/> Cron Builder</h3>
+            <div className="grid grid-cols-5 gap-2 mb-4 text-center">
+                {['m','h','dom','mon','dow'].map(k => (
+                    <div key={k}>
+                        <input value={val[k]} onChange={(e) => update(k, e.target.value)} className="w-full border border-slate-300 rounded p-1 text-center font-mono text-sm focus:border-purple-500 outline-none"/>
+                        <div className="text-[9px] text-slate-400 mt-1 uppercase font-bold">{k}</div>
+                    </div>
+                ))}
+            </div>
+            <CodeBlock>{`${val.m} ${val.h} ${val.dom} ${val.mon} ${val.dow} /path/to/script`}</CodeBlock>
+        </div>
+    )
+};
+
+// --- NEW: FIND COMMAND BUILDER ---
+const FindBuilder = () => {
+    const [path, setPath] = useState('/var');
+    const [name, setName] = useState('*.log');
+    const [user, setUser] = useState('');
+    const [size, setSize] = useState('+10M');
+    const [action, setAction] = useState('print');
+
+    let cmd = `find ${path}`;
+    if (name) cmd += ` -name "${name}"`;
+    if (user) cmd += ` -user ${user}`;
+    if (size) cmd += ` -size ${size}`;
+    if (action === 'delete') cmd += ` -exec rm -f {} \\;`;
+    if (action === 'exec') cmd += ` -exec cp {} /tmp \\;`;
+
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><SearchIcon size={16} className="text-blue-500"/> Find Command Builder</h3>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Path</label><input value={path} onChange={e=>setPath(e.target.value)} className="w-full border rounded p-1 text-sm"/></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Name Pattern</label><input value={name} onChange={e=>setName(e.target.value)} className="w-full border rounded p-1 text-sm"/></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">User (Optional)</label><input value={user} onChange={e=>setUser(e.target.value)} placeholder="root" className="w-full border rounded p-1 text-sm"/></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Size (Optional)</label><input value={size} onChange={e=>setSize(e.target.value)} placeholder="+10M" className="w-full border rounded p-1 text-sm"/></div>
+                <div className="col-span-2"><label className="text-[10px] uppercase font-bold text-slate-500">Action</label>
+                    <select value={action} onChange={e=>setAction(e.target.value)} className="w-full border rounded p-1 text-sm bg-white">
+                        <option value="print">Print (Default)</option>
+                        <option value="delete">Delete (-exec rm)</option>
+                        <option value="exec">Copy to /tmp (-exec cp)</option>
+                    </select>
                 </div>
             </div>
+            <CodeBlock>{cmd}</CodeBlock>
+        </div>
+    );
+};
+
+// --- NEW: NETWORK CONFIG BUILDER ---
+const NetworkBuilder = () => {
+    const [con, setCon] = useState('static-eth0');
+    const [iface, setIface] = useState('eth0');
+    const [ip, setIp] = useState('192.168.1.10');
+    const [gw, setGw] = useState('192.168.1.1');
+    const [dns, setDns] = useState('8.8.8.8');
+
+    const cmd = `nmcli con add con-name ${con} ifname ${iface} type ethernet ipv4.method manual ipv4.addresses ${ip}/24 ipv4.gateway ${gw} ipv4.dns ${dns}`;
+
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><NetworkIcon size={16} className="text-emerald-500"/> Network Configurator</h3>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Connection Name</label><input value={con} onChange={e=>setCon(e.target.value)} className="w-full border rounded p-1 text-sm font-mono"/></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Interface</label><input value={iface} onChange={e=>setIface(e.target.value)} className="w-full border rounded p-1 text-sm font-mono"/></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">IP Address</label><input value={ip} onChange={e=>setIp(e.target.value)} className="w-full border rounded p-1 text-sm font-mono"/></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Gateway</label><input value={gw} onChange={e=>setGw(e.target.value)} className="w-full border rounded p-1 text-sm font-mono"/></div>
+                <div className="col-span-2"><label className="text-[10px] uppercase font-bold text-slate-500">DNS</label><input value={dns} onChange={e=>setDns(e.target.value)} className="w-full border rounded p-1 text-sm font-mono"/></div>
+            </div>
+            <CodeBlock color="green">{cmd}</CodeBlock>
+            <p className="text-[10px] text-slate-400 mt-2">Don't forget: <code className="bg-slate-100 px-1 rounded">nmcli con up {con}</code> afterwards.</p>
         </div>
     );
 };
@@ -231,33 +319,23 @@ const ReportCard = ({ results, total, onClose }) => {
             <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl border-4 border-slate-700 animate-in fade-in zoom-in duration-300">
                 <div className="text-center mb-6">
                     <h2 className="text-3xl font-bold text-slate-800 mb-2">Exam Results</h2>
-                    <div className={`text-5xl font-mono font-bold ${score >= 70 ? 'text-green-600' : 'text-red-600'}`}>
-                        {score}%
-                    </div>
-                    <p className="text-slate-500 text-sm mt-2">
-                        {score >= 70 ? "PASSED! You're ready for the real deal." : "FAILED. Review the pillars below."}
-                    </p>
+                    <div className={`text-5xl font-mono font-bold ${score >= 70 ? 'text-green-600' : 'text-red-600'}`}>{score}%</div>
+                    <p className="text-slate-500 text-sm mt-2">{score >= 70 ? "PASSED! You're ready for the real deal." : "FAILED. Review the pillars below."}</p>
                 </div>
                 {Object.keys(missedCategories).length > 0 && (
                     <div className="mb-6">
-                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-                            <AlertTriangleIcon size={14} /> Weak Points Detected
-                        </h4>
+                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1"><AlertTriangleIcon size={14} /> Weak Points Detected</h4>
                         <div className="space-y-2">
                             {Object.entries(missedCategories).map(([cat, count]) => (
                                 <div key={cat} className="flex justify-between items-center bg-red-50 p-2 rounded border border-red-100 text-sm">
                                     <span className="font-semibold text-slate-700">{cat}</span>
-                                    <span className="bg-red-200 text-red-800 text-xs px-2 py-0.5 rounded-full">
-                                        Missed {count}
-                                    </span>
+                                    <span className="bg-red-200 text-red-800 text-xs px-2 py-0.5 rounded-full">Missed {count}</span>
                                 </div>
                             ))}
                         </div>
                     </div>
                 )}
-                <button onClick={onClose} className="w-full bg-slate-900 text-white font-bold py-3 rounded hover:bg-slate-800 transition-colors">
-                    Close Report
-                </button>
+                <button onClick={onClose} className="w-full bg-slate-900 text-white font-bold py-3 rounded hover:bg-slate-800 transition-colors">Close Report</button>
             </div>
         </div>
     );
@@ -269,45 +347,29 @@ const FlashcardDrill = ({ cards, onClose }) => {
 
     const nextCard = () => {
         setIsFlipped(false);
-        setTimeout(() => {
-            setCurrentIndex((prev) => (prev + 1) % cards.length);
-        }, 150);
+        setTimeout(() => setCurrentIndex((prev) => (prev + 1) % cards.length), 150);
     };
 
     const prevCard = () => {
          setIsFlipped(false);
-         setTimeout(() => {
-            setCurrentIndex((prev) => (prev - 1 + cards.length) % cards.length);
-         }, 150);
+         setTimeout(() => setCurrentIndex((prev) => (prev - 1 + cards.length) % cards.length), 150);
     };
 
     return (
         <div className="absolute inset-0 bg-slate-900/95 flex items-center justify-center z-50 p-4">
              <div className="relative w-full max-w-lg h-96" style={{ perspective: '1000px' }}>
-                <button onClick={onClose} className="absolute -top-12 right-0 text-white hover:text-red-400">
-                     Close
-                </button>
-                 <div 
-                    className="relative w-full h-full text-center transition-transform duration-500 cursor-pointer"
-                    style={{ transformStyle: 'preserve-3d', transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}
-                    onClick={() => setIsFlipped(!isFlipped)}
-                >
-                     {/* FRONT */}
+                <button onClick={onClose} className="absolute -top-12 right-0 text-white hover:text-red-400">Close</button>
+                 <div className="relative w-full h-full text-center transition-transform duration-500 cursor-pointer" style={{ transformStyle: 'preserve-3d', transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }} onClick={() => setIsFlipped(!isFlipped)}>
                     <div className="absolute w-full h-full bg-white rounded-xl shadow-2xl p-8 flex flex-col items-center justify-center" style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
                         <h3 className="text-slate-400 text-sm uppercase tracking-widest mb-4">Concept</h3>
                         <p className="text-2xl font-bold text-slate-800">{cards[currentIndex].front}</p>
                         <p className="text-xs text-slate-400 mt-8">(Click to flip)</p>
                     </div>
-
-                    {/* BACK */}
                     <div className="absolute w-full h-full bg-slate-800 rounded-xl shadow-2xl p-8 flex flex-col items-center justify-center" style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
                          <h3 className="text-slate-500 text-sm uppercase tracking-widest mb-4">Solution</h3>
-                         <div className="bg-black p-4 rounded w-full overflow-x-auto">
-                            <code className="text-green-400 font-mono text-lg">{cards[currentIndex].back}</code>
-                         </div>
+                         <div className="bg-black p-4 rounded w-full overflow-x-auto"><code className="text-green-400 font-mono text-lg">{cards[currentIndex].back}</code></div>
                     </div>
                  </div>
-                 
                  <div className="absolute -bottom-16 w-full flex justify-between items-center text-white">
                      <button onClick={prevCard} className="px-4 py-2 bg-slate-700 rounded hover:bg-slate-600">Previous</button>
                      <span>{currentIndex + 1} / {cards.length}</span>
@@ -320,44 +382,29 @@ const FlashcardDrill = ({ cards, onClose }) => {
 
 const CheatSheetModal = ({ bookmarks, missions, onClose }) => {
     const bookmarkedMissions = missions.filter(m => bookmarks.includes(m.id));
-
     return (
         <div className="absolute inset-0 bg-slate-900/95 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl">
                 <div className="p-6 border-b border-slate-200 flex justify-between items-center">
-                    <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                        <StarIcon className="text-yellow-400 fill-yellow-400" size={24}/> My Cheat Sheet
-                    </h2>
+                    <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2"><StarIcon className="text-yellow-400 fill-yellow-400" size={24}/> My Cheat Sheet</h2>
                     <button onClick={onClose} className="text-slate-400 hover:text-slate-600">Close</button>
                 </div>
                 <div className="p-6 overflow-y-auto flex-1">
                     {bookmarkedMissions.length === 0 ? (
-                        <div className="text-center text-slate-500 py-12">
-                            <p>No commands bookmarked yet.</p>
-                            <p className="text-sm mt-2">Click the star icon on any mission to add it here.</p>
-                        </div>
+                        <div className="text-center text-slate-500 py-12"><p>No commands bookmarked yet.</p></div>
                     ) : (
                         <div className="space-y-4">
                             {bookmarkedMissions.map(mission => (
                                 <div key={mission.id} className="border border-slate-200 rounded-lg p-4 bg-slate-50">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <h3 className="font-bold text-slate-800">{mission.title}</h3>
-                                        <span className="text-xs bg-slate-200 px-2 py-1 rounded text-slate-600">{mission.category}</span>
-                                    </div>
+                                    <div className="flex justify-between items-start mb-2"><h3 className="font-bold text-slate-800">{mission.title}</h3><span className="text-xs bg-slate-200 px-2 py-1 rounded text-slate-600">{mission.category}</span></div>
                                     <p className="text-sm text-slate-600 mb-3">{mission.desc}</p>
-                                    <div className="bg-slate-900 p-2 rounded text-green-400 font-mono text-xs">
-                                        {mission.hint}
-                                    </div>
+                                    <div className="bg-slate-900 p-2 rounded text-green-400 font-mono text-xs">{mission.hint}</div>
                                 </div>
                             ))}
                         </div>
                     )}
                 </div>
-                <div className="p-4 border-t border-slate-200 bg-slate-50 text-center">
-                    <button onClick={() => window.print()} className="text-blue-600 text-sm font-bold hover:underline">
-                        Print / Save as PDF
-                    </button>
-                </div>
+                <div className="p-4 border-t border-slate-200 bg-slate-50 text-center"><button onClick={() => window.print()} className="text-blue-600 text-sm font-bold hover:underline">Print / Save as PDF</button></div>
             </div>
         </div>
     );
@@ -372,158 +419,59 @@ const TroubleshootingModal = ({ onClose }) => {
             title: "Service Won't Start",
             startNode: 'status',
             nodes: {
-                status: {
-                    text: "Check the service status. Is it active (running)?",
-                    cmd: "systemctl status <service>",
-                    yes: 'firewall',
-                    no: 'start'
-                },
-                start: {
-                    text: "Try starting the service. Did it fail?",
-                    cmd: "systemctl start <service>",
-                    yes: 'logs',
-                    no: 'enable' 
-                },
-                logs: {
-                    text: "Check the system logs for specific error messages.",
-                    cmd: "journalctl -u <service> -e",
-                    action: "Fix configuration error based on logs."
-                },
-                firewall: {
-                    text: "Is the firewall allowing the service port?",
-                    cmd: "firewall-cmd --list-all",
-                    yes: 'selinux',
-                    no: 'open_port'
-                },
-                open_port: {
-                    text: "Open the port permanently and reload.",
-                    cmd: "firewall-cmd --permanent --add-service=<service> && firewall-cmd --reload",
-                    action: "Retry connection."
-                },
-                selinux: {
-                    text: "Check for SELinux denials.",
-                    cmd: "grep AVC /var/log/audit/audit.log",
-                    yes: 'restorecon',
-                    no: 'network'
-                },
-                restorecon: {
-                    text: "Restore default file contexts.",
-                    cmd: "restorecon -Rv /var/www/html",
-                    action: "Retry connection."
-                },
-                enable: {
-                     text: "Service started successfully. Ensure it's enabled.",
-                     cmd: "systemctl enable <service>",
-                     action: "Done."
-                },
-                network: {
-                    text: "Verify network connectivity.",
-                    cmd: "ping -c 4 <gateway>",
-                    action: "Check routing table."
-                }
+                status: { text: "Check the service status. Is it active (running)?", cmd: "systemctl status <service>", yes: 'firewall', no: 'start' },
+                start: { text: "Try starting the service. Did it fail?", cmd: "systemctl start <service>", yes: 'logs', no: 'enable' },
+                logs: { text: "Check the system logs for specific error messages.", cmd: "journalctl -u <service> -e", action: "Fix configuration error based on logs." },
+                firewall: { text: "Is the firewall allowing the service port?", cmd: "firewall-cmd --list-all", yes: 'selinux', no: 'open_port' },
+                open_port: { text: "Open the port permanently and reload.", cmd: "firewall-cmd --permanent --add-service=<service> && firewall-cmd --reload", action: "Retry connection." },
+                selinux: { text: "Check for SELinux denials.", cmd: "grep AVC /var/log/audit/audit.log", yes: 'restorecon', no: 'network' },
+                restorecon: { text: "Restore default file contexts.", cmd: "restorecon -Rv /var/www/html", action: "Retry connection." },
+                enable: { text: "Service started successfully. Ensure it's enabled.", cmd: "systemctl enable <service>", action: "Done." },
+                network: { text: "Verify network connectivity.", cmd: "ping -c 4 <gateway>", action: "Check routing table." }
             }
         },
         ssh: {
             title: "Cannot SSH to Server",
             startNode: 'ping',
             nodes: {
-                ping: {
-                    text: "Can you ping the server IP?",
-                    cmd: "ping <ip_address>",
-                    yes: 'ssh_port',
-                    no: 'local_ip'
-                },
-                local_ip: {
-                    text: "Do you have a valid IP address?",
-                    cmd: "ip a",
-                    yes: 'route',
-                    no: 'nmcli'
-                },
-                nmcli: {
-                    text: "Configure static IP.",
-                    cmd: "nmcli con add ...",
-                    action: "Retry ping."
-                },
-                route: {
-                    text: "Check IP route.",
-                    cmd: "ip route",
-                    action: "Fix gateway."
-                },
-                ssh_port: {
-                    text: "Is the SSH service running on the target?",
-                    cmd: "systemctl status sshd",
-                    yes: 'firewall_ssh',
-                    no: 'start_ssh'
-                },
-                 firewall_ssh: {
-                    text: "Is port 22 open on the firewall?",
-                    cmd: "firewall-cmd --list-all",
-                    yes: 'perm_denied',
-                    no: 'open_ssh'
-                },
-                start_ssh: {
-                     text: "Start SSH service on target.",
-                     cmd: "systemctl start sshd",
-                     action: "Retry connection."
-                },
-                open_ssh: {
-                    text: "Allow SSH service.",
-                    cmd: "firewall-cmd --permanent --add-service=ssh && firewall-cmd --reload",
-                    action: "Retry connection."
-                },
-                perm_denied: {
-                    text: "Permission Denied? Check root login settings.",
-                    cmd: "grep PermitRootLogin /etc/ssh/sshd_config",
-                    action: "Edit config to 'yes' or use user account."
-                }
+                ping: { text: "Can you ping the server IP?", cmd: "ping <ip_address>", yes: 'ssh_port', no: 'local_ip' },
+                local_ip: { text: "Do you have a valid IP address?", cmd: "ip a", yes: 'route', no: 'nmcli' },
+                nmcli: { text: "Configure static IP.", cmd: "nmcli con add ...", action: "Retry ping." },
+                route: { text: "Check IP route.", cmd: "ip route", action: "Fix gateway." },
+                ssh_port: { text: "Is the SSH service running on the target?", cmd: "systemctl status sshd", yes: 'firewall_ssh', no: 'start_ssh' },
+                firewall_ssh: { text: "Is port 22 open on the firewall?", cmd: "firewall-cmd --list-all", yes: 'perm_denied', no: 'open_ssh' },
+                start_ssh: { text: "Start SSH service on target.", cmd: "systemctl start sshd", action: "Retry connection." },
+                open_ssh: { text: "Allow SSH service.", cmd: "firewall-cmd --permanent --add-service=ssh && firewall-cmd --reload", action: "Retry connection." },
+                perm_denied: { text: "Permission Denied? Check root login settings.", cmd: "grep PermitRootLogin /etc/ssh/sshd_config", action: "Edit config to 'yes' or use user account." }
             }
         }
     };
 
-    const startTree = (type) => {
-        setTreeType(type);
-        setCurrentNode(TROUBLESHOOTING_TREES[type].startNode);
-    };
-
+    const startTree = (type) => { setTreeType(type); setCurrentNode(TROUBLESHOOTING_TREES[type].startNode); };
     const node = treeType && currentNode ? TROUBLESHOOTING_TREES[treeType].nodes[currentNode] : null;
 
     return (
         <div className="absolute inset-0 bg-slate-900/95 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg w-full max-w-lg shadow-2xl border-4 border-slate-700 p-6">
                  <div className="flex justify-between items-center mb-6 border-b pb-4">
-                    <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                        <WrenchIcon className="text-blue-500" size={24}/> Troubleshooter
-                    </h2>
+                    <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2"><WrenchIcon className="text-blue-500" size={24}/> Troubleshooter</h2>
                     <button onClick={onClose} className="text-slate-400 hover:text-slate-600">Close</button>
                 </div>
-
                 {!treeType ? (
                     <div className="grid grid-cols-1 gap-4">
                         <p className="text-slate-600 text-center mb-2">Select a scenario to troubleshoot:</p>
-                        <button onClick={() => startTree('service')} className="p-4 bg-slate-100 hover:bg-slate-200 rounded text-left font-semibold text-slate-700">
-                            🚀 Service Won't Start
-                        </button>
-                        <button onClick={() => startTree('ssh')} className="p-4 bg-slate-100 hover:bg-slate-200 rounded text-left font-semibold text-slate-700">
-                            🔒 Cannot SSH to Server
-                        </button>
+                        <button onClick={() => startTree('service')} className="p-4 bg-slate-100 hover:bg-slate-200 rounded text-left font-semibold text-slate-700">🚀 Service Won't Start</button>
+                        <button onClick={() => startTree('ssh')} className="p-4 bg-slate-100 hover:bg-slate-200 rounded text-left font-semibold text-slate-700">🔒 Cannot SSH to Server</button>
                     </div>
                 ) : (
                     <div className="animate-in fade-in slide-in-from-right-4 duration-300">
                         <div className="mb-4">
                              <h3 className="font-bold text-lg text-blue-600 mb-2">{TROUBLESHOOTING_TREES[treeType].title}</h3>
                              <p className="text-slate-700 text-lg mb-4">{node.text}</p>
-                             {node.cmd && (
-                                 <div className="bg-slate-900 p-3 rounded text-green-400 font-mono text-sm mb-4">
-                                     &gt; {node.cmd}
-                                 </div>
-                             )}
+                             {node.cmd && <div className="bg-slate-900 p-3 rounded text-green-400 font-mono text-sm mb-4">&gt; {node.cmd}</div>}
                         </div>
-                        
                         {node.action ? (
-                             <div className="bg-green-100 p-4 rounded text-green-800 font-bold text-center border border-green-200">
-                                 ✅ Solution: {node.action}
-                                 <button onClick={() => setTreeType(null)} className="block mx-auto mt-4 text-sm font-normal underline">Start Over</button>
-                             </div>
+                             <div className="bg-green-100 p-4 rounded text-green-800 font-bold text-center border border-green-200">✅ Solution: {node.action}<button onClick={() => setTreeType(null)} className="block mx-auto mt-4 text-sm font-normal underline">Start Over</button></div>
                         ) : (
                              <div className="grid grid-cols-2 gap-4">
                                  <button onClick={() => setCurrentNode(node.yes)} className="p-3 bg-green-500 hover:bg-green-600 text-white rounded font-bold">YES</button>
@@ -543,10 +491,6 @@ const TroubleshootingModal = ({ onClose }) => {
 const MAX_INPUT_LENGTH = 256; 
 const ILLEGAL_CHARS = /<script\b[^>]*>([\s\S]*?)<\/script>/gm; 
 const UTILITY_COMMANDS = ['clear', 'help', 'ls', 'pwd', 'whoami', 'history', 'id', 'exit', 'man', 'cat', 'touch', 'mkdir', 'rm', 'cd', 'cp', 'mv'];
-
-const THEMES = [
-    { id: 'rhel', name: 'RHEL (Default)', bg: 'bg-slate-900', text: 'text-slate-300', prompt: 'text-green-400', cursor: 'bg-green-400' }
-];
 
 const MAN_PAGES = {
     useradd: "NAME\n  useradd - create a new user\nSYNOPSIS\n  useradd [options] LOGIN\nOPTIONS\n  -u UID\n  -g GID\n  -G GROUPS",
@@ -663,7 +607,6 @@ export default function App() {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [showHint, setShowHint] = useState(false); 
   const [missions] = useState(MISSIONS);
-  const [currentTheme, setCurrentTheme] = useState(THEMES[0]);
   const [successFlash, setSuccessFlash] = useState(false);
   const [fs, setFs] = useState(INITIAL_FS);
   const [cwd, setCwd] = useState('/root');
@@ -679,20 +622,20 @@ export default function App() {
   const [examMode, setExamMode] = useState(false);
   const [examTimeLeft, setExamTimeLeft] = useState(0);
   const [examQuestions, setExamQuestions] = useState([]);
-  const [examResults, setExamResults] = useState([]); // Array of { id, category, success }
+  const [examResults, setExamResults] = useState([]); 
   const [showReportCard, setShowReportCard] = useState(false);
   const [showFlashcards, setShowFlashcards] = useState(false);
   const [showCheatSheet, setShowCheatSheet] = useState(false);
-  const [showTroubleshoot, setShowTroubleshoot] = useState(false); // NEW
+  const [showTroubleshoot, setShowTroubleshoot] = useState(false); 
   const [bookmarkedMissions, setBookmarkedMissions] = useState([]);
   
   const [activeTab, setActiveTab] = useState('pillar-1');
   
-  // --- LVM STATE (NEW) ---
+  // --- LVM STATE ---
   const [lvmState, setLvmState] = useState({
-    pvs: [], // e.g., ['/dev/vdb1']
-    vgs: [], // e.g., [{ name: 'myvg', pvs: ['/dev/vdb1'] }]
-    lvs: [], // e.g., [{ name: 'mylv', vg: 'myvg', fs: null, size: '500M' }]
+    pvs: [], 
+    vgs: [], 
+    lvs: [], 
     mounts: []
   });
 
@@ -740,12 +683,6 @@ export default function App() {
     setShowHint(false);
   }, [currentMissionId]);
 
-  const cycleTheme = () => {
-    const currentIndex = THEMES.indexOf(currentTheme);
-    const nextIndex = (currentIndex + 1) % THEMES.length;
-    setCurrentTheme(THEMES[nextIndex]);
-  };
-
   const addToTerm = (text, type = 'output') => {
     if (typeof text !== 'string') return;
     setTerminalHistory(prev => [...prev, { text, type }]);
@@ -757,12 +694,11 @@ export default function App() {
   };
 
   const startExamMode = () => {
-      // Pick 15 random missions
       const shuffled = [...MISSIONS].sort(() => 0.5 - Math.random());
       const selected = shuffled.slice(0, 15);
       
       setExamQuestions(selected);
-      setExamResults([]); // Reset results
+      setExamResults([]); 
       setExamMode(true);
       setShowReportCard(false);
       setExamTimeLeft(20 * 60); 
@@ -904,7 +840,6 @@ export default function App() {
              }
              break;
           case 'vgcreate':
-             // vgcreate myvg /dev/vdb1
              const vgName = args[1];
              const vgPv = args[2];
              if (vgName && vgPv) {
@@ -919,19 +854,12 @@ export default function App() {
              }
              break;
           case 'lvcreate':
-             // lvcreate -L 500M -n mylv myvg  OR lvcreate -n mylv -L 500M myvg
              let lvName, lvSize, lvVg;
-             
-             // Simple args parsing
              const nIdx = args.indexOf('-n');
              const lIdx = args.indexOf('-L');
-             
              if (nIdx !== -1) lvName = args[nIdx + 1];
              if (lIdx !== -1) lvSize = args[lIdx + 1];
-             
-             // Assume VG is the last argument that isn't a flag value
              lvVg = args[args.length - 1];
-             
              if (lvName && lvVg && lvmState.vgs.find(v => v.name === lvVg)) {
                  setLvmState(prev => ({ ...prev, lvs: [...prev.lvs, { name: lvName, vg: lvVg, fs: null, size: lvSize || 'Unknown' }] }));
                  addToTerm(`Logical volume "${lvName}" created.`);
@@ -940,13 +868,11 @@ export default function App() {
              }
              break;
           case 'mkfs.xfs':
-             // mkfs.xfs /dev/myvg/mylv
              const targetDev = args[1];
              if (targetDev) {
                  const parts = targetDev.split('/');
                  const potentialLvName = parts[parts.length - 1];
                  const lvExists = lvmState.lvs.find(l => l.name === potentialLvName);
-                 
                  if (lvExists) {
                      setLvmState(prev => ({
                         ...prev,
@@ -958,7 +884,6 @@ export default function App() {
                  }
              }
              break;
-          // --- END LVM SIMULATION ---
           case 'ssh':
               if (args[1] === 'serverb' || args[1] === 'student@serverb') {
                   setCurrentServer('serverb');
@@ -1122,13 +1047,11 @@ export default function App() {
                 <ListIcon size={16}/> My Cheat Sheet
             </button>
           
-
           <ul className="space-y-1 overflow-y-auto flex-1 scrollbar-hide">
             <li><button onClick={() => { setExamMode(false); setCurrentMissionId(0); }} className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors w-full text-left"><TerminalIcon size={16}/> Practice Lab</button></li>
             <div className="my-2 border-t border-slate-800"></div>
             <li className="text-xs text-slate-500 uppercase tracking-wider mt-4 mb-2 px-3">Quick Links</li>
             
-            {/* TABS IN SIDEBAR FOR MOBILE/QUICK ACCESS */}
             <li><button onClick={() => setActiveTab('pillar-1')} className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors w-full text-left ${activeTab === 'pillar-1' ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 text-slate-400'}`}><FileTextIcon size={16}/> Tools & Scripting</button></li>
             <li><button onClick={() => setActiveTab('pillar-2')} className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors w-full text-left ${activeTab === 'pillar-2' ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 text-slate-400'}`}><CpuIcon size={16}/> Running Systems</button></li>
             <li><button onClick={() => setActiveTab('pillar-3')} className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors w-full text-left ${activeTab === 'pillar-3' ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 text-slate-400'}`}><HardDriveIcon size={16}/> Storage</button></li>
@@ -1223,22 +1146,9 @@ export default function App() {
                    <CodeBlock>ln -s /source /shortcut</CodeBlock>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800">Permissions</h3>
-                  <div className="space-y-3">
-                    <div className="text-sm">
-                      <span className="font-bold text-slate-700">Special Bits:</span>
-                      <CodeBlock>chmod u+s file     # SUID (4)</CodeBlock>
-                      <CodeBlock>chmod g+s dir      # SGID (2)</CodeBlock>
-                      <CodeBlock>chmod 2770 dir     # Octal SGID</CodeBlock>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800">IO Redirection</h3>
-                  <CodeBlock>ls &gt; file.txt</CodeBlock>
-                  <CodeBlock>ls 2&gt; error.log</CodeBlock>
-                </div>
+                <PermissionsCalculator />
+                <FindBuilder />
+
               </div>
             </section>
             )}
@@ -1363,10 +1273,9 @@ export default function App() {
                    <CodeBlock>flatpak remote-add --if-not-exists flathub ...</CodeBlock>
                    <CodeBlock>flatpak install flathub org.gnome.gedit</CodeBlock>
                 </div>
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Cron</h3>
-                   <CodeBlock>*/5 * * * * /script.sh</CodeBlock>
-                </div>
+                
+                <CronBuilder />
+
                  {/* NEW CARD */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                    <h3 className="font-bold text-lg mb-4 text-slate-800">Repositories</h3>
@@ -1428,20 +1337,9 @@ export default function App() {
                    <CodeBlock>/etc/sudoers.d/custom</CodeBlock>
                    <CodeBlock>user ALL=(ALL) ALL</CodeBlock>
                 </div>
-                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800">Network & Identity</h3>
-                  <div className="space-y-3">
-                    <div className="text-sm">
-                        <p className="text-xs font-bold text-slate-600 mb-1 flex items-center gap-1"><NetworkIcon size={12}/> NetworkManager:</p>
-                        <CodeBlock>nmcli con add type ethernet con-name ...</CodeBlock>
-                        <p className="text-[10px] text-slate-500 mt-1">Tip: Use <code>nmtui</code> for a visual menu.</p>
-                    </div>
-                    <div className="text-sm">
-                        <p className="text-xs font-bold text-slate-600 mb-1">User Aging:</p>
-                        <CodeBlock>chage -M 90 user</CodeBlock>
-                    </div>
-                  </div>
-                </div>
+                 
+                 <NetworkBuilder />
+
               </div>
             </section>
             )}
@@ -1485,7 +1383,7 @@ export default function App() {
           <div className="max-w-5xl mx-auto flex gap-4 h-64">
             
             {/* Terminal Container */}
-            <div className={`flex-1 rounded-lg overflow-hidden flex flex-col shadow-lg border border-slate-700 relative ${currentTheme.bg} ${successFlash ? 'animate-success-pulse' : ''}`} style={currentTheme.id === 'amber' || currentTheme.id === 'matrix' ? { textShadow: `0 0 5px ${currentTheme.id === 'amber' ? '#ffb000' : '#4ade80'}` } : {}}>
+            <div className={`flex-1 rounded-lg overflow-hidden flex flex-col shadow-lg border border-slate-700 relative bg-slate-900 ${successFlash ? 'animate-success-pulse' : ''}`}>
               {/* Exam Timer Overlay */}
               {examMode && (
                   <div className="absolute top-2 right-2 bg-red-900/80 text-red-100 text-xs px-2 py-1 rounded font-mono z-10 border border-red-500 animate-pulse">
@@ -1497,28 +1395,28 @@ export default function App() {
                   <ReportCard results={examResults} total={examQuestions.length} onClose={() => setShowReportCard(false)} />
               )}
 
-              <div className={`p-2 flex items-center justify-between border-b border-slate-700 shrink-0 ${currentTheme.id === 'rhel' ? 'bg-slate-800' : 'bg-opacity-50 bg-black'}`}>
+              <div className={`p-2 flex items-center justify-between border-b border-slate-700 shrink-0 bg-slate-800`}>
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
                   <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
                   <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
-                  <span className={`ml-2 text-xs font-mono ${currentTheme.text}`}>root@localhost:~</span>
+                  <span className={`ml-2 text-xs font-mono text-slate-300`}>root@localhost:~</span>
                 </div>
-                <div className={`text-xs font-mono flex items-center gap-2 ${currentTheme.text}`}>
-                   <ShieldIcon size={12} className={currentTheme.prompt}/>
+                <div className={`text-xs font-mono flex items-center gap-2 text-slate-300`}>
+                   <ShieldIcon size={12} className="text-green-400"/>
                    <span className="text-[10px] uppercase">SSH Active</span>
                 </div>
               </div>
               
               <div 
-                className={`flex-1 p-3 font-mono text-sm overflow-y-auto ${currentTheme.bg} ${currentTheme.text}`}
+                className={`flex-1 p-3 font-mono text-sm overflow-y-auto bg-slate-900 text-slate-300`}
                 onClick={() => inputRef.current?.focus()}
               >
                 <div className="mb-2 opacity-70">Welcome to the RHCSA Practice Terminal v2.1</div>
                 
                 {terminalHistory.map((line, i) => (
                   <div key={i} className={`whitespace-pre-wrap mb-1 break-words ${
-                    line.type === 'input' ? `${currentTheme.text} font-bold` : 
+                    line.type === 'input' ? `text-slate-300 font-bold` : 
                     line.type === 'success' ? 'text-green-400 font-bold' :
                     line.type === 'error' ? 'text-red-400' : 
                     line.type === 'system' ? 'text-yellow-400' : 'opacity-90'
@@ -1528,7 +1426,7 @@ export default function App() {
                 ))}
                 <div ref={terminalEndRef} />
                 
-                <div className={`flex items-center mt-2 ${currentTheme.prompt}`}>
+                <div className={`flex items-center mt-2 text-green-400`}>
                   <span className="mr-2">[root@server ~]#</span>
                   <input 
                     ref={inputRef}
@@ -1536,7 +1434,7 @@ export default function App() {
                     value={inputVal}
                     onChange={(e) => setInputVal(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    className={`bg-transparent border-none outline-none flex-1 ${currentTheme.text}`}
+                    className={`bg-transparent border-none outline-none flex-1 text-slate-300`}
                     autoComplete="off" 
                     spellCheck="false"
                     maxLength={MAX_INPUT_LENGTH}
