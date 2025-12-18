@@ -91,6 +91,9 @@ const ChevronDownIcon = ({ size = 24, className = "" }) => (
 const ChevronUpIcon = ({ size = 24, className = "" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="18 15 12 9 6 15"></polyline></svg>
 );
+const RotateCcwIcon = ({ size = 24, className = "" }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+);
 
 // --- 2. COMPONENTS (Defined BEFORE App) ---
 
@@ -889,6 +892,26 @@ export default function App() {
       }
   };
 
+  const resolvePath = (cwd, target) => {
+      if (target.startsWith('/')) {
+          // Absolute path - simplified for root level
+          return target === '/' ? '/' : target; // In our flat structure, keys are like '/home'
+      }
+      // Relative path - simplified
+      return cwd === '/' ? `/${target}` : `${cwd}/${target}`;
+  };
+
+  const resetLab = () => {
+      if(window.confirm("Are you sure you want to reset all progress and file system changes?")) {
+          setCompletedMissions([]);
+          setBookmarkedMissions([]);
+          setFs(INITIAL_FS);
+          setLvmState({ pvs: [], vgs: [], lvs: [], mounts: [] });
+          setTerminalHistory([]);
+          addToTerm("Lab environment reset to factory defaults.", 'system');
+      }
+  };
+
   // Process Logic
   const processCommand = (cmd) => {
     const cleanCmd = sanitizeInput(cmd.trim());
@@ -990,6 +1013,55 @@ export default function App() {
                 setLvmState({ pvs: [], vgs: [], lvs: [], mounts: [] }); // Reset LVM on logout
             }
             break;
+          // --- FILESYSTEM SIMULATION ---
+          case 'touch':
+              if (args[1]) {
+                  const targetDir = fs[cwd];
+                  if (targetDir) {
+                      setFs(prev => ({
+                          ...prev,
+                          [cwd]: {
+                              ...prev[cwd],
+                              children: { ...prev[cwd].children, [args[1]]: { type: 'file' } }
+                          }
+                      }));
+                      addToTerm(""); // Success is silent in unix
+                  }
+              }
+              break;
+          case 'mkdir':
+              if (args[1]) {
+                  const newPath = resolvePath(cwd, args[1]);
+                  // Add as a root key for simple navigation in this sim
+                  if (!fs[newPath]) {
+                      setFs(prev => ({ ...prev, [newPath]: { type: 'dir', children: {} } }));
+                      // Also add to current children for visibility
+                      if(fs[cwd]) {
+                           setFs(prev => ({
+                              ...prev,
+                              [cwd]: { ...prev[cwd], children: { ...prev[cwd].children, [args[1]]: { type: 'dir' } } },
+                              [newPath]: { type: 'dir', children: {} } // Add absolute path entry
+                          }));
+                      }
+                  }
+                  addToTerm("");
+              }
+              break;
+          case 'rm':
+              if (args[1]) {
+                  if (fs[cwd] && fs[cwd].children[args[1]]) {
+                      const newChildren = { ...fs[cwd].children };
+                      delete newChildren[args[1]];
+                      setFs(prev => ({
+                          ...prev,
+                          [cwd]: { ...prev[cwd], children: newChildren }
+                      }));
+                      addToTerm("");
+                  } else {
+                      addToTerm(`rm: cannot remove '${args[1]}': No such file or directory`, 'error');
+                  }
+              }
+              break;
           // --- LVM SIMULATION ---
           case 'pvcreate':
              const pvDev = args[args.length - 1];
@@ -1208,8 +1280,12 @@ export default function App() {
                 <CardIcon size={16}/> Flashcards
             </button>
 
-            <button onClick={() => setShowCheatSheet(true)} disabled={examMode} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-slate-700 text-white font-bold hover:bg-slate-600 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed mb-6">
+            <button onClick={() => setShowCheatSheet(true)} disabled={examMode} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-slate-700 text-white font-bold hover:bg-slate-600 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed mb-2">
                 <ListIcon size={16}/> My Cheat Sheet
+            </button>
+
+            <button onClick={resetLab} disabled={examMode} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-rose-900 text-white font-bold hover:bg-rose-800 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed mb-6">
+                <RotateCcwIcon size={16}/> Reset Lab
             </button>
           
           <ul className="space-y-1 overflow-y-auto flex-1 scrollbar-hide">
