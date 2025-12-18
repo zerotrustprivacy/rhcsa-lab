@@ -1656,7 +1656,7 @@ export default function App() {
                  <div className="p-3 bg-indigo-100 text-indigo-600 rounded-lg"><BookOpenIcon size={24} /></div>
                  <div><h2 className="text-2xl font-bold text-slate-900">Exam Strategy & Tips</h2></div>
               </div>
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
                    <div className="grid md:grid-cols-2 gap-6">
                        <div>
                            <h4 className="font-bold text-indigo-600 mb-2">During the Exam</h4>
@@ -1664,6 +1664,7 @@ export default function App() {
                                <li><b>Reboot Often:</b> Verify your changes survive a reboot. If you break boot, fix it immediately using the recovery console.</li>
                                <li><b>Read Carefully:</b> Does the question ask for a logical volume of 500MB or 500 extents?</li>
                                <li><b>Use Man Pages:</b> Don't memorize flags. Type <code>man &lt;command&gt;</code> and search with <code>/</code>.</li>
+                               <li><b>Keyword Search:</b> Forgot a command? Use <code>man -k &lt;keyword&gt;</code> or <code>apropos &lt;keyword&gt;</code> to find it.</li>
                                <li><b>Copy/Paste:</b> Mistyping a UUID in fstab is fatal. Use copy/paste from terminal output.</li>
                            </ul>
                        </div>
@@ -1674,8 +1675,18 @@ export default function App() {
                                <li><b>SELinux:</b> Moving files instead of copying (preserves wrong context). Always use <code>restorecon</code>.</li>
                                <li><b>Scripting:</b> Forgetting <code>chmod +x</code> to make scripts executable.</li>
                                <li><b>LVM:</b> Forgetting to format the new logical volume before mounting (<code>mkfs</code>).</li>
+                               <li><b>Chronyd:</b> Forgetting to enable the service so it starts on boot.</li>
                            </ul>
                        </div>
+                   </div>
+                   
+                   <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                       <h4 className="font-bold text-red-700 mb-2 flex items-center gap-2"><AlertTriangleIcon size={18}/> Critical Failures (Zero Score Risks)</h4>
+                       <ul className="list-disc pl-4 text-sm text-red-800 space-y-1">
+                           <li><b>System Not Booting:</b> If your VM doesn't boot when the examiners restart it, you get a 0 for the entire exam. Test your reboots!</li>
+                           <li><b>Root Password:</b> If you cannot reset the root password successfully, they cannot grade your exam.</li>
+                           <li><b>Network Down:</b> If you mess up the network interface so the system is unreachable, they cannot grade it.</li>
+                       </ul>
                    </div>
               </div>
             </section>
