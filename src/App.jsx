@@ -96,7 +96,61 @@ const RotateCcwIcon = ({ size = 24, className = "" }) => (
 );
 
 // --- 2. COMPONENTS (Defined BEFORE App) ---
-// ... (Previous components remain unchanged: CopyButton, CodeBlock, ProgressBar, LVMVisualizer, PermissionsCalculator, CronBuilder, FindBuilder, NetworkBuilder, FstabBuilder, UserBuilder, SELinuxReference, ReportCard, FlashcardDrill, CheatSheetModal, TroubleshootingModal) ...
+
+const LandingPage = ({ onStart }) => (
+    <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+        {/* Background Accents */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 opacity-20">
+            <div className="absolute top-10 left-10 text-slate-700 animate-pulse"><TerminalIcon size={120} /></div>
+            <div className="absolute bottom-20 right-20 text-slate-800"><CpuIcon size={200} /></div>
+        </div>
+
+        <div className="z-10 max-w-3xl">
+             <div className="mb-6 flex justify-center">
+                 <div className="bg-red-600 p-4 rounded-full shadow-lg shadow-red-500/20">
+                     <TerminalIcon size={64} className="text-white" />
+                 </div>
+             </div>
+             <h1 className="text-6xl font-extrabold text-white mb-4 tracking-tight">
+                RHCSA<span className="text-red-500">Lab</span>
+             </h1>
+             <p className="text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+                The ultimate interactive playground for mastering Red Hat Enterprise Linux 10. 
+                Simulate commands, visualize storage stacks, and crush the exam.
+             </p>
+
+             <div className="grid md:grid-cols-3 gap-6 mb-12 text-left">
+                <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 hover:border-red-500 transition-colors">
+                    <div className="text-blue-400 mb-3"><TerminalIcon size={32}/></div>
+                    <h3 className="text-white font-bold text-lg mb-2">Real-Feel Terminal</h3>
+                    <p className="text-slate-400 text-sm">Practice commands like useradd, nmcli, and lvm in a simulated environment.</p>
+                </div>
+                <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 hover:border-red-500 transition-colors">
+                    <div className="text-green-400 mb-3"><LayersIcon size={32}/></div>
+                    <h3 className="text-white font-bold text-lg mb-2">Visual Learning</h3>
+                    <p className="text-slate-400 text-sm">Interactive diagrams for LVM, Permissions, and FSTAB generation.</p>
+                </div>
+                <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 hover:border-red-500 transition-colors">
+                    <div className="text-purple-400 mb-3"><CrosshairIcon size={32}/></div>
+                    <h3 className="text-white font-bold text-lg mb-2">Exam Simulations</h3>
+                    <p className="text-slate-400 text-sm">Timed mock exams with random scenarios to test your muscle memory.</p>
+                </div>
+             </div>
+
+             <button 
+                onClick={onStart}
+                className="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white transition-all duration-200 bg-red-600 font-lg rounded-lg hover:bg-red-700 hover:shadow-lg hover:shadow-red-500/30 focus:outline-none ring-offset-2 focus:ring-2 ring-red-400"
+            >
+                Start Practice Lab
+                <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+             </button>
+        </div>
+        
+        <div className="absolute bottom-6 text-slate-600 text-xs">
+            v3.0 • Focused on RHEL 10 Objectives
+        </div>
+    </div>
+);
 
 const CopyButton = ({ text }) => {
   const [copied, setCopied] = useState(false);
@@ -754,11 +808,11 @@ const MISSIONS = [
   // EXAM PREP: SECURITY QUESTIONS
   { id: 106, category: "Exam Prep", tool: "chmod", title: "Collab Dir (2770)", desc: "Set permission 2770 on /home/manager.", lesson: "Exam Q5", hint: "chmod 2770 /home/manager", check: (cmd) => /^chmod\s+2770\s+/.test(cmd) },
   { id: 107, category: "Exam Prep", tool: "nmcli", title: "Static IP (Exam)", desc: "Set IP 172.25.250.10 for 'System eth0'.", lesson: "Exam Q1", hint: "nmcli con mod \"System eth0\" ipv4.addresses 172.25.250.10/24 ...", check: (cmd) => /^nmcli\s+con\s+mod\s+/.test(cmd) && /172\.25\.250\.10\/24/.test(cmd) },
-  { id: 108, category: "Exam Prep", tool: "semanage", title: "SELinux Port 82", desc: "Allow httpd to listen on tcp port 82.", lesson: "Exam Q3", hint: "semanage port -a -t http_port_t -p tcp 82", check: (cmd) => /^semanage\s+port\s+/.test(cmd) && /-p\s+tcp\s+82/.test(cmd) }
-];
+// ... (LVMVisualizer, PermissionsCalculator, CronBuilder, FindBuilder, NetworkBuilder, FstabBuilder, UserBuilder, SELinuxReference, ReportCard, FlashcardDrill, CheatSheetModal, TroubleshootingModal)
 
 // --- 4. MAIN APP COMPONENT ---
 export default function App() {
+  const [showLanding, setShowLanding] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [terminalHistory, setTerminalHistory] = useState([]);
   const [inputVal, setInputVal] = useState("");
@@ -845,6 +899,10 @@ export default function App() {
   useEffect(() => {
     setShowHint(false);
   }, [currentMissionId]);
+
+  if (showLanding) {
+     return <LandingPage onStart={() => setShowLanding(false)} />;
+  }
 
   const cycleTheme = () => {
     const currentIndex = THEMES.indexOf(currentTheme);
