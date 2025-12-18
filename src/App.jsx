@@ -96,6 +96,7 @@ const RotateCcwIcon = ({ size = 24, className = "" }) => (
 );
 
 // --- 2. COMPONENTS (Defined BEFORE App) ---
+// ... (Previous components remain unchanged: CopyButton, CodeBlock, ProgressBar, LVMVisualizer, PermissionsCalculator, CronBuilder, FindBuilder, NetworkBuilder, FstabBuilder, UserBuilder, SELinuxReference, ReportCard, FlashcardDrill, CheatSheetModal, TroubleshootingModal) ...
 
 const CopyButton = ({ text }) => {
   const [copied, setCopied] = useState(false);
@@ -1272,21 +1273,17 @@ export default function App() {
              <TimerIcon size={16}/> {examMode ? "Exam in Progress" : "Start Mock Exam"}
           </button>
           
-          <button onClick={() => setShowTroubleshoot(true)} disabled={examMode} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-teal-600 text-white font-bold hover:bg-teal-700 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed mb-2">
+          <div className="grid grid-cols-2 gap-2 mb-6">
+             <button onClick={() => setShowTroubleshoot(true)} disabled={examMode} className="col-span-2 flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-teal-600 text-white font-bold hover:bg-teal-700 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
                 <WrenchIcon size={16}/> Troubleshooter
-          </button>
-
-          <button onClick={() => setShowFlashcards(true)} disabled={examMode} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-indigo-600 text-white font-bold hover:bg-indigo-700 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed mb-2">
-                <CardIcon size={16}/> Flashcards
-            </button>
-
-            <button onClick={() => setShowCheatSheet(true)} disabled={examMode} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-slate-700 text-white font-bold hover:bg-slate-600 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed mb-2">
-                <ListIcon size={16}/> My Cheat Sheet
-            </button>
-
-            <button onClick={resetLab} disabled={examMode} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-rose-900 text-white font-bold hover:bg-rose-800 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed mb-6">
-                <RotateCcwIcon size={16}/> Reset Lab
-            </button>
+             </button>
+             <button onClick={() => setShowFlashcards(true)} disabled={examMode} className="flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-indigo-600 text-white font-bold hover:bg-indigo-700 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                <CardIcon size={16}/> Cards
+             </button>
+             <button onClick={() => setShowCheatSheet(true)} disabled={examMode} className="flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-slate-700 text-white font-bold hover:bg-slate-600 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                <ListIcon size={16}/> Cheat Sheet
+             </button>
+          </div>
           
           <ul className="space-y-1 overflow-y-auto flex-1 scrollbar-hide">
             <li><button onClick={() => { setExamMode(false); setCurrentMissionId(0); }} className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors w-full text-left"><TerminalIcon size={16}/> Practice Lab</button></li>
@@ -1299,6 +1296,13 @@ export default function App() {
             <li><button onClick={() => setActiveTab('pillar-4')} className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors w-full text-left ${activeTab === 'pillar-4' ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 text-slate-400'}`}><SettingsIcon size={16}/> Deploy & Maintain</button></li>
             <li><button onClick={() => setActiveTab('pillar-5')} className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors w-full text-left ${activeTab === 'pillar-5' ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 text-slate-400'}`}><ShieldIcon size={16}/> Users & Security</button></li>
           </ul>
+
+          <div className="mt-auto pt-4 border-t border-slate-800">
+             <button onClick={resetLab} disabled={examMode} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-rose-400 font-bold hover:bg-slate-800 text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                <RotateCcwIcon size={14}/> Reset Lab Environment
+            </button>
+          </div>
+
         </div>
       </nav>
 
