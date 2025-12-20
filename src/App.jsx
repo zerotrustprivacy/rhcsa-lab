@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps } from "firebase/app";
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, doc, setDoc, onSnapshot } from "firebase/firestore";
 
@@ -144,7 +144,13 @@ try {
     throw new Error("Missing Firebase API Key. Please check your Vercel Environment Variables (start with VITE_ or REACT_APP_).");
   }
 
-  app = initializeApp(firebaseConfig);
+  // Prevent "Duplicate App" errors on hot reload
+  if (!getApps().length) {
+    app = initializeApp(firebaseConfig);
+  } else {
+    app = getApps()[0];
+  }
+  
   auth = getAuth(app);
   db = getFirestore(app);
 } catch (e) {
