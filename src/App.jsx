@@ -1,7 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { initializeApp, getApps } from "firebase/app";
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "firebase/auth";
-import { getFirestore, doc, setDoc, onSnapshot } from "firebase/firestore";
 
 // --- 1. ICONS (Inline SVGs) ---
 const TerminalIcon = ({ size = 24, className = "" }) => (
@@ -98,96 +95,8 @@ const RotateCcwIcon = ({ size = 24, className = "" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
 );
 
-// --- FIREBASE CONFIGURATION ---
-// FOR VERCEL DEPLOYMENT:
-// 1. Create a Firebase project
-// 2. Add your config values to .env.local (VITE_FIREBASE_API_KEY, etc.)
-// 3. Or hardcode the config object below if just testing
-
-let app, auth, db;
-let initError = null;
-
-try {
-  let firebaseConfig = null;
-
-  // 1. Try Sandbox (Immersive) Global
-  if (typeof __firebase_config !== 'undefined') {
-    firebaseConfig = JSON.parse(__firebase_config);
-  } 
-  // 2. Try Environment Variables (Vite/Vercel)
-  else {
-    // Helper to safely get env var
-    const getEnv = (key) => {
-      // Check import.meta.env (Vite)
-      try {
-        if (import.meta && import.meta.env && import.meta.env[key]) return import.meta.env[key];
-      } catch(e) {}
-      // Check process.env (Standard/CRA/Next)
-      try {
-        if (typeof process !== 'undefined' && process.env && process.env[key]) return process.env[key];
-      } catch(e) {}
-      return null;
-    };
-
-    firebaseConfig = {
-      apiKey: getEnv('VITE_FIREBASE_API_KEY') || getEnv('REACT_APP_FIREBASE_API_KEY'),
-      authDomain: getEnv('VITE_FIREBASE_AUTH_DOMAIN') || getEnv('REACT_APP_FIREBASE_AUTH_DOMAIN'),
-      projectId: getEnv('VITE_FIREBASE_PROJECT_ID') || getEnv('REACT_APP_FIREBASE_PROJECT_ID'),
-      storageBucket: getEnv('VITE_FIREBASE_STORAGE_BUCKET') || getEnv('REACT_APP_FIREBASE_STORAGE_BUCKET'),
-      messagingSenderId: getEnv('VITE_FIREBASE_MESSAGING_SENDER_ID') || getEnv('REACT_APP_FIREBASE_MESSAGING_SENDER_ID'),
-      appId: getEnv('VITE_FIREBASE_APP_ID') || getEnv('REACT_APP_FIREBASE_APP_ID')
-    };
-  }
-
-  // Basic validation to prevent crashing cleanly
-  if (!firebaseConfig?.apiKey) {
-    throw new Error("Missing Firebase API Key. Please check your Vercel Environment Variables (start with VITE_ or REACT_APP_).");
-  }
-
-  // Prevent "Duplicate App" errors on hot reload
-  if (!getApps().length) {
-    app = initializeApp(firebaseConfig);
-  } else {
-    app = getApps()[0];
-  }
-  
-  auth = getAuth(app);
-  db = getFirestore(app);
-} catch (e) {
-  console.error("Firebase Initialization Error:", e);
-  initError = e.message;
-}
-
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'rhcsa-lab-v1';
-
 // --- 4. MAIN APP COMPONENT ---
 export default function App() {
-  const [user, setUser] = useState(null);
-  const [dataLoaded, setDataLoaded] = useState(false);
-
-  // --- EARLY ERROR RETURN ---
-  if (initError) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-slate-900 text-white p-6 font-mono">
-        <div className="max-w-2xl bg-slate-800 border border-red-500 rounded p-6 shadow-xl">
-          <h1 className="text-2xl font-bold text-red-500 mb-4 flex items-center gap-2">
-            <AlertTriangleIcon /> Configuration Error
-          </h1>
-          <p className="mb-4 text-slate-300">The application failed to initialize Firebase.</p>
-          <div className="bg-black p-4 rounded text-red-400 text-xs mb-6 overflow-x-auto">
-            {initError}
-          </div>
-          <h3 className="font-bold text-slate-200 mb-2">How to fix on Vercel:</h3>
-          <ul className="list-disc pl-5 text-sm text-slate-400 space-y-1">
-            <li>Go to your Vercel Project Settings &gt; Environment Variables.</li>
-            <li>Add your keys with the <code>VITE_</code> prefix (e.g., <code>VITE_FIREBASE_API_KEY</code>).</li>
-            <li>Redeploy your application.</li>
-          </ul>
-        </div>
-      </div>
-    );
-  }
-
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [terminalHistory, setTerminalHistory] = useState([]);
   const [inputVal, setInputVal] = useState("");
@@ -226,57 +135,23 @@ export default function App() {
   const terminalEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  // --- FIREBASE AUTH & SYNC ---
-  
-  // 1. Authenticate
+  // Load state from local storage
   useEffect(() => {
-      const initAuth = async () => {
-          if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-              await signInWithCustomToken(auth, __initial_auth_token);
-          } else {
-              // Standard anonymous auth for Vercel/Local
-              await signInAnonymously(auth);
-          }
-      };
-      initAuth();
-      const unsubscribe = onAuthStateChanged(auth, setUser);
-      return () => unsubscribe();
+      const savedProgress = localStorage.getItem('rhcsa_progress');
+      if (savedProgress) setCompletedMissions(JSON.parse(savedProgress));
+      
+      const savedBookmarks = localStorage.getItem('rhcsa_bookmarks');
+      if (savedBookmarks) setBookmarkedMissions(JSON.parse(savedBookmarks));
   }, []);
 
-  // 2. Sync Down (Read from Firestore)
+  // Save state to local storage
   useEffect(() => {
-      if (!user) return;
-      // Path rule: /artifacts/{appId}/users/{userId}/{collectionName}/{docId}
-      const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'data', 'progress');
-      
-      const unsubscribe = onSnapshot(docRef, (snap) => {
-          if (snap.exists()) {
-              const data = snap.data();
-              if (data.completed) setCompletedMissions(data.completed);
-              if (data.bookmarks) setBookmarkedMissions(data.bookmarks);
-          }
-          setDataLoaded(true);
-      }, (err) => console.error("Sync error:", err));
+      localStorage.setItem('rhcsa_progress', JSON.stringify(completedMissions));
+  }, [completedMissions]);
 
-      return () => unsubscribe();
-  }, [user]);
-
-  // 3. Sync Up (Write to Firestore)
   useEffect(() => {
-      if (!user || !dataLoaded) return;
-      
-      const saveData = async () => {
-          try {
-              await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'data', 'progress'), {
-                  completed: completedMissions,
-                  bookmarks: bookmarkedMissions
-              }, { merge: true });
-          } catch (e) {
-              console.error("Save failed:", e);
-          }
-      };
-      saveData();
-  }, [completedMissions, bookmarkedMissions, user, dataLoaded]);
+      localStorage.setItem('rhcsa_bookmarks', JSON.stringify(bookmarkedMissions));
+  }, [bookmarkedMissions]);
 
   // Auto-scroll terminal
   useEffect(() => {
@@ -1068,12 +943,12 @@ export default function App() {
             <div className="w-80 flex flex-col gap-3 shrink-0">
               <div className="bg-white p-4 rounded-lg border border-slate-300 shadow-sm flex-1 overflow-y-auto relative">
                 {/* Visual indicator for completed missions */}
-                {activeMission && completedMissions.includes(activeMission.id) && !examMode && (
+                {activeMission && completedMissions.includes(activeMission.id) && (
                     <div className="absolute top-2 right-2 text-green-500"><CheckIcon size={16} /></div>
                 )}
                 
                 {/* Bookmark Button (New Feature) */}
-                 {activeMission && !examMode && (
+                 {activeMission && (
                     <button 
                         onClick={() => toggleBookmark(activeMission.id)}
                         className={`absolute top-2 left-2 ${bookmarkedMissions.includes(activeMission.id) ? 'text-yellow-400' : 'text-slate-300 hover:text-yellow-400'}`}
@@ -1084,7 +959,7 @@ export default function App() {
                 )}
 
                 <div className="flex items-center gap-2 mb-2 ml-6">
-                  <CrosshairIcon size={18} className={examMode ? "text-red-600 animate-pulse" : "text-blue-600"}/>
+                  <CrosshairIcon size={18} className="text-blue-600"/>
                   <h3 className="font-bold text-slate-800 text-sm">
                     {currentMissionId === 0 ? "Ready?" : `Mission ${currentMissionId}`}
                   </h3>
@@ -1099,7 +974,7 @@ export default function App() {
                 </p>
 
                 {/* HINT TOGGLE (Disabled in Exam Mode) */}
-                {currentMissionId > 0 && !missionComplete && activeMission && !examMode && (
+                {currentMissionId > 0 && !missionComplete && activeMission && (
                    <div className="mt-2">
                      {!showHint ? (
                        <button 
@@ -1121,7 +996,6 @@ export default function App() {
                 <div className="flex items-center gap-2 mb-1 text-amber-700 font-bold text-[10px] uppercase tracking-wider">
                   <BookOpenIcon size={10} /> Quick Lesson
                 </div>
-                {/* HIDE LESSON IF FLASHCARD MODE IS ON */}
                 {/* Fixed Lesson Display */}
                 <p className="text-[10px] text-amber-900 leading-relaxed">
                 {currentMissionId === 0 
