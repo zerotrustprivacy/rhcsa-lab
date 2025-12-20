@@ -104,36 +104,83 @@ const RotateCcwIcon = ({ size = 24, className = "" }) => (
 // 2. Add your config values to .env.local (VITE_FIREBASE_API_KEY, etc.)
 // 3. Or hardcode the config object below if just testing
 
-let firebaseConfig;
+let app, auth, db;
+let initError = null;
+
 try {
-  // Try using the sandbox environment variable first
+  let firebaseConfig = null;
+
+  // 1. Try Sandbox (Immersive) Global
   if (typeof __firebase_config !== 'undefined') {
     firebaseConfig = JSON.parse(__firebase_config);
-  } else {
-    throw new Error('Sandbox config not found');
+  } 
+  // 2. Try Environment Variables (Vite/Vercel)
+  else {
+    // Helper to safely get env var
+    const getEnv = (key) => {
+      // Check import.meta.env (Vite)
+      try {
+        if (import.meta && import.meta.env && import.meta.env[key]) return import.meta.env[key];
+      } catch(e) {}
+      // Check process.env (Standard/CRA/Next)
+      try {
+        if (typeof process !== 'undefined' && process.env && process.env[key]) return process.env[key];
+      } catch(e) {}
+      return null;
+    };
+
+    firebaseConfig = {
+      apiKey: getEnv('VITE_FIREBASE_API_KEY') || getEnv('REACT_APP_FIREBASE_API_KEY'),
+      authDomain: getEnv('VITE_FIREBASE_AUTH_DOMAIN') || getEnv('REACT_APP_FIREBASE_AUTH_DOMAIN'),
+      projectId: getEnv('VITE_FIREBASE_PROJECT_ID') || getEnv('REACT_APP_FIREBASE_PROJECT_ID'),
+      storageBucket: getEnv('VITE_FIREBASE_STORAGE_BUCKET') || getEnv('REACT_APP_FIREBASE_STORAGE_BUCKET'),
+      messagingSenderId: getEnv('VITE_FIREBASE_MESSAGING_SENDER_ID') || getEnv('REACT_APP_FIREBASE_MESSAGING_SENDER_ID'),
+      appId: getEnv('VITE_FIREBASE_APP_ID') || getEnv('REACT_APP_FIREBASE_APP_ID')
+    };
   }
+
+  // Basic validation to prevent crashing cleanly
+  if (!firebaseConfig?.apiKey) {
+    throw new Error("Missing Firebase API Key. Please check your Vercel Environment Variables (start with VITE_ or REACT_APP_).");
+  }
+
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
 } catch (e) {
-  // Fallback for Vercel/Local deployment with Vite environment variables
-  // Make sure to add these to your Vercel project settings
-  firebaseConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "YOUR_API_KEY",
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "YOUR_PROJECT.firebaseapp.com",
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "YOUR_PROJECT_ID",
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "YOUR_PROJECT.appspot.com",
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "YOUR_SENDER_ID",
-    appId: import.meta.env.VITE_FIREBASE_APP_ID || "YOUR_APP_ID"
-  };
+  console.error("Firebase Initialization Error:", e);
+  initError = e.message;
 }
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'rhcsa-lab-v1';
 
 // --- 4. MAIN APP COMPONENT ---
 export default function App() {
   const [user, setUser] = useState(null);
   const [dataLoaded, setDataLoaded] = useState(false);
+
+  // --- EARLY ERROR RETURN ---
+  if (initError) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-slate-900 text-white p-6 font-mono">
+        <div className="max-w-2xl bg-slate-800 border border-red-500 rounded p-6 shadow-xl">
+          <h1 className="text-2xl font-bold text-red-500 mb-4 flex items-center gap-2">
+            <AlertTriangleIcon /> Configuration Error
+          </h1>
+          <p className="mb-4 text-slate-300">The application failed to initialize Firebase.</p>
+          <div className="bg-black p-4 rounded text-red-400 text-xs mb-6 overflow-x-auto">
+            {initError}
+          </div>
+          <h3 className="font-bold text-slate-200 mb-2">How to fix on Vercel:</h3>
+          <ul className="list-disc pl-5 text-sm text-slate-400 space-y-1">
+            <li>Go to your Vercel Project Settings &gt; Environment Variables.</li>
+            <li>Add your keys with the <code>VITE_</code> prefix (e.g., <code>VITE_FIREBASE_API_KEY</code>).</li>
+            <li>Redeploy your application.</li>
+          </ul>
+        </div>
+      </div>
+    );
+  }
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [terminalHistory, setTerminalHistory] = useState([]);
