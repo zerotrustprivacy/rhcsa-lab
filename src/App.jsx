@@ -444,6 +444,108 @@ const SELinuxReference = () => {
     );
 };
 
+// --- 3. DATA & CONSTANTS ---
+const MAX_INPUT_LENGTH = 256; 
+const ILLEGAL_CHARS = /<script\b[^>]*>([\s\S]*?)<\/script>/gm; 
+const UTILITY_COMMANDS = ['clear', 'help', 'ls', 'pwd', 'whoami', 'history', 'id', 'exit', 'man', 'cat', 'touch', 'mkdir', 'rm', 'cd', 'cp', 'mv', 'chgrp'];
+
+const THEMES = [
+    { id: 'rhel', name: 'RHEL (Default)', bg: 'bg-slate-900', text: 'text-slate-300', prompt: 'text-green-400', cursor: 'bg-green-400' },
+    { id: 'matrix', name: 'Hacker Green', bg: 'bg-black', text: 'text-green-500', prompt: 'text-green-400', cursor: 'bg-green-500' },
+    { id: 'dracula', name: 'Dracula', bg: 'bg-[#282a36]', text: 'text-[#f8f8f2]', prompt: 'text-[#ff79c6]', cursor: 'bg-[#bd93f9]' },
+    { id: 'amber', name: 'Retro Amber', bg: 'bg-[#1a1200]', text: 'text-[#ffb000]', prompt: 'text-[#ffb000]', cursor: 'bg-[#ffb000]' }
+];
+
+const MAN_PAGES = {
+    useradd: "NAME\n  useradd - create a new user\nSYNOPSIS\n  useradd [options] LOGIN\nOPTIONS\n  -u UID\n  -g GID\n  -G GROUPS",
+    tar: "NAME\n  tar - archive utility\nOPTIONS\n  -c Create\n  -x Extract\n  -f File\n  -v Verbose\n  -z Gzip",
+    chmod: "NAME\n  chmod - change file mode bits\nEXAMPLES\n  chmod 755 file",
+    grep: "NAME\n  grep - print lines matching a pattern\nSYNOPSIS\n  grep [OPTIONS] PATTERN [FILE...]\nOPTIONS\n  -i, --ignore-case\n  -v, --invert-match\n  -r, --recursive",
+    systemctl: "NAME\n  systemctl - Control the systemd system and service manager\nCOMMANDS\n  start\n  stop\n  restart\n  status\n  enable\n  disable\n  isolate",
+    default: "No manual entry found. Try 'help'."
+};
+
+const INITIAL_FS = {
+    '/root': { type: 'dir', children: { 'anaconda-ks.cfg': { type: 'file' }, 'original-ks.cfg': { type: 'file' } } },
+    '/home': { type: 'dir', children: { 'student': { type: 'dir', children: {} } } },
+    '/etc': { type: 'dir', children: { 'passwd': { type: 'file' }, 'hosts': { type: 'file' } } },
+};
+
+const MISSIONS = [
+  // PILLAR 1: TOOLS & SCRIPTING
+  { id: 1, category: "Tools", tool: "useradd", title: "User Management", desc: "Create user 'student' with UID 2000.", lesson: "RHEL user creation.", hint: "useradd -u 2000 student", check: (cmd) => /^useradd\s+/.test(cmd) && /\s-u\s+2000\b/.test(cmd) },
+  { id: 2, category: "Tools", tool: "groupadd", title: "Group Management", desc: "Create group 'devops' with GID 5000.", lesson: "Static GIDs.", hint: "groupadd -g 5000 devops", check: (cmd) => /^groupadd\s+/.test(cmd) && /-g\s+5000/.test(cmd) },
+  { id: 3, category: "Tools", tool: "usermod", title: "Modify User", desc: "Add 'student' to 'devops' group.", lesson: "Append groups.", hint: "usermod -aG devops student", check: (cmd) => /^usermod\s+/.test(cmd) && /-aG\s+devops/.test(cmd) },
+  { id: 4, category: "Tools", tool: "tar", title: "Archiving", desc: "Create gzip archive 'backup.tar.gz' of '/home'.", lesson: "Tar with gzip.", hint: "tar -czvf backup.tar.gz /home", check: (cmd) => /^tar\s+/.test(cmd) && /-[a-zA-Z]*z/.test(cmd) && /-[a-zA-Z]*c/.test(cmd) },
+  { id: 5, category: "Tools", tool: "chmod", title: "Permissions", desc: "Set 'script.sh' permissions: Owner=All, Group=RX, Other=None.", lesson: "Octal 750.", hint: "chmod 750 script.sh", check: (cmd) => /^chmod\s+750\s+script\.sh$/.test(cmd) },
+  { id: 6, category: "Tools", tool: "grep", title: "Grep", desc: "Search for lines starting with 'root' in '/etc/passwd'.", lesson: "Regex anchors.", hint: "grep \"^root\" /etc/passwd", check: (cmd) => /^grep\s+/.test(cmd) && /\^root/.test(cmd) },
+  { id: 7, category: "Tools", tool: "ln", title: "Soft Link", desc: "Create soft link 'mylink' to '/etc/hosts'.", lesson: "Symbolic links.", hint: "ln -s /etc/hosts mylink", check: (cmd) => /^ln\s+/.test(cmd) && /\s-s\s/.test(cmd) },
+  { id: 8, category: "Tools", tool: "find", title: "Find Files", desc: "Find files in '/etc' ending with '.conf'.", lesson: "Find by name.", hint: "find /etc -name \"*.conf\"", check: (cmd) => /^find\s+/.test(cmd) && /-name/.test(cmd) },
+  { id: 9, category: "Tools", tool: "setfacl", title: "ACLs", desc: "Grant 'student' RW access to 'file.txt' via ACL.", lesson: "Extended permissions.", hint: "setfacl -m u:student:rw file.txt", check: (cmd) => /^setfacl\s+/.test(cmd) && /-m/.test(cmd) },
+  { id: 10, category: "Tools", tool: "man", title: "Documentation", desc: "Open the manual for 'grep'.", lesson: "man pages are your best friend in the exam.", hint: "man grep", check: (cmd) => /^man\s+grep$/.test(cmd) },
+  { id: 11, category: "Tools", tool: "touch", title: "Create Script", desc: "Create an empty shell script named 'myscript.sh'.", lesson: "Scripts automate tasks.", hint: "touch myscript.sh", check: (cmd) => /^touch\s+myscript\.sh$/.test(cmd) },
+  { id: 12, category: "Tools", tool: "chmod", title: "Make Executable", desc: "Make 'myscript.sh' executable.", lesson: "chmod +x adds execution bit.", hint: "chmod +x myscript.sh", check: (cmd) => /^chmod\s+\+x\s+myscript\.sh$/.test(cmd) },
+  { id: 13, category: "Tools", tool: "echo", title: "Script Inputs", desc: "Echo the first argument ($1).", lesson: "$1, $2 are positional arguments.", hint: "echo $1", check: (cmd) => /^echo\s+\$1$/.test(cmd) },
+  // PILLAR 2: SYSTEMS
+  { id: 14, category: "Systems", tool: "systemctl", title: "Service Status", desc: "Check status of 'httpd'.", lesson: "Systemd control.", hint: "systemctl status httpd", check: (cmd) => /^systemctl\s+status\s+httpd$/.test(cmd) },
+  { id: 15, category: "Systems", tool: "systemctl", title: "Default Target", desc: "Set default boot to text-mode.", lesson: "Multi-user target.", hint: "systemctl set-default multi-user.target", check: (cmd) => /^systemctl\s+set-default\s+multi-user\.target$/.test(cmd) },
+  { id: 16, category: "Systems", tool: "tuned-adm", title: "Tuning", desc: "Set profile to 'virtual-guest'.", lesson: "Performance profiles.", hint: "tuned-adm profile virtual-guest", check: (cmd) => /^tuned-adm\s+profile\s+virtual-guest$/.test(cmd) },
+  { id: 17, category: "Systems", tool: "nice", title: "Process Priority", desc: "Start 'tar' with priority 5.", lesson: "Process niceness.", hint: "nice -n 5 tar", check: (cmd) => /^nice\s+/.test(cmd) && /-n\s+5/.test(cmd) },
+  { id: 18, category: "Systems", tool: "chronyc", title: "NTP", desc: "Verify NTP sources.", lesson: "Time sync.", hint: "chronyc sources", check: (cmd) => /^chronyc\s+sources/.test(cmd) },
+  { id: 19, category: "Systems", tool: "journalctl", title: "Logging", desc: "Show logs for 'sshd'.", lesson: "Systemd journal.", hint: "journalctl -u sshd", check: (cmd) => /^journalctl\s+/.test(cmd) && /-u\s+sshd/.test(cmd) },
+  { id: 20, category: "Systems", tool: "systemctl", title: "Reboot System", desc: "Reboot the machine.", lesson: "System power state.", hint: "systemctl reboot", check: (cmd) => /^systemctl\s+reboot$/.test(cmd) },
+  { id: 21, category: "Systems", tool: "systemctl", title: "Boot Target", desc: "Isolate 'multi-user.target' now.", lesson: "Switch to text mode without rebooting.", hint: "systemctl isolate multi-user.target", check: (cmd) => /^systemctl\s+isolate\s+multi-user\.target$/.test(cmd) },
+  { id: 22, category: "Systems", tool: "touch", title: "Root Pass Reset", desc: "Create the autorelabel file (Simulated).", lesson: "Essential for resetting root pass.", hint: "touch /.autorelabel", check: (cmd) => /^touch\s+\/\.autorelabel$/.test(cmd) },
+  { id: 23, category: "Systems", tool: "kill", title: "Kill Process", desc: "Force kill PID 1234.", lesson: "-9 sends SIGKILL.", hint: "kill -9 1234", check: (cmd) => /^kill\s+-9\s+1234$/.test(cmd) },
+  { id: 24, category: "Systems", tool: "renice", title: "Scheduling", desc: "Renice PID 1234 to priority 10.", lesson: "Adjust running process priority.", hint: "renice -n 10 1234", check: (cmd) => /^renice\s+-n\s+10\s+1234$/.test(cmd) },
+  { id: 25, category: "Systems", tool: "mkdir", title: "Preserve Logs", desc: "Create '/var/log/journal'.", lesson: "Makes journald logs persistent.", hint: "mkdir /var/log/journal", check: (cmd) => /^mkdir\s+(\/var\/log\/journal)/.test(cmd) },
+  { id: 26, category: "Systems", tool: "systemctl", title: "Network Svc", desc: "Check status of 'NetworkManager'.", lesson: "Service management.", hint: "systemctl status NetworkManager", check: (cmd) => /^systemctl\s+status\s+NetworkManager$/.test(cmd) },
+  { id: 27, category: "Systems", tool: "scp", title: "Transfer File", desc: "Copy 'file' to 'serverb:/tmp'.", lesson: "Secure Copy.", hint: "scp file serverb:/tmp", check: (cmd) => /^scp\s+file\s+serverb:\/tmp$/.test(cmd) },
+
+  // PILLAR 3: STORAGE
+  { id: 28, category: "Storage", tool: "pvcreate", title: "PV Creation", desc: "Init '/dev/vdb1' as PV.", lesson: "LVM Layer 1.", hint: "pvcreate /dev/vdb1", check: (cmd) => /^pvcreate\s+\/dev\/vdb1$/.test(cmd) },
+  { id: 29, category: "Storage", tool: "vgcreate", title: "VG Creation", desc: "Create VG 'myvg' using '/dev/vdb1'.", lesson: "LVM Layer 2.", hint: "vgcreate myvg /dev/vdb1", check: (cmd) => /^vgcreate\s+myvg\s+\/dev\/vdb1$/.test(cmd) },
+  { id: 30, category: "Storage", tool: "lvcreate", title: "LV Creation", desc: "Create 500MB LV 'mylv' in 'myvg'.", lesson: "LVM Layer 3.", hint: "lvcreate -L 500M -n mylv myvg", check: (cmd) => /^lvcreate\s+/.test(cmd) && /-L\s+500M/.test(cmd) },
+  { id: 31, category: "Storage", tool: "lvextend", title: "Extend LV", desc: "Add 200MB to 'mylv' and resize FS.", lesson: "Resize fs flag.", hint: "lvextend -L +200M -r /dev/myvg/mylv", check: (cmd) => /^lvextend\s+/.test(cmd) && /-r/.test(cmd) },
+  { id: 32, category: "Storage", tool: "mkfs.xfs", title: "Format FS", desc: "Format '/dev/myvg/mylv' as XFS.", lesson: "Filesystem creation.", hint: "mkfs.xfs /dev/myvg/mylv", check: (cmd) => /^mkfs\.xfs\s+/.test(cmd) },
+  { id: 33, category: "Storage", tool: "mkswap", title: "Swap", desc: "Format '/dev/vdb2' as swap.", lesson: "Swap space.", hint: "mkswap /dev/vdb2", check: (cmd) => /^mkswap\s+\/dev\/vdb2$/.test(cmd) },
+  { id: 34, category: "Storage", tool: "mount", title: "Mounting", desc: "Mount NFS share 'server:/share' to '/mnt'.", lesson: "Mount command.", hint: "mount -t nfs server:/share /mnt", check: (cmd) => /^mount\s+/.test(cmd) && /-t\s+nfs/.test(cmd) },
+  { id: 35, category: "Storage", tool: "fdisk", title: "Partitioning", desc: "Manage partitions on '/dev/vdb'.", lesson: "MBR/GPT management.", hint: "fdisk /dev/vdb", check: (cmd) => /^fdisk\s+\/dev\/vdb$/.test(cmd) },
+  { id: 36, category: "Storage", tool: "blkid", title: "UUID", desc: "Find UUIDs for block devices.", lesson: "Persistent mounting identifier.", hint: "blkid", check: (cmd) => /^blkid$/.test(cmd) },
+  { id: 37, category: "Storage", tool: "swapon", title: "Enable Swap", desc: "Activate swap on '/dev/vdb2'.", lesson: "Enable swap.", hint: "swapon /dev/vdb2", check: (cmd) => /^swapon\s+\/dev\/vdb2$/.test(cmd) },
+  { id: 38, category: "Storage", tool: "mkfs.ext4", title: "Format Ext4", desc: "Format '/dev/myvg/mylv' as Ext4.", lesson: "Filesystem creation.", hint: "mkfs.ext4 /dev/myvg/mylv", check: (cmd) => /^mkfs\.ext4\s+\/dev\/myvg\/mylv$/.test(cmd) },
+  { id: 39, category: "Storage", tool: "mount", title: "Mount FS", desc: "Mount '/dev/myvg/mylv' to '/mnt'.", lesson: "Manual mounting.", hint: "mount /dev/myvg/mylv /mnt", check: (cmd) => /^mount\s+\/dev\/myvg\/mylv\s+\/mnt$/.test(cmd) },
+  { id: 40, category: "Storage", tool: "dnf", title: "AutoFS", desc: "Install 'autofs'.", lesson: "Automounting utility.", hint: "dnf install autofs", check: (cmd) => /^dnf\s+install\s+autofs$/.test(cmd) },
+
+  // PILLAR 4: DEPLOY
+  { id: 41, category: "Deploy", tool: "dnf", title: "Install Software", desc: "Install 'httpd'.", lesson: "Package manager.", hint: "dnf install httpd", check: (cmd) => /^dnf\s+install\s+httpd$/.test(cmd) },
+  { id: 42, category: "Deploy", tool: "crontab", title: "Cron", desc: "List current cron jobs.", lesson: "Scheduling.", hint: "crontab -l", check: (cmd) => /^crontab\s+-l$/.test(cmd) },
+  { id: 43, category: "Deploy", tool: "flatpak", title: "Flatpak", desc: "Install 'gedit' from flathub.", lesson: "Container apps.", hint: "flatpak install flathub org.gnome.gedit", check: (cmd) => /^flatpak\s+install/.test(cmd) },
+  { id: 44, category: "Deploy", tool: "hostnamectl", title: "Hostname", desc: "Set hostname to 'server1'.", lesson: "System identity.", hint: "hostnamectl set-hostname server1", check: (cmd) => /^hostnamectl\s+set-hostname\s+server1/.test(cmd) },
+  { id: 45, category: "Deploy", tool: "dnf", title: "Repos", desc: "Add repo 'http://repo.com/app.repo'.", lesson: "Repo management.", hint: "dnf config-manager --add-repo http://repo.com/app.repo", check: (cmd) => /^dnf\s+config-manager\s+--add-repo/.test(cmd) },
+  { id: 46, category: "Deploy", tool: "systemctl", title: "Enable Boot", desc: "Enable 'httpd' to start at boot.", lesson: "Service persistence.", hint: "systemctl enable httpd", check: (cmd) => /^systemctl\s+enable\s+httpd$/.test(cmd) },
+  { id: 47, category: "Deploy", tool: "dnf", title: "Update Pkg", desc: "Update all packages.", lesson: "System maintenance.", hint: "dnf update", check: (cmd) => /^dnf\s+update$/.test(cmd) },
+  { id: 48, category: "Deploy", tool: "grub2-mkconfig", title: "Bootloader", desc: "Regenerate GRUB config.", lesson: "Bootloader updates.", hint: "grub2-mkconfig -o /boot/grub2/grub.cfg", check: (cmd) => /^grub2-mkconfig\s+/.test(cmd) },
+  { id: 49, category: "Deploy", tool: "firewall-cmd", title: "Firewall Service", desc: "Allow 'http' permanently.", lesson: "Network security.", hint: "firewall-cmd --add-service=http --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-service=http/.test(cmd) && /--permanent/.test(cmd) },
+  { id: 50, category: "Deploy", tool: "dnf", title: "Module Streams", desc: "Install the 'nodejs:18' module stream.", lesson: "AppStream allows different versions of software. Syntax: `module:stream`.", hint: "dnf module install nodejs:18", check: (cmd) => /^dnf\s+module\s+install\s+nodejs:18$/.test(cmd) },
+  { id: 51, category: "Deploy", tool: "tuned-adm", title: "Recommended Tuning", desc: "Apply the recommended tuning profile for this system.", lesson: "`recommend` asks TuneD to detect the best profile.", hint: "tuned-adm recommend", check: (cmd) => /^tuned-adm\s+recommend$/.test(cmd) },
+
+  // PILLAR 5: SECURITY
+  { id: 52, category: "Security", tool: "nmcli", title: "Network", desc: "Add ethernet connection 'static-eth0'.", lesson: "NetworkManager.", hint: "nmcli con add con-name static-eth0 type ethernet ifname eth0", check: (cmd) => /^nmcli\s+con\s+add/.test(cmd) },
+  { id: 53, category: "Security", tool: "firewall-cmd", title: "Firewall", desc: "Permanently allow 'ftp'.", lesson: "Firewalld.", hint: "firewall-cmd --add-service=ftp --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-service=ftp/.test(cmd) && /--permanent/.test(cmd) },
+  { id: 54, category: "Security", tool: "ssh-keygen", title: "SSH", desc: "Generate SSH keys.", lesson: "Secure shell.", hint: "ssh-keygen", check: (cmd) => /^ssh-keygen/.test(cmd) },
+  { id: 55, category: "Security", tool: "ls", title: "SELinux List", desc: "List file contexts.", lesson: "Context labels.", hint: "ls -Z", check: (cmd) => /^ls\s+/.test(cmd) && /-[a-zA-Z]*Z/.test(cmd) },
+  { id: 56, category: "Security", tool: "restorecon", title: "SELinux Restore", desc: "Fix contexts on '/var/www/html'.", lesson: "Context repair.", hint: "restorecon -R /var/www/html", check: (cmd) => /^restorecon\s+/.test(cmd) && /-R/.test(cmd) },
+  { id: 57, category: "Security", tool: "chage", title: "Passwords", desc: "Set max password age to 90 days for 'student'.", lesson: "Aging policies.", hint: "chage -M 90 student", check: (cmd) => /^chage\s+/.test(cmd) && /-M\s+90/.test(cmd) },
+  { id: 58, category: "Security", tool: "firewall-cmd", title: "Firewall Port", desc: "Open port 8080/tcp permanently.", lesson: "Port security.", hint: "firewall-cmd --add-port=8080/tcp --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-port=8080\/tcp/.test(cmd) },
+  { id: 59, category: "Security", tool: "umask", title: "Umask", desc: "Set umask to 027.", lesson: "Default permissions.", hint: "umask 027", check: (cmd) => /^umask\s+027$/.test(cmd) },
+  { id: 60, category: "Security", tool: "setenforce", title: "Enforcing", desc: "Set SELinux to Enforcing.", lesson: "MAC mode.", hint: "setenforce 1", check: (cmd) => /^setenforce\s+1$/.test(cmd) },
+  { id: 61, category: "Security", tool: "semanage", title: "Port Label", desc: "Add port 81 to http_port_t.", lesson: "SELinux ports.", hint: "semanage port -a -t http_port_t -p tcp 81", check: (cmd) => /^semanage\s+port\s+/.test(cmd) && /-a/.test(cmd) },
+  { id: 62, category: "Security", tool: "setsebool", title: "Boolean", desc: "Enable httpd home dirs.", lesson: "SELinux booleans.", hint: "setsebool -P httpd_enable_homedirs 1", check: (cmd) => /^setsebool\s+/.test(cmd) && /-P/.test(cmd) },
+  { id: 63, category: "Users", tool: "userdel", title: "Delete User", desc: "Delete user 'harry'.", lesson: "User mgmt.", hint: "userdel harry", check: (cmd) => /^userdel\s+harry$/.test(cmd) },
+  { id: 64, category: "Users", tool: "groupdel", title: "Delete Group", desc: "Delete group 'sales'.", lesson: "Group mgmt.", hint: "groupdel sales", check: (cmd) => /^groupdel\s+sales$/.test(cmd) },
+];
+
 // --- FIREBASE CONFIGURATION ---
 const firebaseConfig = JSON.parse(__firebase_config);
 const app = initializeApp(firebaseConfig);
@@ -479,14 +581,6 @@ export default function App() {
 
   // PRO STATE
   const [completedMissions, setCompletedMissions] = useState([]);
-  const [examMode, setExamMode] = useState(false);
-  const [examTimeLeft, setExamTimeLeft] = useState(0);
-  const [examQuestions, setExamQuestions] = useState([]);
-  const [examResults, setExamResults] = useState([]); 
-  const [showReportCard, setShowReportCard] = useState(false);
-  const [showFlashcards, setShowFlashcards] = useState(false);
-  const [showCheatSheet, setShowCheatSheet] = useState(false);
-  const [showTroubleshoot, setShowTroubleshoot] = useState(false); 
   const [bookmarkedMissions, setBookmarkedMissions] = useState([]);
   
   const [activeTab, setActiveTab] = useState('pillar-1');
@@ -553,19 +647,6 @@ export default function App() {
       saveData();
   }, [completedMissions, bookmarkedMissions, user, dataLoaded]);
 
-  // Exam Timer
-  useEffect(() => {
-      let interval;
-      if (examMode && examTimeLeft > 0) {
-          interval = setInterval(() => {
-              setExamTimeLeft((prev) => prev - 1);
-          }, 1000);
-      } else if (examMode && examTimeLeft === 0) {
-          endExam();
-      }
-      return () => clearInterval(interval);
-  }, [examMode, examTimeLeft]);
-
   // Auto-scroll terminal
   useEffect(() => {
     terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -590,29 +671,6 @@ export default function App() {
   const sanitizeInput = (input) => {
     if (input.length > MAX_INPUT_LENGTH) return input.substring(0, MAX_INPUT_LENGTH);
     return input.replace(ILLEGAL_CHARS, "");
-  };
-
-  const startExamMode = () => {
-      const shuffled = [...MISSIONS].sort(() => 0.5 - Math.random());
-      const selected = shuffled.slice(0, 15);
-      
-      setExamQuestions(selected);
-      setExamResults([]); 
-      setExamMode(true);
-      setShowReportCard(false);
-      setExamTimeLeft(20 * 60); 
-      setCurrentMissionId(selected[0].id);
-      setTerminalHistory([]);
-      addToTerm("--- MOCK EXAM STARTED ---", 'system');
-      addToTerm("You have 20 minutes to complete 15 random tasks.", 'system');
-      addToTerm(`Task 1: ${selected[0].desc}`, 'system');
-  };
-
-  const endExam = () => {
-      setExamMode(false);
-      setShowReportCard(true);
-      addToTerm("EXAM FINISHED. Generating report...", 'system');
-      setCurrentMissionId(0);
   };
 
   const toggleBookmark = (id) => {
@@ -663,7 +721,7 @@ export default function App() {
     }
 
     // MISSION LOGIC
-    const activeMissionList = examMode ? examQuestions : missions;
+    const activeMissionList = missions;
     const currentMission = activeMissionList.find(m => m.id === currentMissionId);
 
     if (currentMissionId > 0 && currentMission) {
@@ -675,52 +733,31 @@ export default function App() {
         setSuccessFlash(true);
         setTimeout(() => setSuccessFlash(false), 800);
         
-        // Track Result for Report Card
-        if (examMode) {
-             setExamResults(prev => [...prev, { ...currentMission, success: true }]);
-        }
-        
-        if (!examMode && !completedMissions.includes(currentMission.id)) {
+        if (!completedMissions.includes(currentMission.id)) {
             setCompletedMissions(prev => [...prev, currentMission.id]);
         }
 
-        if (examMode) {
-            const currentIndex = examQuestions.findIndex(m => m.id === currentMissionId);
-            if (currentIndex < examQuestions.length - 1) {
-                const nextMission = examQuestions[currentIndex + 1];
+        // Normal
+         const currentIndex = missions.findIndex(m => m.id === currentMissionId);
+        if (currentIndex < missions.length - 1) {
+            const nextMission = missions[currentIndex + 1];
+             setTimeout(() => {
                 setCurrentMissionId(nextMission.id);
-                setTimeout(() => {
-                    addToTerm(`\n--- EXAM TASK ${currentIndex + 2}/${examQuestions.length} ---`, 'system');
-                    addToTerm(`Objective: ${nextMission.desc}`, 'system');
-                }, 1000);
-            } else {
-                endExam();
-            }
+                addToTerm(`\n--- MISSION ${nextMission.id} ---`, 'system');
+                addToTerm(`Objective: ${nextMission.desc}`, 'system');
+            }, 1500);
         } else {
-            // Normal
-             const currentIndex = missions.findIndex(m => m.id === currentMissionId);
-            if (currentIndex < missions.length - 1) {
-                const nextMission = missions[currentIndex + 1];
-                 setTimeout(() => {
-                    setCurrentMissionId(nextMission.id);
-                    addToTerm(`\n--- MISSION ${nextMission.id} ---`, 'system');
-                    addToTerm(`Objective: ${nextMission.desc}`, 'system');
-                }, 1500);
-            } else {
-                setMissionComplete(true);
-                addToTerm("ALL MISSIONS COMPLETE!", 'success');
-            }
+            setMissionComplete(true);
+            addToTerm("ALL MISSIONS COMPLETE!", 'success');
         }
         return;
       }
       
       // Feedback
-      if (!examMode) {
-          if (cleanCmd.startsWith(currentMission.tool) && base === currentMission.tool) {
-              addToTerm(`> Correct command '${base}', check flags.`, 'error');
-          } else if (!UTILITY_COMMANDS.includes(base) && base !== currentMission.tool) {
-              addToTerm(`> Wrong tool. Try again.`, 'error');
-          }
+      if (cleanCmd.startsWith(currentMission.tool) && base === currentMission.tool) {
+          addToTerm(`> Correct command '${base}', check flags.`, 'error');
+      } else if (!UTILITY_COMMANDS.includes(base) && base !== currentMission.tool) {
+          addToTerm(`> Wrong tool. Try again.`, 'error');
       }
     }
 
@@ -733,11 +770,7 @@ export default function App() {
                  setCurrentServer('servera');
                  addToTerm("logout", 'system');
                  addToTerm("Connection to serverb closed.", 'system');
-             } else if (examMode) {
-                setExamMode(false);
-                addToTerm("Exam aborted.", 'error');
-                setCurrentMissionId(0);
-            } else {
+             } else {
                 setCurrentMissionId(0);
                 setMissionComplete(false);
                 addToTerm("Session reset.", 'system');
@@ -864,12 +897,10 @@ export default function App() {
               }
               break;
           case 'start':
-            if (!examMode) {
-                setCurrentMissionId(1);
-                setMissionComplete(false);
-                addToTerm(`\n--- MISSION 1 ---`, 'system');
-                addToTerm(`Objective: ${MISSIONS[0].desc}`, 'system');
-            }
+            setCurrentMissionId(1);
+            setMissionComplete(false);
+            addToTerm(`\n--- MISSION 1 ---`, 'system');
+            addToTerm(`Objective: ${MISSIONS[0].desc}`, 'system');
             break;
           case 'ls':
               const dir = fs[cwd];
@@ -978,9 +1009,7 @@ export default function App() {
     }
   };
 
-  const activeMission = examMode 
-    ? examQuestions.find(m => m.id === currentMissionId) 
-    : missions.find(m => m.id === currentMissionId);
+  const activeMission = missions.find(m => m.id === currentMissionId);
 
   return (
     <div className="flex h-screen bg-slate-50 font-sans text-slate-800">
@@ -998,25 +1027,9 @@ export default function App() {
              </div>
              <ProgressBar completed={completedMissions.length} total={MISSIONS.length} />
           </div>
-
-          <button onClick={startExamMode} disabled={examMode} className="w-full flex items-center justify-center gap-2 mb-6 px-3 py-2 rounded-md bg-red-600 text-white font-bold hover:bg-red-700 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-             <TimerIcon size={16}/> {examMode ? "Exam in Progress" : "Start Mock Exam"}
-          </button>
-          
-          <div className="grid grid-cols-2 gap-2 mb-6">
-             <button onClick={() => setShowTroubleshoot(true)} disabled={examMode} className="col-span-2 flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-teal-600 text-white font-bold hover:bg-teal-700 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                <WrenchIcon size={16}/> Troubleshooter
-             </button>
-             <button onClick={() => setShowFlashcards(true)} disabled={examMode} className="flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-indigo-600 text-white font-bold hover:bg-indigo-700 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                <CardIcon size={16}/> Cards
-             </button>
-             <button onClick={() => setShowCheatSheet(true)} disabled={examMode} className="flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-slate-700 text-white font-bold hover:bg-slate-600 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                <ListIcon size={16}/> Cheat Sheet
-             </button>
-          </div>
           
           <ul className="space-y-1 overflow-y-auto flex-1 scrollbar-hide">
-            <li><button onClick={() => { setExamMode(false); setCurrentMissionId(0); }} className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors w-full text-left"><TerminalIcon size={16}/> Practice Lab</button></li>
+            <li><button onClick={() => { setCurrentMissionId(0); }} className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors w-full text-left"><TerminalIcon size={16}/> Practice Lab</button></li>
             <div className="my-2 border-t border-slate-800"></div>
             <li className="text-xs text-slate-500 uppercase tracking-wider mt-4 mb-2 px-3">Quick Links</li>
             
@@ -1028,28 +1041,13 @@ export default function App() {
           </ul>
 
           <div className="mt-auto pt-4 border-t border-slate-800">
-             <button onClick={resetLab} disabled={examMode} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-rose-400 font-bold hover:bg-slate-800 text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+             <button onClick={resetLab} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-rose-400 font-bold hover:bg-slate-800 text-xs transition-colors">
                 <RotateCcwIcon size={14}/> Reset Lab Environment
             </button>
           </div>
 
         </div>
       </nav>
-
-      {/* MODALS */}
-      {showFlashcards && (
-          <FlashcardDrill cards={FLASHCARDS} onClose={() => setShowFlashcards(false)} />
-      )}
-      {showCheatSheet && (
-          <CheatSheetModal bookmarks={bookmarkedMissions} missions={MISSIONS} onClose={() => setShowCheatSheet(false)} />
-      )}
-      {showTroubleshoot && (
-        <TroubleshootingModal onClose={() => setShowTroubleshoot(false)} />
-      )}
-      {/* Report Card Overlay */}
-      {showReportCard && (
-        <ReportCard results={examResults} total={examQuestions.length} onClose={() => setShowReportCard(false)} />
-      )}
 
       {/* MOBILE MENU TOGGLE */}
       <button onClick={() => setSidebarOpen(!sidebarOpen)} className="fixed top-4 right-4 z-50 p-2 bg-slate-900 text-white rounded-md md:hidden shadow-lg">
@@ -1387,17 +1385,6 @@ export default function App() {
             
             {/* Terminal Container */}
             <div className={`flex-1 rounded-lg overflow-hidden flex flex-col shadow-lg border border-slate-700 relative bg-slate-900 ${successFlash ? 'animate-success-pulse' : ''}`}>
-              {/* Exam Timer Overlay */}
-              {examMode && (
-                  <div className="absolute top-2 right-2 bg-red-900/80 text-red-100 text-xs px-2 py-1 rounded font-mono z-10 border border-red-500 animate-pulse">
-                      TIME LEFT: {Math.floor(examTimeLeft / 60)}:{(examTimeLeft % 60).toString().padStart(2, '0')}
-                  </div>
-              )}
-              {/* Report Card Overlay */}
-              {showReportCard && (
-                  <ReportCard results={examResults} total={examQuestions.length} onClose={() => setShowReportCard(false)} />
-              )}
-
               <div className={`p-2 flex items-center justify-between border-b border-slate-700 shrink-0 bg-slate-800`}>
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
@@ -1468,12 +1455,12 @@ export default function App() {
                 <div className="flex items-center gap-2 mb-2 ml-6">
                   <CrosshairIcon size={18} className={examMode ? "text-red-600 animate-pulse" : "text-blue-600"}/>
                   <h3 className="font-bold text-slate-800 text-sm">
-                    {currentMissionId === 0 ? "Ready?" : examMode ? `Exam Task ${examQuestions.indexOf(activeMission) + 1}/15` : `Mission ${currentMissionId}`}
+                    {currentMissionId === 0 ? "Ready?" : `Mission ${currentMissionId}`}
                   </h3>
                 </div>
                 <p className="text-xs text-slate-600 mb-3">
                   {currentMissionId === 0 
-                    ? <span>Type <span className="bg-slate-100 px-1 rounded text-red-500 font-bold">start</span> to begin or click Mock Exam.</span>
+                    ? <span>Type <span className="bg-slate-100 px-1 rounded text-red-500 font-bold">start</span> to begin.</span>
                     : missionComplete
                       ? "All scenarios finished."
                       : (activeMission ? activeMission.desc : "")
@@ -1504,16 +1491,13 @@ export default function App() {
                   <BookOpenIcon size={10} /> Quick Lesson
                 </div>
                 {/* HIDE LESSON IF FLASHCARD MODE IS ON */}
-                {!showFlashcards && (
-                    <p className="text-[10px] text-amber-900 leading-relaxed">
-                    {currentMissionId === 0 
-                        ? "Lessons appear here." 
-                        : examMode 
-                        ? "No lessons during exam mode!"
-                        : (activeMission ? activeMission.lesson : "")
-                    }
-                    </p>
-                )}
+                {/* Fixed Lesson Display */}
+                <p className="text-[10px] text-amber-900 leading-relaxed">
+                {currentMissionId === 0 
+                    ? "Lessons appear here." 
+                    : (activeMission ? activeMission.lesson : "")
+                }
+                </p>
               </div>
             </div>
             </div>
