@@ -1,103 +1,40 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 // --- 1. ICONS (Inline SVGs) ---
-// ... (All icons remain exactly the same as previous)
-const TerminalIcon = ({ size = 24, className = "" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
-);
-const CpuIcon = ({ size = 24, className = "" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>
-);
-const HardDriveIcon = ({ size = 24, className = "" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="22" y1="12" x2="2" y2="12"></line><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path><line x1="6" y1="16" x2="6.01" y2="16"></line><line x1="10" y1="16" x2="10.01" y2="16"></line></svg>
-);
-const SettingsIcon = ({ size = 24, className = "" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-);
-const ShieldIcon = ({ size = 24, className = "" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-);
-const MenuIcon = ({ size = 24, className = "" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-);
-const FileTextIcon = ({ size = 24, className = "" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-);
-const CopyIcon = ({ size = 24, className = "" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-);
-const CheckIcon = ({ size = 24, className = "" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="20 6 9 17 4 12"></polyline></svg>
-);
-const CrosshairIcon = ({ size = 24, className = "" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
-);
-const BookOpenIcon = ({ size = 24, className = "" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
-);
-const LockIcon = ({ size = 24, className = "" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-);
-const EyeIcon = ({ size = 24, className = "" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-);
-const NetworkIcon = ({ size = 24, className = "" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
-);
-const TimerIcon = ({ size = 24, className = "" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-);
-const ZapIcon = ({ size = 24, className = "" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-);
-const PaletteIcon = ({ size = 24, className = "" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="13.5" cy="6.5" r=".5"></circle><circle cx="17.5" cy="10.5" r=".5"></circle><circle cx="8.5" cy="7.5" r=".5"></circle><circle cx="6.5" cy="12.5" r=".5"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg>
-);
-const AlertTriangleIcon = ({ size = 24, className = "" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-);
-const LinkIcon = ({ size = 24, className = "" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-);
-const UnlinkIcon = ({ size = 24, className = "" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m18.84 12.25 1.72-1.71h-.02a5.004 5.004 0 0 0-.12-7.07 5.006 5.006 0 0 0-6.95 0l-1.72 1.71"></path><path d="m5.17 11.75-1.71 1.71a5.004 5.004 0 0 0 .12 7.07 5.006 5.006 0 0 0 6.95 0l1.71-1.71"></path><line x1="8" y1="2" x2="8" y2="5"></line><line x1="2" y1="8" x2="5" y2="8"></line><line x1="16" y1="19" x2="16" y2="22"></line><line x1="19" y1="16" x2="22" y2="16"></line></svg>
-);
-const LayersIcon = ({ size = 24, className = "" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
-);
-const StarIcon = ({ size = 24, className = "" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-);
-const CardIcon = ({ size = 24, className = "" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-);
-const ListIcon = ({ size = 24, className = "" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-);
-const WrenchIcon = ({ size = 24, className = "" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
-);
-const TrashIcon = ({ size = 24, className = "" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-);
-const SearchIcon = ({ size = 24, className = "" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-);
-const UserPlusIcon = ({ size = 24, className = "" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
-);
-const ChevronDownIcon = ({ size = 24, className = "" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="6 9 12 15 18 9"></polyline></svg>
-);
-const ChevronUpIcon = ({ size = 24, className = "" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="18 15 12 9 6 15"></polyline></svg>
-);
-const RotateCcwIcon = ({ size = 24, className = "" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
-);
+const TerminalIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>);
+const CpuIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>);
+const HardDriveIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="22" y1="12" x2="2" y2="12"></line><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path><line x1="6" y1="16" x2="6.01" y2="16"></line><line x1="10" y1="16" x2="10.01" y2="16"></line></svg>);
+const SettingsIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>);
+const ShieldIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>);
+const MenuIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>);
+const FileTextIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>);
+const CopyIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>);
+const CheckIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="20 6 9 17 4 12"></polyline></svg>);
+const CrosshairIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>);
+const BookOpenIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>);
+const LockIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>);
+const EyeIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>);
+const NetworkIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>);
+const TimerIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>);
+const ZapIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>);
+const PaletteIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="13.5" cy="6.5" r=".5"></circle><circle cx="17.5" cy="10.5" r=".5"></circle><circle cx="8.5" cy="7.5" r=".5"></circle><circle cx="6.5" cy="12.5" r=".5"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg>);
+const AlertTriangleIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>);
+const LinkIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>);
+const UnlinkIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m18.84 12.25 1.72-1.71h-.02a5.004 5.004 0 0 0-.12-7.07 5.006 5.006 0 0 0-6.95 0l-1.72 1.71"></path><path d="m5.17 11.75-1.71 1.71a5.004 5.004 0 0 0 .12 7.07 5.006 5.006 0 0 0 6.95 0l1.71-1.71"></path><line x1="8" y1="2" x2="8" y2="5"></line><line x1="2" y1="8" x2="5" y2="8"></line><line x1="16" y1="19" x2="16" y2="22"></line><line x1="19" y1="16" x2="22" y2="16"></line></svg>);
+const LayersIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>);
+const StarIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>);
+const CardIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>);
+const ListIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>);
+const WrenchIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>);
+const TrashIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>);
+const SearchIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>);
+const UserPlusIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>);
+const ChevronDownIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="6 9 12 15 18 9"></polyline></svg>);
+const ChevronUpIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="18 15 12 9 6 15"></polyline></svg>);
+const RotateCcwIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>);
 
 // --- 2. COMPONENTS (Defined BEFORE App) ---
-// ... (CopyButton, CodeBlock, ProgressBar remain unchanged)
+
 const CopyButton = ({ text }) => {
   const [copied, setCopied] = useState(false);
 
@@ -154,7 +91,6 @@ const ProgressBar = ({ completed, total }) => {
     );
 };
 
-// ... (LVMVisualizer, PermissionsCalculator, CronBuilder, FindBuilder, NetworkBuilder, FstabBuilder, UserBuilder, SELinuxReference remain unchanged)
 const LVMVisualizer = ({ lvmState }) => {
     const getVgForPv = (pvName) => lvmState.vgs.find(vg => vg.pvs.includes(pvName));
 
@@ -436,7 +372,6 @@ const SELinuxReference = () => {
     );
 };
 
-// ... (ReportCard, FlashcardDrill, CheatSheetModal, TroubleshootingModal remain unchanged)
 const ReportCard = ({ results, total, onClose }) => {
     const score = Math.round((results.filter(r => r.success).length / total) * 100);
     const missed = results.filter(r => !r.success);
@@ -1066,7 +1001,7 @@ export default function App() {
               } else if (action === 'status') {
                   if (svc) {
                       const status = systemState.services[svc] || 'inactive';
-                      const color = status === 'active' ? 'text-green-400' : 'text-slate-400';
+                      // const color = status === 'active' ? 'text-green-400' : 'text-slate-400';
                       addToTerm(`● ${svc}.service - The ${svc} service`);
                       addToTerm(`   Loaded: loaded (/usr/lib/systemd/system/${svc}.service; disabled; vendor preset: disabled)`);
                       addToTerm(`   Active: ${status} (running) since ...`, status === 'active' ? 'success' : 'system');
@@ -1282,7 +1217,6 @@ export default function App() {
   };
 
   const handleKeyDown = (e) => {
-    // ... (rest of logic remains unchanged)
     if (isPaging) {
         e.preventDefault();
         if (e.key === 'q' || e.key === 'Q' || (e.key === 'c' && e.ctrlKey)) {
@@ -1347,7 +1281,7 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-slate-50 font-sans text-slate-800">
-      {/* ... (UI Rendering remains unchanged, just using the state variables defined above) */}
+      
       {/* SIDEBAR */}
       <nav className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white transform transition-transform duration-300 md:relative md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-6 h-full flex flex-col">
@@ -1542,4 +1476,337 @@ export default function App() {
              <section id="pillar-3" className="mb-16 scroll-mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
                 <div className="p-3 bg-amber-100 text-amber-600 rounded-lg"><HardDriveIcon size={24} /></div>
-                <div><h2 className="text-2xl font-bold text-slate-90
+                <div><h2 className="text-2xl font-bold text-slate-900">Pillar 3: Storage</h2></div>
+              </div>
+              <div className="grid md:grid-cols-2 gap-6">
+                
+                {/* Dynamic LVM Visualizer - Replaced Static Component */}
+                <LVMVisualizer lvmState={lvmState} />
+
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                  <h3 className="font-bold text-lg mb-4 text-slate-800">FSTAB Anatomy</h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left border-collapse">
+                      <thead className="bg-slate-900 text-white">
+                        <tr>
+                          <th className="p-2 border border-slate-700">UUID/Device</th>
+                          <th className="p-2 border border-slate-700">Mount</th>
+                          <th className="p-2 border border-slate-700">Type</th>
+                        </tr>
+                      </thead>
+                      <tbody className="font-mono text-xs">
+                        <tr className="bg-amber-50">
+                          <td className="p-2 border border-amber-200">UUID="5b...a2"</td>
+                          <td className="p-2 border border-amber-200">/data</td>
+                          <td className="p-2 border border-amber-200">xfs</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                   <h3 className="font-bold text-lg mb-4 text-slate-800">AutoFS</h3>
+                   <CodeBlock>/shares /etc/auto.shares</CodeBlock>
+                </div>
+                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                   <h3 className="font-bold text-lg mb-4 text-slate-800">Stratis & VDO</h3>
+                   <p className="text-xs text-slate-600 mb-2">Advanced storage layers.</p>
+                   <CodeBlock>stratis pool create mypool /dev/sdb</CodeBlock>
+                   <CodeBlock>stratis fs create mypool myfs</CodeBlock>
+                </div>
+                <FstabBuilder />
+              </div>
+            </section>
+            )}
+
+            {activeTab === 'pillar-4' && (
+             <section id="pillar-4" className="mb-16 scroll-mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
+                <div className="p-3 bg-purple-100 text-purple-600 rounded-lg"><SettingsIcon size={24} /></div>
+                <div><h2 className="text-2xl font-bold text-slate-900">Pillar 4: Deploy & Maintain</h2></div>
+              </div>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                  <h3 className="font-bold text-lg mb-4 text-slate-800">Software & Time</h3>
+                  <div className="space-y-3">
+                    <div className="text-sm">
+                      <p className="text-xs text-slate-600 mb-1 font-bold">DNF (Package Manager):</p>
+                      <CodeBlock>dnf install httpd</CodeBlock>
+                      <CodeBlock>dnf update</CodeBlock>
+                    </div>
+                    <div className="text-sm">
+                      <p className="text-xs text-slate-600 mb-1 font-bold">Chrony (NTP):</p>
+                      <CodeBlock>chronyc sources</CodeBlock>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                  <h3 className="font-bold text-lg mb-4 text-slate-800">Containerized Apps</h3>
+                   <p className="text-xs text-slate-600 mb-2">Flatpak is used for desktop applications.</p>
+                   <CodeBlock>flatpak remote-add --if-not-exists flathub ...</CodeBlock>
+                   <CodeBlock>flatpak install flathub org.gnome.gedit</CodeBlock>
+                </div>
+                
+                <CronBuilder />
+
+                 {/* NEW CARD */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                   <h3 className="font-bold text-lg mb-4 text-slate-800">Repositories</h3>
+                   <p className="text-xs text-slate-600 mb-2">Config in <code>/etc/yum.repos.d/</code></p>
+                   <CodeBlock>[repo_id]</CodeBlock>
+                   <CodeBlock>baseurl=http://server/repo</CodeBlock>
+                   <CodeBlock>gpgcheck=0</CodeBlock>
+                </div>
+              </div>
+            </section>
+            )}
+
+            {activeTab === 'pillar-5' && (
+             <section id="pillar-5" className="mb-24 scroll-mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
+                <div className="p-3 bg-emerald-100 text-emerald-600 rounded-lg"><ShieldIcon size={24} /></div>
+                <div><h2 className="text-2xl font-bold text-slate-900">Pillar 5: Security & Networking</h2></div>
+              </div>
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Visual: Security Layers */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                   <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><ShieldIcon size={16} className="text-emerald-500"/> Defense Layers</h3>
+                   <div className="relative flex items-center justify-center h-32">
+                        <div className="absolute w-32 h-32 bg-red-100 rounded-full flex items-center justify-center border-2 border-red-200 z-10">
+                            <span className="text-[10px] font-bold text-red-800 mt-[-20px]">Firewall</span>
+                        </div>
+                        <div className="absolute w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center border-2 border-emerald-200 z-20">
+                            <span className="text-[10px] font-bold text-emerald-800 mt-[-10px]">SELinux</span>
+                        </div>
+                        <div className="absolute w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center border-2 border-blue-200 z-30">
+                            <span className="text-[8px] font-bold text-blue-800">rwx</span>
+                        </div>
+                   </div>
+                   <div className="text-xs text-center text-slate-500 mt-1">If Firewall opens, SELinux can still block.</div>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                  <h3 className="font-bold text-lg mb-4 text-slate-800">SELinux</h3>
+                   <CodeBlock>restorecon -R /var/www/html</CodeBlock>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                   <h3 className="font-bold text-lg mb-4 text-slate-800">Firewall</h3>
+                   <CodeBlock>firewall-cmd --permanent --add-service=http</CodeBlock>
+                </div>
+                 {/* NEW CARDS */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                   <h3 className="font-bold text-lg mb-4 text-slate-800">Access Control Lists</h3>
+                   <CodeBlock>setfacl -m u:student:rw file</CodeBlock>
+                   <CodeBlock>getfacl file</CodeBlock>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                   <h3 className="font-bold text-lg mb-4 text-slate-800">System Identity</h3>
+                   <p className="text-xs text-slate-600 mb-2">Set hostname persistently.</p>
+                   <CodeBlock>hostnamectl set-hostname name</CodeBlock>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                   <h3 className="font-bold text-lg mb-4 text-slate-800">Privilege Escalation</h3>
+                   <p className="text-xs text-slate-600 mb-2">Configure sudo access.</p>
+                   <CodeBlock>/etc/sudoers.d/custom</CodeBlock>
+                   <CodeBlock>user ALL=(ALL) ALL</CodeBlock>
+                </div>
+                 
+                 <NetworkBuilder />
+                 <SELinuxReference />
+
+              </div>
+            </section>
+            )}
+            
+            {activeTab === 'tips' && (
+            <section className="mb-24 scroll-mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
+                 <div className="p-3 bg-indigo-100 text-indigo-600 rounded-lg"><BookOpenIcon size={24} /></div>
+                 <div><h2 className="text-2xl font-bold text-slate-900">Exam Strategy & Tips</h2></div>
+              </div>
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
+                   <div className="grid md:grid-cols-2 gap-6">
+                       <div>
+                           <h4 className="font-bold text-indigo-600 mb-2">During the Exam</h4>
+                           <ul className="list-disc pl-4 text-sm text-slate-600 space-y-1">
+                               <li><b>Reboot Often:</b> Verify your changes survive a reboot. If you break boot, fix it immediately using the recovery console.</li>
+                               <li><b>Read Carefully:</b> Does the question ask for a logical volume of 500MB or 500 extents?</li>
+                               <li><b>Use Man Pages:</b> Don't memorize flags. Type <code>man &lt;command&gt;</code> and search with <code>/</code>.</li>
+                               <li><b>Keyword Search:</b> Forgot a command? Use <code>man -k &lt;keyword&gt;</code> or <code>apropos &lt;keyword&gt;</code> to find it.</li>
+                               <li><b>Copy/Paste:</b> Mistyping a UUID in fstab is fatal. Use copy/paste from terminal output.</li>
+                           </ul>
+                       </div>
+                       <div>
+                           <h4 className="font-bold text-indigo-600 mb-2">Common Pitfalls</h4>
+                           <ul className="list-disc pl-4 text-sm text-slate-600 space-y-1">
+                               <li><b>Firewall:</b> Forgetting <code>--permanent</code> or <code>--reload</code>.</li>
+                               <li><b>SELinux:</b> Moving files instead of copying (preserves wrong context). Always use <code>restorecon</code>.</li>
+                               <li><b>Scripting:</b> Forgetting <code>chmod +x</code> to make scripts executable.</li>
+                               <li><b>LVM:</b> Forgetting to format the new logical volume before mounting (<code>mkfs</code>).</li>
+                               <li><b>Chronyd:</b> Forgetting to enable the service so it starts on boot.</li>
+                           </ul>
+                       </div>
+                   </div>
+                   
+                   <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                       <h4 className="font-bold text-red-700 mb-2 flex items-center gap-2"><AlertTriangleIcon size={18}/> Critical Failures (Zero Score Risks)</h4>
+                       <ul className="list-disc pl-4 text-sm text-red-800 space-y-1">
+                           <li><b>System Not Booting:</b> If your VM doesn't boot when the examiners restart it, you get a 0 for the entire exam. Test your reboots!</li>
+                           <li><b>Root Password:</b> If you cannot reset the root password successfully, they cannot grade your exam.</li>
+                           <li><b>Network Down:</b> If you mess up the network interface so the system is unreachable, they cannot grade it.</li>
+                       </ul>
+                   </div>
+              </div>
+            </section>
+            )}
+
+          </div>
+        </main>
+
+        {/* BOTTOM FIXED TERMINAL SECTION */}
+        <section id="practice-lab" className={`shrink-0 bg-slate-200 border-t border-slate-300 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] transition-all duration-300 ease-in-out flex flex-col ${isTerminalOpen ? 'h-80' : 'h-10'}`}>
+          <div 
+              className="h-10 bg-slate-300 border-b border-slate-400 flex items-center justify-between px-4 cursor-pointer hover:bg-slate-400 transition-colors shrink-0"
+              onClick={() => setIsTerminalOpen(!isTerminalOpen)}
+          >
+              <div className="flex items-center gap-2 font-bold text-slate-700 text-xs uppercase tracking-wider">
+                  <TerminalIcon size={16} /> Practice Lab & Missions
+              </div>
+              <div className="flex items-center gap-2 text-xs text-slate-600 font-bold">
+                  {isTerminalOpen ? "Minimize" : "Restore"}
+                  {isTerminalOpen ? <ChevronDownIcon size={16}/> : <ChevronUpIcon size={16}/>}
+              </div>
+          </div>
+
+          <div className={`flex-1 p-4 pt-0 overflow-hidden flex gap-4 ${!isTerminalOpen && 'invisible'}`}>
+            <div className="max-w-5xl mx-auto flex gap-4 w-full h-full pt-4">
+            
+            {/* Terminal Container */}
+            <div className={`flex-1 rounded-lg overflow-hidden flex flex-col shadow-lg border border-slate-700 relative bg-slate-900 ${successFlash ? 'animate-success-pulse' : ''}`}>
+              <div className={`p-2 flex items-center justify-between border-b border-slate-700 shrink-0 bg-slate-800`}>
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                  <span className={`ml-2 text-xs font-mono text-slate-300`}>root@localhost:~</span>
+                </div>
+                <div className={`text-xs font-mono flex items-center gap-2 text-slate-300`}>
+                   <ShieldIcon size={12} className="text-green-400"/>
+                   <span className="text-[10px] uppercase">SSH Active</span>
+                </div>
+              </div>
+              
+              <div 
+                className={`flex-1 p-3 font-mono text-sm overflow-y-auto bg-slate-900 text-slate-300`}
+                onClick={() => inputRef.current?.focus()}
+              >
+                <div className="mb-2 opacity-70">Welcome to the RHCSA Practice Terminal v2.1</div>
+                
+                {terminalHistory.map((line, i) => (
+                  <div key={i} className={`whitespace-pre-wrap mb-1 break-words ${
+                    line.type === 'input' ? `text-slate-300 font-bold` : 
+                    line.type === 'success' ? 'text-green-400 font-bold' :
+                    line.type === 'error' ? 'text-red-400' : 
+                    line.type === 'system' ? 'text-yellow-400' : 'opacity-90'
+                  }`}>
+                    {line.text}
+                  </div>
+                ))}
+                <div ref={terminalEndRef} />
+                
+                <div className={`flex items-center mt-2 text-green-400`}>
+                  <span className="mr-2">[root@server ~]#</span>
+                  <input 
+                    ref={inputRef}
+                    type="text" 
+                    value={inputVal}
+                    onChange={(e) => setInputVal(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className={`bg-transparent border-none outline-none flex-1 text-slate-300`}
+                    autoComplete="off" 
+                    spellCheck="false"
+                    maxLength={MAX_INPUT_LENGTH}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Mission/Lesson Side Panel */}
+            <div className="w-80 flex flex-col gap-3 shrink-0">
+              <div className="bg-white p-4 rounded-lg border border-slate-300 shadow-sm flex-1 overflow-y-auto relative">
+                {/* Visual indicator for completed missions */}
+                {activeMission && completedMissions.includes(activeMission.id) && !examMode && (
+                    <div className="absolute top-2 right-2 text-green-500"><CheckIcon size={16} /></div>
+                )}
+                
+                {/* Bookmark Button (New Feature) */}
+                 {activeMission && !examMode && (
+                    <button 
+                        onClick={() => toggleBookmark(activeMission.id)}
+                        className={`absolute top-2 left-2 ${bookmarkedMissions.includes(activeMission.id) ? 'text-yellow-400' : 'text-slate-300 hover:text-yellow-400'}`}
+                        title={bookmarkedMissions.includes(activeMission.id) ? "Remove Bookmark" : "Bookmark this Mission"}
+                    >
+                        <StarIcon size={18} className={bookmarkedMissions.includes(activeMission.id) ? "fill-current" : ""} />
+                    </button>
+                )}
+
+                <div className="flex items-center gap-2 mb-2 ml-6">
+                  <CrosshairIcon size={18} className={examMode ? "text-red-600 animate-pulse" : "text-blue-600"}/>
+                  <h3 className="font-bold text-slate-800 text-sm">
+                    {currentMissionId === 0 ? "Ready?" : examMode ? `Exam Task ${examQuestions.indexOf(activeMission) + 1}/15` : `Mission ${currentMissionId}`}
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-600 mb-3">
+                  {currentMissionId === 0 
+                    ? <span>Type <span className="bg-slate-100 px-1 rounded text-red-500 font-bold">start</span> to begin or click Mock Exam.</span>
+                    : missionComplete
+                      ? "All scenarios finished."
+                      : (activeMission ? activeMission.desc : "")
+                  }
+                </p>
+
+                {/* HINT TOGGLE (Disabled in Exam Mode) */}
+                {currentMissionId > 0 && !missionComplete && activeMission && !examMode && (
+                   <div className="mt-2">
+                     {!showHint ? (
+                       <button 
+                         onClick={() => setShowHint(true)} 
+                         className="flex items-center gap-2 text-xs text-slate-500 hover:text-blue-600 transition-colors bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded w-full justify-center"
+                       >
+                         <EyeIcon size={12} /> Reveal Hint
+                       </button>
+                     ) : (
+                       <p className="text-xs text-blue-600 italic bg-blue-50 p-2 rounded border border-blue-100">
+                         Hint: {activeMission.hint}
+                       </p>
+                     )}
+                   </div>
+                )}
+              </div>
+              
+              <div className="bg-amber-50 p-3 rounded-lg border border-amber-200 shadow-sm h-24 overflow-y-auto">
+                <div className="flex items-center gap-2 mb-1 text-amber-700 font-bold text-[10px] uppercase tracking-wider">
+                  <BookOpenIcon size={10} /> Quick Lesson
+                </div>
+                {/* HIDE LESSON IF FLASHCARD MODE IS ON */}
+                {!showFlashcards && (
+                    <p className="text-[10px] text-amber-900 leading-relaxed">
+                    {currentMissionId === 0 
+                        ? "Lessons appear here." 
+                        : examMode 
+                        ? "No lessons during exam mode!"
+                        : (activeMission ? activeMission.lesson : "")
+                    }
+                    </p>
+                )}
+              </div>
+            </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  );
+}
