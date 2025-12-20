@@ -100,61 +100,6 @@ const RotateCcwIcon = ({ size = 24, className = "" }) => (
 
 // --- 2. COMPONENTS (Defined BEFORE App) ---
 
-const LandingPage = ({ onStart }) => (
-    <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
-        {/* Background Accents */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 opacity-20">
-            <div className="absolute top-10 left-10 text-slate-700 animate-pulse"><TerminalIcon size={120} /></div>
-            <div className="absolute bottom-20 right-20 text-slate-800"><CpuIcon size={200} /></div>
-        </div>
-
-        <div className="z-10 max-w-3xl">
-             <div className="mb-6 flex justify-center">
-                 <div className="bg-red-600 p-4 rounded-full shadow-lg shadow-red-500/20">
-                     <TerminalIcon size={64} className="text-white" />
-                 </div>
-             </div>
-             <h1 className="text-6xl font-extrabold text-white mb-4 tracking-tight">
-                RHCSA<span className="text-red-500">Lab</span>
-             </h1>
-             <p className="text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-                The ultimate interactive playground for mastering Red Hat Enterprise Linux 10. 
-                Simulate commands, visualize storage stacks, and crush the exam.
-             </p>
-
-             <div className="grid md:grid-cols-3 gap-6 mb-12 text-left">
-                <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 hover:border-red-500 transition-colors">
-                    <div className="text-blue-400 mb-3"><TerminalIcon size={32}/></div>
-                    <h3 className="text-white font-bold text-lg mb-2">Real-Feel Terminal</h3>
-                    <p className="text-slate-400 text-sm">Practice commands like useradd, nmcli, and lvm in a simulated environment.</p>
-                </div>
-                <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 hover:border-red-500 transition-colors">
-                    <div className="text-green-400 mb-3"><LayersIcon size={32}/></div>
-                    <h3 className="text-white font-bold text-lg mb-2">Visual Learning</h3>
-                    <p className="text-slate-400 text-sm">Interactive diagrams for LVM, Permissions, and FSTAB generation.</p>
-                </div>
-                <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 hover:border-red-500 transition-colors">
-                    <div className="text-purple-400 mb-3"><CrosshairIcon size={32}/></div>
-                    <h3 className="text-white font-bold text-lg mb-2">Exam Simulations</h3>
-                    <p className="text-slate-400 text-sm">Timed mock exams with random scenarios to test your muscle memory.</p>
-                </div>
-             </div>
-
-             <button 
-                onClick={onStart}
-                className="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white transition-all duration-200 bg-red-600 font-lg rounded-lg hover:bg-red-700 hover:shadow-lg hover:shadow-red-500/30 focus:outline-none ring-offset-2 focus:ring-2 ring-red-400"
-            >
-                Start Practice Lab
-                <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
-             </button>
-        </div>
-        
-        <div className="absolute bottom-6 text-slate-600 text-xs">
-            v3.0 • Focused on RHEL 10 Objectives
-        </div>
-    </div>
-);
-
 const CopyButton = ({ text }) => {
   const [copied, setCopied] = useState(false);
 
@@ -464,6 +409,41 @@ const SELinuxReference = () => {
 
     const ctx = data[service];
 
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><ShieldIcon size={16} className="text-emerald-500"/> SELinux Quick Ref</h3>
+            <div className="mb-4">
+                <label className="text-[10px] uppercase font-bold text-slate-500">Select Service</label>
+                <select value={service} onChange={e=>setService(e.target.value)} className="w-full border rounded p-2 text-sm bg-white font-bold text-slate-700">
+                    <option value="httpd">Apache Web Server (httpd)</option>
+                    <option value="samba">Samba File Share (smb)</option>
+                    <option value="ssh">SSH Server</option>
+                    <option value="ftp">FTP Server</option>
+                </select>
+            </div>
+            <div className="space-y-2 text-sm">
+                <div className="flex justify-between border-b pb-1">
+                    <span className="text-slate-600">File Context:</span>
+                    <span className="font-mono text-emerald-600 font-bold">{ctx.file}</span>
+                </div>
+                <div className="flex justify-between border-b pb-1">
+                    <span className="text-slate-600">Port Type:</span>
+                    <span className="font-mono text-emerald-600 font-bold">{ctx.port}</span>
+                </div>
+                <div className="flex justify-between pb-1">
+                    <span className="text-slate-600">Common Boolean:</span>
+                    <span className="font-mono text-emerald-600 font-bold">{ctx.bool}</span>
+                </div>
+            </div>
+            <div className="mt-4 pt-4 border-t border-slate-100">
+                <div className="text-[9px] text-slate-400 font-bold uppercase mb-1">Fix Context</div>
+                <CodeBlock>semanage fcontext -a -t {ctx.file} "/dir(/.*)?"</CodeBlock>
+                <CodeBlock>restorecon -Rv /dir</CodeBlock>
+            </div>
+        </div>
+    );
+};
+
 // --- FIREBASE CONFIGURATION ---
 const firebaseConfig = JSON.parse(__firebase_config);
 const app = initializeApp(firebaseConfig);
@@ -476,7 +456,6 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [dataLoaded, setDataLoaded] = useState(false);
 
-  const [showLanding, setShowLanding] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [terminalHistory, setTerminalHistory] = useState([]);
   const [inputVal, setInputVal] = useState("");
@@ -596,10 +575,6 @@ export default function App() {
   useEffect(() => {
     setShowHint(false);
   }, [currentMissionId]);
-
-  if (showLanding) {
-     return <LandingPage onStart={() => setShowLanding(false)} />;
-  }
 
   const cycleTheme = () => {
     const currentIndex = THEMES.indexOf(currentTheme);
