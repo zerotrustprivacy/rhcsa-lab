@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 // --- 1. ICONS (Inline SVGs) ---
+// ... (All icons remain exactly the same as previous)
 const TerminalIcon = ({ size = 24, className = "" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
 );
@@ -95,6 +96,662 @@ const RotateCcwIcon = ({ size = 24, className = "" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
 );
 
+// --- 2. COMPONENTS (Defined BEFORE App) ---
+// ... (CopyButton, CodeBlock, ProgressBar remain unchanged)
+const CopyButton = ({ text }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    const textToCopy = text ? String(text) : "";
+    try {
+        await navigator.clipboard.writeText(textToCopy);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+        try {
+            const textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+            textArea.style.position = "fixed";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (e) {
+            console.error("Copy failed", e);
+        }
+    }
+  };
+
+  return (
+    <button 
+      onClick={handleCopy} 
+      className="absolute top-2 right-2 p-1 bg-slate-700 hover:bg-slate-600 rounded text-white opacity-0 group-hover:opacity-100 transition-opacity"
+    >
+      {copied ? <CheckIcon size={14} /> : <CopyIcon size={14} />}
+    </button>
+  );
+};
+
+const CodeBlock = ({ children, color = "blue" }) => {
+  const textColor = color === "green" ? "text-green-300" : "text-blue-200";
+  return (
+    <div className={`bg-slate-900 rounded-lg p-3 text-xs ${textColor} font-mono relative group mb-2`}>
+      <CopyButton text={children} />
+      <pre>{children}</pre>
+    </div>
+  );
+};
+
+const ProgressBar = ({ completed, total }) => {
+    const percentage = Math.round((completed / total) * 100) || 0;
+    return (
+        <div className="w-full bg-slate-700 rounded-full h-2.5 mb-4">
+            <div className="bg-green-500 h-2.5 rounded-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
+        </div>
+    );
+};
+
+// ... (LVMVisualizer, PermissionsCalculator, CronBuilder, FindBuilder, NetworkBuilder, FstabBuilder, UserBuilder, SELinuxReference remain unchanged)
+const LVMVisualizer = ({ lvmState }) => {
+    const getVgForPv = (pvName) => lvmState.vgs.find(vg => vg.pvs.includes(pvName));
+
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                    <LayersIcon size={16} className="text-amber-500"/> Live LVM Stack
+                </h3>
+                <button className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded" onClick={() => alert("Type commands like 'pvcreate /dev/vdb1' in the terminal to see this update!")}>Info</button>
+            </div>
+            <div className="space-y-4">
+                <div className="bg-slate-100 p-3 rounded-lg border border-slate-300 relative">
+                    <div className="absolute top-0 right-0 bg-slate-300 text-slate-600 text-[9px] px-1 rounded-bl">Physical Disks</div>
+                    <div className="flex gap-2 mt-2">
+                        {['/dev/vdb1', '/dev/vdb2'].map(disk => {
+                            const isPv = lvmState.pvs.includes(disk);
+                            const assignedVg = getVgForPv(disk);
+                            return (
+                                <div key={disk} className={`flex-1 p-2 rounded transition-all duration-500 border-2 ${isPv ? 'bg-amber-50 border-amber-400' : 'bg-slate-200 border-slate-300'}`}>
+                                    <div className="flex items-center justify-center gap-1 text-xs font-bold text-slate-700"><HardDriveIcon size={12}/> {disk}</div>
+                                    <div className="text-[10px] text-center text-slate-500">{isPv ? "PV Initialized" : "Raw Partition"}</div>
+                                    {assignedVg && (
+                                        <div className="mt-2 bg-amber-100 border border-amber-500 rounded p-1 animate-in fade-in slide-in-from-bottom-2">
+                                            <div className="text-[10px] font-bold text-amber-800 text-center">VG: {assignedVg.name}</div>
+                                            <div className="mt-1 flex flex-col gap-1">
+                                                {lvmState.lvs.filter(lv => lv.vg === assignedVg.name).map(lv => (
+                                                    <div key={lv.name} className="bg-amber-200 border border-amber-600 rounded px-1 py-1 relative group">
+                                                         <div className="flex justify-between items-center">
+                                                            <span className="text-[10px] font-bold text-amber-900">LV: {lv.name}</span>
+                                                            <span className="text-[9px] text-amber-800">{lv.size}</span>
+                                                         </div>
+                                                         {lv.fs && <div className="mt-1 bg-green-500 text-white text-[9px] font-bold text-center rounded shadow-sm">FS: {lv.fs.toUpperCase()}</div>}
+                                                    </div>
+                                                ))}
+                                                {lvmState.lvs.filter(lv => lv.vg === assignedVg.name).length === 0 && <div className="text-[9px] text-amber-600 text-center italic py-1">Free Space</div>}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const PermissionsCalculator = () => {
+    const [perms, setPerms] = useState({ u: { r: true, w: true, x: true }, g: { r: true, w: false, x: true }, o: { r: true, w: false, x: true } });
+    const toggle = (who, what) => setPerms(p => ({ ...p, [who]: { ...p[who], [what]: !p[who][what] } }));
+    const calcOctal = (p) => (p.r ? 4 : 0) + (p.w ? 2 : 0) + (p.x ? 1 : 0);
+    const octal = `${calcOctal(perms.u)}${calcOctal(perms.g)}${calcOctal(perms.o)}`;
+    const sym = (p) => `${p.r ? 'r' : '-'}${p.w ? 'w' : '-'}${p.x ? 'x' : '-'}`;
+    const symbolic = `${sym(perms.u)}${sym(perms.g)}${sym(perms.o)}`;
+
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><LockIcon size={16} className="text-blue-500"/> Permission Calculator</h3>
+            <div className="flex justify-between mb-6">
+                {['u', 'g', 'o'].map(who => (
+                    <div key={who} className="flex flex-col gap-2 items-center w-1/3 border-r last:border-0 border-slate-100">
+                        <div className="text-xs font-bold text-slate-500 uppercase mb-2">{who === 'u' ? 'User' : who === 'g' ? 'Group' : 'Other'}</div>
+                        {['r', 'w', 'x'].map(what => (
+                            <label key={what} className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 px-2 py-1 rounded w-full justify-center">
+                                <input type="checkbox" checked={perms[who][what]} onChange={() => toggle(who, what)} className="accent-blue-600"/>
+                                <span className="font-mono font-bold text-slate-700">{what.toUpperCase()}</span>
+                            </label>
+                        ))}
+                    </div>
+                ))}
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+                <div className="bg-slate-100 p-2 rounded text-center"><div className="text-[10px] text-slate-500 uppercase">Octal</div><div className="font-mono text-xl font-bold text-blue-600">{octal}</div></div>
+                <div className="bg-slate-100 p-2 rounded text-center"><div className="text-[10px] text-slate-500 uppercase">Symbolic</div><div className="font-mono text-xl font-bold text-blue-600">{symbolic}</div></div>
+            </div>
+            <div className="mt-4 pt-4 border-t border-slate-100 text-center"><CodeBlock color="blue">{`chmod ${octal} filename`}</CodeBlock></div>
+        </div>
+    );
+};
+
+const CronBuilder = () => {
+    const [val, setVal] = useState({ m: '0', h: '2', dom: '*', mon: '*', dow: '*' });
+    const update = (k, v) => setVal(p => ({ ...p, [k]: v }));
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+             <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><TimerIcon size={16} className="text-purple-500"/> Cron Builder</h3>
+            <div className="grid grid-cols-5 gap-2 mb-4 text-center">
+                {['m','h','dom','mon','dow'].map(k => (
+                    <div key={k}>
+                        <input value={val[k]} onChange={(e) => update(k, e.target.value)} className="w-full border border-slate-300 rounded p-1 text-center font-mono text-sm focus:border-purple-500 outline-none"/>
+                        <div className="text-[9px] text-slate-400 mt-1 uppercase font-bold">{k}</div>
+                    </div>
+                ))}
+            </div>
+            <CodeBlock>{`${val.m} ${val.h} ${val.dom} ${val.mon} ${val.dow} /path/to/script`}</CodeBlock>
+        </div>
+    )
+};
+
+const FindBuilder = () => {
+    const [path, setPath] = useState('/var');
+    const [name, setName] = useState('*.log');
+    const [user, setUser] = useState('');
+    const [size, setSize] = useState('+10M');
+    const [action, setAction] = useState('print');
+
+    let cmd = `find ${path}`;
+    if (name) cmd += ` -name "${name}"`;
+    if (user) cmd += ` -user ${user}`;
+    if (size) cmd += ` -size ${size}`;
+    if (action === 'delete') cmd += ` -exec rm -f {} \\;`;
+    if (action === 'exec') cmd += ` -exec cp {} /tmp \\;`;
+
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><SearchIcon size={16} className="text-blue-500"/> Find Command Builder</h3>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Path</label><input value={path} onChange={e=>setPath(e.target.value)} className="w-full border rounded p-1 text-sm"/></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Name Pattern</label><input value={name} onChange={e=>setName(e.target.value)} className="w-full border rounded p-1 text-sm"/></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">User (Optional)</label><input value={user} onChange={e=>setUser(e.target.value)} placeholder="root" className="w-full border rounded p-1 text-sm"/></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Size (Optional)</label><input value={size} onChange={e=>setSize(e.target.value)} placeholder="+10M" className="w-full border rounded p-1 text-sm"/></div>
+                <div className="col-span-2"><label className="text-[10px] uppercase font-bold text-slate-500">Action</label>
+                    <select value={action} onChange={e=>setAction(e.target.value)} className="w-full border rounded p-1 text-sm bg-white">
+                        <option value="print">Print (Default)</option>
+                        <option value="delete">Delete (-exec rm)</option>
+                        <option value="exec">Copy to /tmp (-exec cp)</option>
+                    </select>
+                </div>
+            </div>
+            <CodeBlock>{cmd}</CodeBlock>
+        </div>
+    );
+};
+
+const NetworkBuilder = () => {
+    const [con, setCon] = useState('static-eth0');
+    const [iface, setIface] = useState('eth0');
+    const [ip, setIp] = useState('172.25.250.10');
+    const [gw, setGw] = useState('172.25.250.254');
+    const [dns, setDns] = useState('172.25.250.220');
+
+    const cmd = `nmcli con add con-name ${con} ifname ${iface} type ethernet ipv4.method manual ipv4.addresses ${ip}/24 ipv4.gateway ${gw} ipv4.dns ${dns}`;
+
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><NetworkIcon size={16} className="text-emerald-500"/> Network Configurator</h3>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Connection Name</label><input value={con} onChange={e=>setCon(e.target.value)} className="w-full border rounded p-1 text-sm font-mono"/></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Interface</label><input value={iface} onChange={e=>setIface(e.target.value)} className="w-full border rounded p-1 text-sm font-mono"/></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">IP Address</label><input value={ip} onChange={e=>setIp(e.target.value)} className="w-full border rounded p-1 text-sm font-mono"/></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Gateway</label><input value={gw} onChange={e=>setGw(e.target.value)} className="w-full border rounded p-1 text-sm font-mono"/></div>
+                <div className="col-span-2"><label className="text-[10px] uppercase font-bold text-slate-500">DNS</label><input value={dns} onChange={e=>setDns(e.target.value)} className="w-full border rounded p-1 text-sm font-mono"/></div>
+            </div>
+            <CodeBlock color="green">{cmd}</CodeBlock>
+            <p className="text-[10px] text-slate-400 mt-2">Don't forget: <code className="bg-slate-100 px-1 rounded">nmcli con up {con}</code> afterwards.</p>
+        </div>
+    );
+};
+
+const FstabBuilder = () => {
+    const [uuid, setUuid] = useState('5b327b...a2');
+    const [mount, setMount] = useState('/data');
+    const [type, setType] = useState('xfs');
+    const [opts, setOpts] = useState('defaults');
+    const [dump, setDump] = useState('0');
+    const [pass, setPass] = useState('0');
+
+    const line = `UUID=${uuid}  ${mount}  ${type}  ${opts}  ${dump}  ${pass}`;
+
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><HardDriveIcon size={16} className="text-amber-500"/> FSTAB Generator</h3>
+            <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="col-span-2"><label className="text-[10px] uppercase font-bold text-slate-500">UUID (blkid)</label><input value={uuid} onChange={e=>setUuid(e.target.value)} className="w-full border rounded p-1 text-sm font-mono"/></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Type</label>
+                    <select value={type} onChange={e=>setType(e.target.value)} className="w-full border rounded p-1 text-sm bg-white">
+                        <option value="xfs">xfs</option>
+                        <option value="ext4">ext4</option>
+                        <option value="vfat">vfat</option>
+                        <option value="swap">swap</option>
+                    </select>
+                </div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Mount Point</label><input value={mount} onChange={e=>setMount(e.target.value)} className="w-full border rounded p-1 text-sm font-mono"/></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Options</label><input value={opts} onChange={e=>setOpts(e.target.value)} className="w-full border rounded p-1 text-sm font-mono"/></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Dump / Pass</label>
+                    <div className="flex gap-1">
+                        <input value={dump} onChange={e=>setDump(e.target.value)} className="w-1/2 border rounded p-1 text-sm font-mono text-center"/>
+                        <input value={pass} onChange={e=>setPass(e.target.value)} className="w-1/2 border rounded p-1 text-sm font-mono text-center"/>
+                    </div>
+                </div>
+            </div>
+            <CodeBlock color="blue">{line}</CodeBlock>
+            <p className="text-[10px] text-slate-400 mt-2">Add this to <code>/etc/fstab</code>. Use <code>mount -a</code> to test.</p>
+        </div>
+    );
+};
+
+const UserBuilder = () => {
+    const [user, setUser] = useState('alex');
+    const [uid, setUid] = useState('');
+    const [gid, setGid] = useState('');
+    const [groups, setGroups] = useState('');
+    const [shell, setShell] = useState('/bin/bash');
+
+    let cmd = `useradd`;
+    if (uid) cmd += ` -u ${uid}`;
+    if (gid) cmd += ` -g ${gid}`;
+    if (groups) cmd += ` -G ${groups}`;
+    if (shell !== '/bin/bash') cmd += ` -s ${shell}`;
+    cmd += ` ${user}`;
+
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><UserPlusIcon size={16} className="text-blue-500"/> User Wizard</h3>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Username</label><input value={user} onChange={e=>setUser(e.target.value)} className="w-full border rounded p-1 text-sm font-mono"/></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Shell</label>
+                    <select value={shell} onChange={e=>setShell(e.target.value)} className="w-full border rounded p-1 text-sm bg-white">
+                        <option value="/bin/bash">/bin/bash</option>
+                        <option value="/sbin/nologin">/sbin/nologin</option>
+                        <option value="/bin/sh">/bin/sh</option>
+                    </select>
+                </div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">UID (Optional)</label><input value={uid} onChange={e=>setUid(e.target.value)} placeholder="1001" className="w-full border rounded p-1 text-sm font-mono"/></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Primary GID (Optional)</label><input value={gid} onChange={e=>setGid(e.target.value)} placeholder="1001" className="w-full border rounded p-1 text-sm font-mono"/></div>
+                <div className="col-span-2"><label className="text-[10px] uppercase font-bold text-slate-500">Secondary Groups (Comma sep)</label><input value={groups} onChange={e=>setGroups(e.target.value)} placeholder="wheel,devops" className="w-full border rounded p-1 text-sm font-mono"/></div>
+            </div>
+            <CodeBlock color="green">{cmd}</CodeBlock>
+        </div>
+    );
+};
+
+const SELinuxReference = () => {
+    const [service, setService] = useState('httpd');
+    
+    const data = {
+        httpd: { file: 'httpd_sys_content_t', port: 'http_port_t', bool: 'httpd_enable_homedirs' },
+        samba: { file: 'samba_share_t', port: 'smbd_port_t', bool: 'samba_enable_home_dirs' },
+        ssh: { file: 'ssh_home_t', port: 'ssh_port_t', bool: 'N/A' },
+        ftp: { file: 'public_content_t', port: 'ftp_port_t', bool: 'ftpd_anon_write' }
+    };
+
+    const ctx = data[service];
+
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><ShieldIcon size={16} className="text-emerald-500"/> SELinux Quick Ref</h3>
+            <div className="mb-4">
+                <label className="text-[10px] uppercase font-bold text-slate-500">Select Service</label>
+                <select value={service} onChange={e=>setService(e.target.value)} className="w-full border rounded p-2 text-sm bg-white font-bold text-slate-700">
+                    <option value="httpd">Apache Web Server (httpd)</option>
+                    <option value="samba">Samba File Share (smb)</option>
+                    <option value="ssh">SSH Server</option>
+                    <option value="ftp">FTP Server</option>
+                </select>
+            </div>
+            <div className="space-y-2 text-sm">
+                <div className="flex justify-between border-b pb-1">
+                    <span className="text-slate-600">File Context:</span>
+                    <span className="font-mono text-emerald-600 font-bold">{ctx.file}</span>
+                </div>
+                <div className="flex justify-between border-b pb-1">
+                    <span className="text-slate-600">Port Type:</span>
+                    <span className="font-mono text-emerald-600 font-bold">{ctx.port}</span>
+                </div>
+                <div className="flex justify-between pb-1">
+                    <span className="text-slate-600">Common Boolean:</span>
+                    <span className="font-mono text-emerald-600 font-bold">{ctx.bool}</span>
+                </div>
+            </div>
+            <div className="mt-4 pt-4 border-t border-slate-100">
+                <div className="text-[9px] text-slate-400 font-bold uppercase mb-1">Fix Context</div>
+                <CodeBlock>semanage fcontext -a -t {ctx.file} "/dir(/.*)?"</CodeBlock>
+                <CodeBlock>restorecon -Rv /dir</CodeBlock>
+            </div>
+        </div>
+    );
+};
+
+// ... (ReportCard, FlashcardDrill, CheatSheetModal, TroubleshootingModal remain unchanged)
+const ReportCard = ({ results, total, onClose }) => {
+    const score = Math.round((results.filter(r => r.success).length / total) * 100);
+    const missed = results.filter(r => !r.success);
+    const missedCategories = missed.reduce((acc, curr) => {
+        acc[curr.category] = (acc[curr.category] || 0) + 1;
+        return acc;
+    }, {});
+
+    return (
+        <div className="absolute inset-0 bg-slate-900/95 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-2xl border-4 border-slate-700 animate-in fade-in zoom-in duration-300">
+                <div className="text-center mb-6">
+                    <h2 className="text-3xl font-bold text-slate-800 mb-2">Exam Results</h2>
+                    <div className={`text-5xl font-mono font-bold ${score >= 70 ? 'text-green-600' : 'text-red-600'}`}>{score}%</div>
+                    <p className="text-slate-500 text-sm mt-2">{score >= 70 ? "PASSED! You're ready for the real deal." : "FAILED. Review the pillars below."}</p>
+                </div>
+                {Object.keys(missedCategories).length > 0 && (
+                    <div className="mb-6">
+                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1"><AlertTriangleIcon size={14} /> Weak Points Detected</h4>
+                        <div className="space-y-2">
+                            {Object.entries(missedCategories).map(([cat, count]) => (
+                                <div key={cat} className="flex justify-between items-center bg-red-50 p-2 rounded border border-red-100 text-sm">
+                                    <span className="font-semibold text-slate-700">{cat}</span>
+                                    <span className="bg-red-200 text-red-800 text-xs px-2 py-0.5 rounded-full">Missed {count}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                <button onClick={onClose} className="w-full bg-slate-900 text-white font-bold py-3 rounded hover:bg-slate-800 transition-colors">Close Report</button>
+            </div>
+        </div>
+    );
+};
+
+const FlashcardDrill = ({ cards, onClose }) => {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [isFlipped, setIsFlipped] = useState(false);
+
+    const nextCard = () => {
+        setIsFlipped(false);
+        setTimeout(() => setCurrentIndex((prev) => (prev + 1) % cards.length), 150);
+    };
+
+    const prevCard = () => {
+         setIsFlipped(false);
+         setTimeout(() => setCurrentIndex((prev) => (prev - 1 + cards.length) % cards.length), 150);
+    };
+
+    return (
+        <div className="absolute inset-0 bg-slate-900/95 flex items-center justify-center z-50 p-4">
+             <div className="relative w-full max-w-lg h-96" style={{ perspective: '1000px' }}>
+                <button onClick={onClose} className="absolute -top-12 right-0 text-white hover:text-red-400">Close</button>
+                 <div className="relative w-full h-full text-center transition-transform duration-500 cursor-pointer" style={{ transformStyle: 'preserve-3d', transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }} onClick={() => setIsFlipped(!isFlipped)}>
+                    <div className="absolute w-full h-full bg-white rounded-xl shadow-2xl p-8 flex flex-col items-center justify-center" style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
+                        <h3 className="text-slate-400 text-sm uppercase tracking-widest mb-4">Concept</h3>
+                        <p className="text-2xl font-bold text-slate-800">{cards[currentIndex].front}</p>
+                        <p className="text-xs text-slate-400 mt-8">(Click to flip)</p>
+                    </div>
+                    <div className="absolute w-full h-full bg-slate-800 rounded-xl shadow-2xl p-8 flex flex-col items-center justify-center" style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
+                         <h3 className="text-slate-500 text-sm uppercase tracking-widest mb-4">Solution</h3>
+                         <div className="bg-black p-4 rounded w-full overflow-x-auto"><code className="text-green-400 font-mono text-lg">{cards[currentIndex].back}</code></div>
+                    </div>
+                 </div>
+                 <div className="absolute -bottom-16 w-full flex justify-between items-center text-white">
+                     <button onClick={prevCard} className="px-4 py-2 bg-slate-700 rounded hover:bg-slate-600">Previous</button>
+                     <span>{currentIndex + 1} / {cards.length}</span>
+                     <button onClick={nextCard} className="px-4 py-2 bg-slate-700 rounded hover:bg-slate-600">Next</button>
+                 </div>
+             </div>
+        </div>
+    );
+};
+
+const CheatSheetModal = ({ bookmarks, missions, onClose }) => {
+    const bookmarkedMissions = missions.filter(m => bookmarks.includes(m.id));
+    return (
+        <div className="absolute inset-0 bg-slate-900/95 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl">
+                <div className="p-6 border-b border-slate-200 flex justify-between items-center">
+                    <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2"><StarIcon className="text-yellow-400 fill-yellow-400" size={24}/> My Cheat Sheet</h2>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600">Close</button>
+                </div>
+                <div className="p-6 overflow-y-auto flex-1">
+                    {bookmarkedMissions.length === 0 ? (
+                        <div className="text-center text-slate-500 py-12"><p>No commands bookmarked yet.</p></div>
+                    ) : (
+                        <div className="space-y-4">
+                            {bookmarkedMissions.map(mission => (
+                                <div key={mission.id} className="border border-slate-200 rounded-lg p-4 bg-slate-50">
+                                    <div className="flex justify-between items-start mb-2"><h3 className="font-bold text-slate-800">{mission.title}</h3><span className="text-xs bg-slate-200 px-2 py-1 rounded text-slate-600">{mission.category}</span></div>
+                                    <p className="text-sm text-slate-600 mb-3">{mission.desc}</p>
+                                    <div className="bg-slate-900 p-2 rounded text-green-400 font-mono text-xs">{mission.hint}</div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+                <div className="p-4 border-t border-slate-200 bg-slate-50 text-center"><button onClick={() => window.print()} className="text-blue-600 text-sm font-bold hover:underline">Print / Save as PDF</button></div>
+            </div>
+        </div>
+    );
+};
+
+const TroubleshootingModal = ({ onClose }) => {
+    const [currentNode, setCurrentNode] = useState(null);
+    const [treeType, setTreeType] = useState(null);
+
+    const TROUBLESHOOTING_TREES = {
+        service: {
+            title: "Service Won't Start",
+            startNode: 'status',
+            nodes: {
+                status: { text: "Check the service status. Is it active (running)?", cmd: "systemctl status <service>", yes: 'firewall', no: 'start' },
+                start: { text: "Try starting the service. Did it fail?", cmd: "systemctl start <service>", yes: 'logs', no: 'enable' },
+                logs: { text: "Check the system logs for specific error messages.", cmd: "journalctl -u <service> -e", action: "Fix configuration error based on logs." },
+                firewall: { text: "Is the firewall allowing the service port?", cmd: "firewall-cmd --list-all", yes: 'selinux', no: 'open_port' },
+                open_port: { text: "Open the port permanently and reload.", cmd: "firewall-cmd --permanent --add-service=<service> && firewall-cmd --reload", action: "Retry connection." },
+                selinux: { text: "Check for SELinux denials.", cmd: "grep AVC /var/log/audit/audit.log", yes: 'restorecon', no: 'network' },
+                restorecon: { text: "Restore default file contexts.", cmd: "restorecon -Rv /var/www/html", action: "Retry connection." },
+                enable: { text: "Service started successfully. Ensure it's enabled.", cmd: "systemctl enable <service>", action: "Done." },
+                network: { text: "Verify network connectivity.", cmd: "ping -c 4 <gateway>", action: "Check routing table." }
+            }
+        },
+        ssh: {
+            title: "Cannot SSH to Server",
+            startNode: 'ping',
+            nodes: {
+                ping: { text: "Can you ping the server IP?", cmd: "ping <ip_address>", yes: 'ssh_port', no: 'local_ip' },
+                local_ip: { text: "Do you have a valid IP address?", cmd: "ip a", yes: 'route', no: 'nmcli' },
+                nmcli: { text: "Configure static IP.", cmd: "nmcli con add ...", action: "Retry ping." },
+                route: { text: "Check IP route.", cmd: "ip route", action: "Fix gateway." },
+                ssh_port: { text: "Is the SSH service running on the target?", cmd: "systemctl status sshd", yes: 'firewall_ssh', no: 'start_ssh' },
+                firewall_ssh: { text: "Is port 22 open on the firewall?", cmd: "firewall-cmd --list-all", yes: 'perm_denied', no: 'open_ssh' },
+                start_ssh: { text: "Start SSH service on target.", cmd: "systemctl start sshd", action: "Retry connection." },
+                open_ssh: { text: "Allow SSH service.", cmd: "firewall-cmd --permanent --add-service=ssh && firewall-cmd --reload", action: "Retry connection." },
+                perm_denied: { text: "Permission Denied? Check root login settings.", cmd: "grep PermitRootLogin /etc/ssh/sshd_config", action: "Edit config to 'yes' or use user account." }
+            }
+        }
+    };
+
+    const startTree = (type) => { setTreeType(type); setCurrentNode(TROUBLESHOOTING_TREES[type].startNode); };
+    const node = treeType && currentNode ? TROUBLESHOOTING_TREES[treeType].nodes[currentNode] : null;
+
+    return (
+        <div className="absolute inset-0 bg-slate-900/95 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg w-full max-w-lg shadow-2xl border-4 border-slate-700 p-6">
+                 <div className="flex justify-between items-center mb-6 border-b pb-4">
+                    <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2"><WrenchIcon className="text-blue-500" size={24}/> Troubleshooter</h2>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600">Close</button>
+                </div>
+                {!treeType ? (
+                    <div className="grid grid-cols-1 gap-4">
+                        <p className="text-slate-600 text-center mb-2">Select a scenario to troubleshoot:</p>
+                        <button onClick={() => startTree('service')} className="p-4 bg-slate-100 hover:bg-slate-200 rounded text-left font-semibold text-slate-700">🚀 Service Won't Start</button>
+                        <button onClick={() => startTree('ssh')} className="p-4 bg-slate-100 hover:bg-slate-200 rounded text-left font-semibold text-slate-700">🔒 Cannot SSH to Server</button>
+                    </div>
+                ) : (
+                    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                        <div className="mb-4">
+                             <h3 className="font-bold text-lg text-blue-600 mb-2">{TROUBLESHOOTING_TREES[treeType].title}</h3>
+                             <p className="text-slate-700 text-lg mb-4">{node.text}</p>
+                             {node.cmd && <div className="bg-slate-900 p-3 rounded text-green-400 font-mono text-sm mb-4">&gt; {node.cmd}</div>}
+                        </div>
+                        {node.action ? (
+                             <div className="bg-green-100 p-4 rounded text-green-800 font-bold text-center border border-green-200">✅ Solution: {node.action}<button onClick={() => setTreeType(null)} className="block mx-auto mt-4 text-sm font-normal underline">Start Over</button></div>
+                        ) : (
+                             <div className="grid grid-cols-2 gap-4">
+                                 <button onClick={() => setCurrentNode(node.yes)} className="p-3 bg-green-500 hover:bg-green-600 text-white rounded font-bold">YES</button>
+                                 <button onClick={() => setCurrentNode(node.no)} className="p-3 bg-red-500 hover:bg-red-600 text-white rounded font-bold">NO</button>
+                             </div>
+                        )}
+                        <button onClick={() => setTreeType(null)} className="mt-4 text-xs text-slate-400 hover:text-slate-600">← Back to Menu</button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+
+// --- 3. CONSTANTS & DATA ---
+const MAX_INPUT_LENGTH = 256; 
+const ILLEGAL_CHARS = /<script\b[^>]*>([\s\S]*?)<\/script>/gm; 
+const UTILITY_COMMANDS = ['clear', 'help', 'ls', 'pwd', 'whoami', 'history', 'id', 'exit', 'man', 'cat', 'touch', 'mkdir', 'rm', 'cd', 'cp', 'mv', 'chgrp', 'echo'];
+
+const THEMES = [
+    { id: 'rhel', name: 'RHEL (Default)', bg: 'bg-slate-900', text: 'text-slate-300', prompt: 'text-green-400', cursor: 'bg-green-400' },
+    { id: 'matrix', name: 'Hacker Green', bg: 'bg-black', text: 'text-green-500', prompt: 'text-green-400', cursor: 'bg-green-500' },
+    { id: 'dracula', name: 'Dracula', bg: 'bg-[#282a36]', text: 'text-[#f8f8f2]', prompt: 'text-[#ff79c6]', cursor: 'bg-[#bd93f9]' },
+    { id: 'amber', name: 'Retro Amber', bg: 'bg-[#1a1200]', text: 'text-[#ffb000]', prompt: 'text-[#ffb000]', cursor: 'bg-[#ffb000]' }
+];
+
+const MAN_PAGES = {
+    useradd: "NAME\n  useradd - create a new user\nSYNOPSIS\n  useradd [options] LOGIN\nOPTIONS\n  -u UID\n  -g GID\n  -G GROUPS",
+    tar: "NAME\n  tar - archive utility\nOPTIONS\n  -c Create\n  -x Extract\n  -f File\n  -v Verbose\n  -z Gzip",
+    chmod: "NAME\n  chmod - change file mode bits\nEXAMPLES\n  chmod 755 file",
+    grep: "NAME\n  grep - print lines matching a pattern\nSYNOPSIS\n  grep [OPTIONS] PATTERN [FILE...]\nOPTIONS\n  -i, --ignore-case\n  -v, --invert-match\n  -r, --recursive",
+    systemctl: "NAME\n  systemctl - Control the systemd system and service manager\nCOMMANDS\n  start\n  stop\n  restart\n  status\n  enable\n  disable\n  isolate",
+    default: "No manual entry found. Try 'help'."
+};
+
+const FLASHCARDS = [
+    { id: 1, front: "Exact command to add a DNF repository", back: "dnf config-manager --add-repo <url>" },
+    { id: 2, front: "nmcli command to add a static Ethernet connection", back: "nmcli con add con-name <name> type ethernet ifname <interface> ip4 <ip/mask> gw4 <gateway>" },
+    { id: 3, front: "Octal Permission: Read + Execute", back: "5 (4+1)" },
+    { id: 4, front: "Octal Permission: Read + Write", back: "6 (4+2)" },
+    { id: 5, front: "Kernel argument to interrupt boot for password reset", back: "rd.break OR init=/bin/bash (Recommended: init=/bin/bash)" },
+    { id: 6, front: "Step to ensure SELinux relabeling after password reset", back: "touch /.autorelabel" },
+    { id: 7, front: "Command to make a firewall rule persistent", back: "--permanent" },
+    { id: 8, front: "Command to reload firewall configuration", back: "firewall-cmd --reload" },
+    { id: 9, front: "LVM command to extend a volume and resize FS together", back: "lvextend -r -L +<size> <lv_path>" }
+];
+
+const INITIAL_FS = {
+    '/root': { type: 'dir', children: { 'anaconda-ks.cfg': { type: 'file', content: 'kickstart config...' }, 'original-ks.cfg': { type: 'file', content: 'backup config...' } } },
+    '/home': { type: 'dir', children: { 'student': { type: 'dir', children: {} } } },
+    '/etc': { type: 'dir', children: { 'passwd': { type: 'file', content: 'root:x:0:0:root:/root:/bin/bash\nstudent:x:1000:1000:Student User:/home/student:/bin/bash' }, 'hosts': { type: 'file', content: '127.0.0.1   localhost\n::1         localhost' }, 'os-release': { type: 'file', content: 'NAME="Red Hat Enterprise Linux"\nVERSION="9.0 (Plow)"' } } },
+};
+
+// FULL MISSION LIST
+const MISSIONS = [
+  // PILLAR 1: TOOLS & SCRIPTING
+  { id: 1, category: "Tools", tool: "useradd", title: "User Management", desc: "Create user 'student' with UID 2000.", lesson: "RHEL user creation.", hint: "useradd -u 2000 student", check: (cmd) => /^useradd\s+/.test(cmd) && /\s-u\s+2000\b/.test(cmd) },
+  { id: 2, category: "Tools", tool: "groupadd", title: "Group Management", desc: "Create group 'devops' with GID 5000.", lesson: "Static GIDs.", hint: "groupadd -g 5000 devops", check: (cmd) => /^groupadd\s+/.test(cmd) && /-g\s+5000/.test(cmd) },
+  { id: 3, category: "Tools", tool: "usermod", title: "Modify User", desc: "Add 'student' to 'devops' group.", lesson: "Append groups.", hint: "usermod -aG devops student", check: (cmd) => /^usermod\s+/.test(cmd) && /-aG\s+devops/.test(cmd) },
+  { id: 4, category: "Tools", tool: "tar", title: "Archiving", desc: "Create gzip archive 'backup.tar.gz' of '/home'.", lesson: "Tar with gzip.", hint: "tar -czvf backup.tar.gz /home", check: (cmd) => /^tar\s+/.test(cmd) && /-[a-zA-Z]*z/.test(cmd) && /-[a-zA-Z]*c/.test(cmd) },
+  { id: 5, category: "Tools", tool: "chmod", title: "Permissions", desc: "Set 'script.sh' permissions: Owner=All, Group=RX, Other=None.", lesson: "Octal 750.", hint: "chmod 750 script.sh", check: (cmd) => /^chmod\s+750\s+script\.sh$/.test(cmd) },
+  { id: 6, category: "Tools", tool: "grep", title: "Grep", desc: "Search for lines starting with 'root' in '/etc/passwd'.", lesson: "Regex anchors.", hint: "grep \"^root\" /etc/passwd", check: (cmd) => /^grep\s+/.test(cmd) && /\^root/.test(cmd) },
+  { id: 7, category: "Tools", tool: "ln", title: "Soft Link", desc: "Create soft link 'mylink' to '/etc/hosts'.", lesson: "Symbolic links.", hint: "ln -s /etc/hosts mylink", check: (cmd) => /^ln\s+/.test(cmd) && /\s-s\s/.test(cmd) },
+  { id: 8, category: "Tools", tool: "find", title: "Find Files", desc: "Find files in '/etc' ending with '.conf'.", lesson: "Find by name.", hint: "find /etc -name \"*.conf\"", check: (cmd) => /^find\s+/.test(cmd) && /-name/.test(cmd) },
+  { id: 9, category: "Tools", tool: "setfacl", title: "ACLs", desc: "Grant 'student' RW access to 'file.txt' via ACL.", lesson: "Extended permissions.", hint: "setfacl -m u:student:rw file.txt", check: (cmd) => /^setfacl\s+/.test(cmd) && /-m/.test(cmd) },
+  { id: 10, category: "Tools", tool: "man", title: "Documentation", desc: "Open the manual for 'grep'.", lesson: "man pages are your best friend in the exam.", hint: "man grep", check: (cmd) => /^man\s+grep$/.test(cmd) },
+  { id: 11, category: "Tools", tool: "touch", title: "Create Script", desc: "Create an empty shell script named 'myscript.sh'.", lesson: "Scripts automate tasks.", hint: "touch myscript.sh", check: (cmd) => /^touch\s+myscript\.sh$/.test(cmd) },
+  { id: 12, category: "Tools", tool: "chmod", title: "Make Executable", desc: "Make 'myscript.sh' executable.", lesson: "chmod +x adds execution bit.", hint: "chmod +x myscript.sh", check: (cmd) => /^chmod\s+\+x\s+myscript\.sh$/.test(cmd) },
+  { id: 13, category: "Tools", tool: "echo", title: "Script Inputs", desc: "Echo the first argument ($1).", lesson: "$1, $2 are positional arguments.", hint: "echo $1", check: (cmd) => /^echo\s+\$1$/.test(cmd) },
+  // EXAM PREP: NEW TOOLS QUESTIONS
+  { id: 101, category: "Exam Prep", tool: "useradd", title: "User Sarah (No Login)", desc: "Create user 'sarah' with no login shell.", lesson: "Exam Q4", hint: "useradd -s /sbin/nologin sarah", check: (cmd) => /^useradd\s+/.test(cmd) && /-s\s+\/sbin\/nologin\s+sarah/.test(cmd) },
+  { id: 102, category: "Exam Prep", tool: "useradd", title: "User Alex (UID)", desc: "Create user 'alex' with UID 3456.", lesson: "Exam Q10", hint: "useradd -u 3456 alex", check: (cmd) => /^useradd\s+/.test(cmd) && /-u\s+3456\s+alex/.test(cmd) },
+  { id: 103, category: "Exam Prep", tool: "find", title: "Find & Copy (Exec)", desc: "Find 'harry' files and copy to /root/harry-files.", lesson: "Exam Q11", hint: "find / -user harry -type f -exec cp ...", check: (cmd) => /^find\s+/.test(cmd) && /-user\s+harry/.test(cmd) && /-exec\s+cp/.test(cmd) },
+
+  // PILLAR 2: SYSTEMS
+  { id: 14, category: "Systems", tool: "systemctl", title: "Service Status", desc: "Check status of 'httpd'.", lesson: "Systemd control.", hint: "systemctl status httpd", check: (cmd) => /^systemctl\s+status\s+httpd$/.test(cmd) },
+  { id: 15, category: "Systems", tool: "systemctl", title: "Default Target", desc: "Set default boot to text-mode.", lesson: "Multi-user target.", hint: "systemctl set-default multi-user.target", check: (cmd) => /^systemctl\s+set-default\s+multi-user\.target$/.test(cmd) },
+  { id: 16, category: "Systems", tool: "tuned-adm", title: "Tuning", desc: "Set profile to 'virtual-guest'.", lesson: "Performance profiles.", hint: "tuned-adm profile virtual-guest", check: (cmd) => /^tuned-adm\s+profile\s+virtual-guest$/.test(cmd) },
+  { id: 17, category: "Systems", tool: "nice", title: "Process Priority", desc: "Start 'tar' with priority 5.", lesson: "Process niceness.", hint: "nice -n 5 tar", check: (cmd) => /^nice\s+/.test(cmd) && /-n\s+5/.test(cmd) },
+  { id: 18, category: "Systems", tool: "chronyc", title: "NTP", desc: "Verify NTP sources.", lesson: "Time sync.", hint: "chronyc sources", check: (cmd) => /^chronyc\s+sources/.test(cmd) },
+  { id: 19, category: "Systems", tool: "journalctl", title: "Logging", desc: "Show logs for 'sshd'.", lesson: "Systemd journal.", hint: "journalctl -u sshd", check: (cmd) => /^journalctl\s+/.test(cmd) && /-u\s+sshd/.test(cmd) },
+  { id: 20, category: "Systems", tool: "systemctl", title: "Reboot System", desc: "Reboot the machine.", lesson: "System power state.", hint: "systemctl reboot", check: (cmd) => /^systemctl\s+reboot$/.test(cmd) },
+  { id: 21, category: "Systems", tool: "systemctl", title: "Boot Target", desc: "Isolate 'multi-user.target' now.", lesson: "Switch to text mode without rebooting.", hint: "systemctl isolate multi-user.target", check: (cmd) => /^systemctl\s+isolate\s+multi-user\.target$/.test(cmd) },
+  { id: 22, category: "Systems", tool: "touch", title: "Root Pass Reset", desc: "Create the autorelabel file (Simulated).", lesson: "Essential for resetting root pass.", hint: "touch /.autorelabel", check: (cmd) => /^touch\s+\/\.autorelabel$/.test(cmd) },
+  { id: 23, category: "Systems", tool: "kill", title: "Kill Process", desc: "Force kill PID 1234.", lesson: "-9 sends SIGKILL.", hint: "kill -9 1234", check: (cmd) => /^kill\s+-9\s+1234$/.test(cmd) },
+  { id: 24, category: "Systems", tool: "renice", title: "Scheduling", desc: "Renice PID 1234 to priority 10.", lesson: "Adjust running process priority.", hint: "renice -n 10 1234", check: (cmd) => /^renice\s+-n\s+10\s+1234$/.test(cmd) },
+  { id: 25, category: "Systems", tool: "mkdir", title: "Preserve Logs", desc: "Create '/var/log/journal'.", lesson: "Makes journald logs persistent.", hint: "mkdir /var/log/journal", check: (cmd) => /^mkdir\s+(\/var\/log\/journal)/.test(cmd) },
+  { id: 26, category: "Systems", tool: "systemctl", title: "Network Svc", desc: "Check status of 'NetworkManager'.", lesson: "Service management.", hint: "systemctl status NetworkManager", check: (cmd) => /^systemctl\s+status\s+NetworkManager$/.test(cmd) },
+  { id: 27, category: "Systems", tool: "scp", title: "Transfer File", desc: "Copy 'file' to 'serverb:/tmp'.", lesson: "Secure Copy.", hint: "scp file serverb:/tmp", check: (cmd) => /^scp\s+file\s+serverb:\/tmp$/.test(cmd) },
+
+  // PILLAR 3: STORAGE
+  { id: 28, category: "Storage", tool: "pvcreate", title: "PV Creation", desc: "Init '/dev/vdb1' as PV.", lesson: "LVM Layer 1.", hint: "pvcreate /dev/vdb1", check: (cmd) => /^pvcreate\s+\/dev\/vdb1$/.test(cmd) },
+  { id: 29, category: "Storage", tool: "vgcreate", title: "VG Creation", desc: "Create VG 'myvg' using '/dev/vdb1'.", lesson: "LVM Layer 2.", hint: "vgcreate myvg /dev/vdb1", check: (cmd) => /^vgcreate\s+myvg\s+\/dev\/vdb1$/.test(cmd) },
+  { id: 30, category: "Storage", tool: "lvcreate", title: "LV Creation", desc: "Create 500MB LV 'mylv' in 'myvg'.", lesson: "LVM Layer 3.", hint: "lvcreate -L 500M -n mylv myvg", check: (cmd) => /^lvcreate\s+/.test(cmd) && /-L\s+500M/.test(cmd) },
+  { id: 31, category: "Storage", tool: "lvextend", title: "Extend LV", desc: "Add 200MB to 'mylv' and resize FS.", lesson: "Resize fs flag.", hint: "lvextend -L +200M -r /dev/myvg/mylv", check: (cmd) => /^lvextend\s+/.test(cmd) && /-r/.test(cmd) },
+  { id: 32, category: "Storage", tool: "mkfs.xfs", title: "Format FS", desc: "Format '/dev/myvg/mylv' as XFS.", lesson: "Filesystem creation.", hint: "mkfs.xfs /dev/myvg/mylv", check: (cmd) => /^mkfs\.xfs\s+/.test(cmd) },
+  { id: 33, category: "Storage", tool: "mkswap", title: "Swap", desc: "Format '/dev/vdb2' as swap.", lesson: "Swap space.", hint: "mkswap /dev/vdb2", check: (cmd) => /^mkswap\s+\/dev\/vdb2$/.test(cmd) },
+  { id: 34, category: "Storage", tool: "mount", title: "Mounting", desc: "Mount NFS share 'server:/share' to '/mnt'.", lesson: "Mount command.", hint: "mount -t nfs server:/share /mnt", check: (cmd) => /^mount\s+/.test(cmd) && /-t\s+nfs/.test(cmd) },
+  { id: 35, category: "Storage", tool: "fdisk", title: "Partitioning", desc: "Manage partitions on '/dev/vdb'.", lesson: "MBR/GPT management.", hint: "fdisk /dev/vdb", check: (cmd) => /^fdisk\s+\/dev\/vdb$/.test(cmd) },
+  { id: 36, category: "Storage", tool: "blkid", title: "UUID", desc: "Find UUIDs for block devices.", lesson: "Persistent mounting identifier.", hint: "blkid", check: (cmd) => /^blkid$/.test(cmd) },
+  { id: 37, category: "Storage", tool: "swapon", title: "Enable Swap", desc: "Activate swap on '/dev/vdb2'.", lesson: "Enable swap.", hint: "swapon /dev/vdb2", check: (cmd) => /^swapon\s+\/dev\/vdb2$/.test(cmd) },
+  { id: 38, category: "Storage", tool: "mkfs.ext4", title: "Format Ext4", desc: "Format '/dev/myvg/mylv' as Ext4.", lesson: "Filesystem creation.", hint: "mkfs.ext4 /dev/myvg/mylv", check: (cmd) => /^mkfs\.ext4\s+\/dev\/myvg\/mylv$/.test(cmd) },
+  { id: 39, category: "Storage", tool: "mount", title: "Mount FS", desc: "Mount '/dev/myvg/mylv' to '/mnt'.", lesson: "Manual mounting.", hint: "mount /dev/myvg/mylv /mnt", check: (cmd) => /^mount\s+\/dev\/myvg\/mylv\s+\/mnt$/.test(cmd) },
+  { id: 40, category: "Storage", tool: "dnf", title: "AutoFS", desc: "Install 'autofs'.", lesson: "Automounting utility.", hint: "dnf install autofs", check: (cmd) => /^dnf\s+install\s+autofs$/.test(cmd) },
+  // EXAM PREP: STORAGE QUESTIONS
+  { id: 104, category: "Exam Prep", tool: "lvresize", title: "Resize LV (Exact)", desc: "Resize wshare to 300MB (Exact).", lesson: "Exam Q20", hint: "lvresize -r -L 300M /dev/wgroup/wshare", check: (cmd) => /^lv(resize|extend|reduce)\s+/.test(cmd) && /-L\s+300M/.test(cmd) },
+  { id: 109, category: "Exam Prep", tool: "lvcreate", title: "LVM Extents", desc: "Create LV 'wshare' with 50 extents in 'wgroup'.", lesson: "Exam Q18 (-l is for extents, -L for size)", hint: "lvcreate -l 50 -n wshare wgroup", check: (cmd) => /^lvcreate\s+/.test(cmd) && /-l\s+50/.test(cmd) && /wshare/.test(cmd) },
+
+  // PILLAR 4: DEPLOY
+  { id: 41, category: "Deploy", tool: "dnf", title: "Install Software", desc: "Install 'httpd'.", lesson: "Package manager.", hint: "dnf install httpd", check: (cmd) => /^dnf\s+install\s+httpd$/.test(cmd) },
+  { id: 42, category: "Deploy", tool: "crontab", title: "Cron", desc: "List current cron jobs.", lesson: "Scheduling.", hint: "crontab -l", check: (cmd) => /^crontab\s+-l$/.test(cmd) },
+  { id: 43, category: "Deploy", tool: "flatpak", title: "Flatpak", desc: "Install 'gedit' from flathub.", lesson: "Container apps.", hint: "flatpak install flathub org.gnome.gedit", check: (cmd) => /^flatpak\s+install/.test(cmd) },
+  { id: 44, category: "Deploy", tool: "hostnamectl", title: "Hostname", desc: "Set hostname to 'server1'.", lesson: "System identity.", hint: "hostnamectl set-hostname server1", check: (cmd) => /^hostnamectl\s+set-hostname\s+server1/.test(cmd) },
+  { id: 45, category: "Deploy", tool: "dnf", title: "Repos", desc: "Add repo 'http://repo.com/app.repo'.", lesson: "Repo management.", hint: "dnf config-manager --add-repo http://repo.com/app.repo", check: (cmd) => /^dnf\s+config-manager\s+--add-repo/.test(cmd) },
+  { id: 46, category: "Deploy", tool: "systemctl", title: "Enable Boot", desc: "Enable 'httpd' to start at boot.", lesson: "Service persistence.", hint: "systemctl enable httpd", check: (cmd) => /^systemctl\s+enable\s+httpd$/.test(cmd) },
+  { id: 47, category: "Deploy", tool: "dnf", title: "Update Pkg", desc: "Update all packages.", lesson: "System maintenance.", hint: "dnf update", check: (cmd) => /^dnf\s+update$/.test(cmd) },
+  { id: 48, category: "Deploy", tool: "grub2-mkconfig", title: "Bootloader", desc: "Regenerate GRUB config.", lesson: "Bootloader updates.", hint: "grub2-mkconfig -o /boot/grub2/grub.cfg", check: (cmd) => /^grub2-mkconfig\s+/.test(cmd) },
+  { id: 49, category: "Deploy", tool: "firewall-cmd", title: "Firewall Service", desc: "Allow 'http' permanently.", lesson: "Network security.", hint: "firewall-cmd --add-service=http --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-service=http/.test(cmd) && /--permanent/.test(cmd) },
+  { id: 50, category: "Deploy", tool: "dnf", title: "Module Streams", desc: "Install the 'nodejs:18' module stream.", lesson: "AppStream allows different versions of software. Syntax: `module:stream`.", hint: "dnf module install nodejs:18", check: (cmd) => /^dnf\s+module\s+install\s+nodejs:18$/.test(cmd) },
+  { id: 51, category: "Deploy", tool: "tuned-adm", title: "Recommended Tuning", desc: "Apply the recommended tuning profile for this system.", lesson: "`recommend` asks TuneD to detect the best profile.", hint: "tuned-adm recommend", check: (cmd) => /^tuned-adm\s+recommend$/.test(cmd) },
+  // EXAM PREP: DEPLOY QUESTIONS
+  { id: 105, category: "Exam Prep", tool: "crontab", title: "Cron (Natasha)", desc: "User natasha: echo 'hiya' daily at 14:23.", lesson: "Exam Q6", hint: "crontab -e -u natasha", check: (cmd) => /^crontab\s+/.test(cmd) && /-u\s+natasha/.test(cmd) },
+  // ADDED MISSIONS (Full coverage)
+  { id: 111, category: "Exam Prep", tool: "chgrp", title: "Change Group", desc: "Change group of '/home/manager' to 'sysadmin'.", lesson: "File ownership.", hint: "chgrp sysadmin /home/manager", check: (cmd) => /^chgrp\s+sysadmin\s+\/home\/manager/.test(cmd) },
+  { id: 112, category: "Exam Prep", tool: "grep", title: "IO Redirection", desc: "Save lines containing 'root' from /etc/passwd to root_users.txt.", lesson: "Redirect stdout (>).", hint: "grep root /etc/passwd > root_users.txt", check: (cmd) => /^grep\s+root\s+\/etc\/passwd\s+>\s+root_users\.txt/.test(cmd) },
+  { id: 113, category: "Exam Prep", tool: "dnf", title: "System Roles", desc: "Install RHEL System Roles.", lesson: "Ansible automation.", hint: "dnf install rhel-system-roles", check: (cmd) => /^dnf\s+install\s+rhel-system-roles/.test(cmd) },
+
+
+  // PILLAR 5: SECURITY
+  { id: 52, category: "Security", tool: "nmcli", title: "Network", desc: "Add ethernet connection 'static-eth0'.", lesson: "NetworkManager.", hint: "nmcli con add con-name static-eth0 type ethernet ifname eth0", check: (cmd) => /^nmcli\s+con\s+add/.test(cmd) },
+  { id: 53, category: "Security", tool: "firewall-cmd", title: "Firewall", desc: "Permanently allow 'ftp'.", lesson: "Firewalld.", hint: "firewall-cmd --add-service=ftp --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-service=ftp/.test(cmd) && /--permanent/.test(cmd) },
+  { id: 54, category: "Security", tool: "ssh-keygen", title: "SSH", desc: "Generate SSH keys.", lesson: "Secure shell.", hint: "ssh-keygen", check: (cmd) => /^ssh-keygen/.test(cmd) },
+  { id: 55, category: "Security", tool: "ls", title: "SELinux List", desc: "List file contexts.", lesson: "Context labels.", hint: "ls -Z", check: (cmd) => /^ls\s+/.test(cmd) && /-[a-zA-Z]*Z/.test(cmd) },
+  { id: 56, category: "Security", tool: "restorecon", title: "SELinux Restore", desc: "Fix contexts on '/var/www/html'.", lesson: "Context repair.", hint: "restorecon -R /var/www/html", check: (cmd) => /^restorecon\s+/.test(cmd) && /-R/.test(cmd) },
+  { id: 57, category: "Security", tool: "chage", title: "Passwords", desc: "Set max password age to 90 days for 'student'.", lesson: "Aging policies.", hint: "chage -M 90 student", check: (cmd) => /^chage\s+/.test(cmd) && /-M\s+90/.test(cmd) },
+  { id: 58, category: "Security", tool: "firewall-cmd", title: "Firewall Port", desc: "Open port 8080/tcp permanently.", lesson: "Port security.", hint: "firewall-cmd --add-port=8080/tcp --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-port=8080\/tcp/.test(cmd) },
+  { id: 59, category: "Security", tool: "umask", title: "Umask", desc: "Set umask to 027.", lesson: "Default permissions.", hint: "umask 027", check: (cmd) => /^umask\s+027$/.test(cmd) },
+  { id: 60, category: "Security", tool: "setenforce", title: "Enforcing", desc: "Set SELinux to Enforcing.", lesson: "MAC mode.", hint: "setenforce 1", check: (cmd) => /^setenforce\s+1$/.test(cmd) },
+  { id: 61, category: "Security", tool: "semanage", title: "Port Label", desc: "Add port 81 to http_port_t.", lesson: "SELinux ports.", hint: "semanage port -a -t http_port_t -p tcp 81", check: (cmd) => /^semanage\s+port\s+/.test(cmd) && /-a/.test(cmd) },
+  { id: 62, category: "Security", tool: "setsebool", title: "Boolean", desc: "Enable httpd home dirs.", lesson: "SELinux booleans.", hint: "setsebool -P httpd_enable_homedirs 1", check: (cmd) => /^setsebool\s+/.test(cmd) && /-P/.test(cmd) },
+  { id: 63, category: "Users", tool: "userdel", title: "Delete User", desc: "Delete user 'harry'.", lesson: "User mgmt.", hint: "userdel harry", check: (cmd) => /^userdel\s+harry$/.test(cmd) },
+  { id: 64, category: "Users", tool: "groupdel", title: "Delete Group", desc: "Delete group 'sales'.", lesson: "Group mgmt.", hint: "groupdel sales", check: (cmd) => /^groupdel\s+sales$/.test(cmd) },
+  // EXAM PREP: SECURITY QUESTIONS
+  { id: 106, category: "Exam Prep", tool: "chmod", title: "Collab Dir (2770)", desc: "Set permission 2770 on /home/manager.", lesson: "Exam Q5", hint: "chmod 2770 /home/manager", check: (cmd) => /^chmod\s+2770\s+/.test(cmd) },
+  { id: 107, category: "Exam Prep", tool: "nmcli", title: "Static IP (Exam)", desc: "Set IP 172.25.250.10 for 'System eth0'.", lesson: "Exam Q1", hint: "nmcli con mod \"System eth0\" ipv4.addresses 172.25.250.10/24 ...", check: (cmd) => /^nmcli\s+con\s+mod\s+/.test(cmd) && /172\.25\.250\.10\/24/.test(cmd) },
+  { id: 108, category: "Exam Prep", tool: "semanage", title: "SELinux Port 82", desc: "Allow httpd to listen on tcp port 82.", lesson: "Exam Q3", hint: "semanage port -a -t http_port_t -p tcp 82", check: (cmd) => /^semanage\s+port\s+/.test(cmd) && /-p\s+tcp\s+82/.test(cmd) }
+];
+
 // --- 4. MAIN APP COMPONENT ---
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -112,6 +769,18 @@ export default function App() {
   const [cwd, setCwd] = useState('/root');
   const [isTerminalOpen, setIsTerminalOpen] = useState(true);
   
+  // NEW: System State for Realism
+  const [systemState, setSystemState] = useState({
+      users: ['root', 'student'],
+      groups: ['root', 'student', 'wheel'],
+      services: { 
+          'httpd': 'inactive', 
+          'sshd': 'active', 
+          'crond': 'active',
+          'firewalld': 'active'
+      }
+  });
+  
   // New Paging State
   const [isPaging, setIsPaging] = useState(false);
   
@@ -120,6 +789,14 @@ export default function App() {
 
   // PRO STATE
   const [completedMissions, setCompletedMissions] = useState([]);
+  const [examMode, setExamMode] = useState(false);
+  const [examTimeLeft, setExamTimeLeft] = useState(0);
+  const [examQuestions, setExamQuestions] = useState([]);
+  const [examResults, setExamResults] = useState([]); 
+  const [showReportCard, setShowReportCard] = useState(false);
+  const [showFlashcards, setShowFlashcards] = useState(false);
+  const [showCheatSheet, setShowCheatSheet] = useState(false);
+  const [showTroubleshoot, setShowTroubleshoot] = useState(false); 
   const [bookmarkedMissions, setBookmarkedMissions] = useState([]);
   
   const [activeTab, setActiveTab] = useState('pillar-1');
@@ -153,6 +830,19 @@ export default function App() {
       localStorage.setItem('rhcsa_bookmarks', JSON.stringify(bookmarkedMissions));
   }, [bookmarkedMissions]);
 
+  // Exam Timer
+  useEffect(() => {
+      let interval;
+      if (examMode && examTimeLeft > 0) {
+          interval = setInterval(() => {
+              setExamTimeLeft((prev) => prev - 1);
+          }, 1000);
+      } else if (examMode && examTimeLeft === 0) {
+          endExam();
+      }
+      return () => clearInterval(interval);
+  }, [examMode, examTimeLeft]);
+
   // Auto-scroll terminal
   useEffect(() => {
     terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -179,6 +869,29 @@ export default function App() {
     return input.replace(ILLEGAL_CHARS, "");
   };
 
+  const startExamMode = () => {
+      const shuffled = [...MISSIONS].sort(() => 0.5 - Math.random());
+      const selected = shuffled.slice(0, 15);
+      
+      setExamQuestions(selected);
+      setExamResults([]); 
+      setExamMode(true);
+      setShowReportCard(false);
+      setExamTimeLeft(20 * 60); 
+      setCurrentMissionId(selected[0].id);
+      setTerminalHistory([]);
+      addToTerm("--- MOCK EXAM STARTED ---", 'system');
+      addToTerm("You have 20 minutes to complete 15 random tasks.", 'system');
+      addToTerm(`Task 1: ${selected[0].desc}`, 'system');
+  };
+
+  const endExam = () => {
+      setExamMode(false);
+      setShowReportCard(true);
+      addToTerm("EXAM FINISHED. Generating report...", 'system');
+      setCurrentMissionId(0);
+  };
+
   const toggleBookmark = (id) => {
       if (bookmarkedMissions.includes(id)) {
           setBookmarkedMissions(prev => prev.filter(bId => bId !== id));
@@ -202,6 +915,7 @@ export default function App() {
           setBookmarkedMissions([]);
           setFs(INITIAL_FS);
           setLvmState({ pvs: [], vgs: [], lvs: [], mounts: [] });
+          setSystemState({ users: ['root', 'student'], groups: ['root', 'student', 'wheel'], services: { 'httpd': 'inactive', 'sshd': 'active', 'crond': 'active', 'firewalld': 'active' } });
           setTerminalHistory([]);
           addToTerm("Lab environment reset to factory defaults.", 'system');
       }
@@ -227,7 +941,7 @@ export default function App() {
     }
 
     // MISSION LOGIC
-    const activeMissionList = missions;
+    const activeMissionList = examMode ? examQuestions : missions;
     const currentMission = activeMissionList.find(m => m.id === currentMissionId);
 
     if (currentMissionId > 0 && currentMission) {
@@ -239,31 +953,52 @@ export default function App() {
         setSuccessFlash(true);
         setTimeout(() => setSuccessFlash(false), 800);
         
-        if (!completedMissions.includes(currentMission.id)) {
+        // Track Result for Report Card
+        if (examMode) {
+             setExamResults(prev => [...prev, { ...currentMission, success: true }]);
+        }
+        
+        if (!examMode && !completedMissions.includes(currentMission.id)) {
             setCompletedMissions(prev => [...prev, currentMission.id]);
         }
 
-        // Normal
-         const currentIndex = missions.findIndex(m => m.id === currentMissionId);
-        if (currentIndex < missions.length - 1) {
-            const nextMission = missions[currentIndex + 1];
-             setTimeout(() => {
+        if (examMode) {
+            const currentIndex = examQuestions.findIndex(m => m.id === currentMissionId);
+            if (currentIndex < examQuestions.length - 1) {
+                const nextMission = examQuestions[currentIndex + 1];
                 setCurrentMissionId(nextMission.id);
-                addToTerm(`\n--- MISSION ${nextMission.id} ---`, 'system');
-                addToTerm(`Objective: ${nextMission.desc}`, 'system');
-            }, 1500);
+                setTimeout(() => {
+                    addToTerm(`\n--- EXAM TASK ${currentIndex + 2}/${examQuestions.length} ---`, 'system');
+                    addToTerm(`Objective: ${nextMission.desc}`, 'system');
+                }, 1000);
+            } else {
+                endExam();
+            }
         } else {
-            setMissionComplete(true);
-            addToTerm("ALL MISSIONS COMPLETE!", 'success');
+            // Normal
+             const currentIndex = missions.findIndex(m => m.id === currentMissionId);
+            if (currentIndex < missions.length - 1) {
+                const nextMission = missions[currentIndex + 1];
+                 setTimeout(() => {
+                    setCurrentMissionId(nextMission.id);
+                    addToTerm(`\n--- MISSION ${nextMission.id} ---`, 'system');
+                    addToTerm(`Objective: ${nextMission.desc}`, 'system');
+                }, 1500);
+            } else {
+                setMissionComplete(true);
+                addToTerm("ALL MISSIONS COMPLETE!", 'success');
+            }
         }
         return;
       }
       
       // Feedback
-      if (cleanCmd.startsWith(currentMission.tool) && base === currentMission.tool) {
-          addToTerm(`> Correct command '${base}', check flags.`, 'error');
-      } else if (!UTILITY_COMMANDS.includes(base) && base !== currentMission.tool) {
-          addToTerm(`> Wrong tool. Try again.`, 'error');
+      if (!examMode) {
+          if (cleanCmd.startsWith(currentMission.tool) && base === currentMission.tool) {
+              addToTerm(`> Correct command '${base}', check flags.`, 'error');
+          } else if (!UTILITY_COMMANDS.includes(base) && base !== currentMission.tool) {
+              addToTerm(`> Wrong tool. Try again.`, 'error');
+          }
       }
     }
 
@@ -276,14 +1011,95 @@ export default function App() {
                  setCurrentServer('servera');
                  addToTerm("logout", 'system');
                  addToTerm("Connection to serverb closed.", 'system');
-             } else {
+             } else if (examMode) {
+                setExamMode(false);
+                addToTerm("Exam aborted.", 'error');
+                setCurrentMissionId(0);
+            } else {
                 setCurrentMissionId(0);
                 setMissionComplete(false);
                 addToTerm("Session reset.", 'system');
                 setLvmState({ pvs: [], vgs: [], lvs: [], mounts: [] }); // Reset LVM on logout
             }
             break;
+          // --- USER MGMT SIMULATION ---
+          case 'useradd':
+              const newUser = args[args.length - 1];
+              if (newUser && !newUser.startsWith('-')) {
+                  if (systemState.users.includes(newUser)) {
+                      addToTerm(`useradd: user '${newUser}' already exists`, 'error');
+                  } else {
+                      setSystemState(prev => ({ ...prev, users: [...prev.users, newUser] }));
+                      addToTerm(""); // Success silent
+                  }
+              } else {
+                  addToTerm("Usage: useradd [options] LOGIN", 'error');
+              }
+              break;
+          case 'groupadd':
+              const newGroup = args[args.length - 1];
+              if (newGroup && !newGroup.startsWith('-')) {
+                  if (systemState.groups.includes(newGroup)) {
+                      addToTerm(`groupadd: group '${newGroup}' already exists`, 'error');
+                  } else {
+                      setSystemState(prev => ({ ...prev, groups: [...prev.groups, newGroup] }));
+                      addToTerm(""); // Success silent
+                  }
+              }
+              break;
+          // --- SERVICE SIMULATION ---
+          case 'systemctl':
+              const action = args[1];
+              const svc = args[2];
+              if (['start', 'stop', 'restart', 'enable', 'disable'].includes(action)) {
+                  if (svc) {
+                      const newState = (action === 'start' || action === 'restart' || action === 'enable') ? 'active' : 'inactive';
+                      setSystemState(prev => ({ ...prev, services: { ...prev.services, [svc]: newState } }));
+                      if (action === 'enable' || action === 'disable') {
+                          addToTerm(action === 'enable' ? `Created symlink /etc/systemd/system/multi-user.target.wants/${svc}.service -> ...` : `Removed /etc/systemd/system/multi-user.target.wants/${svc}.service.`);
+                      } else {
+                          addToTerm(""); // silent success for start/stop
+                      }
+                  } else {
+                      addToTerm("systemctl: missing argument", 'error');
+                  }
+              } else if (action === 'status') {
+                  if (svc) {
+                      const status = systemState.services[svc] || 'inactive';
+                      const color = status === 'active' ? 'text-green-400' : 'text-slate-400';
+                      addToTerm(`● ${svc}.service - The ${svc} service`);
+                      addToTerm(`   Loaded: loaded (/usr/lib/systemd/system/${svc}.service; disabled; vendor preset: disabled)`);
+                      addToTerm(`   Active: ${status} (running) since ...`, status === 'active' ? 'success' : 'system');
+                  }
+              }
+              break;
           // --- FILESYSTEM SIMULATION ---
+          case 'cat':
+              if (args[1]) {
+                  const target = args[1];
+                  // Handle virtual files
+                  if (target === '/etc/passwd') {
+                      addToTerm(systemState.users.map(u => `${u}:x:100${systemState.users.indexOf(u)}:100${systemState.users.indexOf(u)}::/home/${u}:/bin/bash`).join('\n'));
+                  } else if (target === '/etc/group') {
+                      addToTerm(systemState.groups.map(g => `${g}:x:100${systemState.groups.indexOf(g)}:`).join('\n'));
+                  } else {
+                      // Handle FS files
+                      let found = false;
+                      if (target.startsWith('/')) {
+                          if (fs[target] && fs[target].type === 'file') {
+                              addToTerm(fs[target].content || "");
+                              found = true;
+                          }
+                      } else {
+                          if (fs[cwd] && fs[cwd].children && fs[cwd].children[target] && fs[cwd].children[target].type === 'file') {
+                              addToTerm(fs[cwd].children[target].content || "");
+                              found = true;
+                          }
+                      }
+                      if (!found) addToTerm(`cat: ${target}: No such file or directory`, 'error');
+                  }
+              }
+              break;
           case 'touch':
               if (args[1]) {
                   const targetDir = fs[cwd];
@@ -292,7 +1108,7 @@ export default function App() {
                           ...prev,
                           [cwd]: {
                               ...prev[cwd],
-                              children: { ...prev[cwd].children, [args[1]]: { type: 'file' } }
+                              children: { ...prev[cwd].children, [args[1]]: { type: 'file', content: '' } }
                           }
                       }));
                       addToTerm(""); // Success is silent in unix
@@ -403,10 +1219,12 @@ export default function App() {
               }
               break;
           case 'start':
-            setCurrentMissionId(1);
-            setMissionComplete(false);
-            addToTerm(`\n--- MISSION 1 ---`, 'system');
-            addToTerm(`Objective: ${MISSIONS[0].desc}`, 'system');
+            if (!examMode) {
+                setCurrentMissionId(1);
+                setMissionComplete(false);
+                addToTerm(`\n--- MISSION 1 ---`, 'system');
+                addToTerm(`Objective: ${MISSIONS[0].desc}`, 'system');
+            }
             break;
           case 'ls':
               const dir = fs[cwd];
@@ -436,9 +1254,16 @@ export default function App() {
                  }
               }
               break;
-          case 'id': addToTerm("uid=0(root) gid=0(root) groups=0(root)"); break;
+          case 'id': 
+              const idUser = args[1] || 'root';
+              if (systemState.users.includes(idUser)) {
+                  const uid = 1000 + systemState.users.indexOf(idUser);
+                  addToTerm(`uid=${uid}(${idUser}) gid=${uid}(${idUser}) groups=${uid}(${idUser})`); 
+              } else {
+                  addToTerm(`id: ${idUser}: no such user`, 'error');
+              }
+              break;
           case 'nmcli': addToTerm("Connection successfully added."); break;
-          case 'systemctl': addToTerm("Active: active (running)"); break;
           case 'dnf': addToTerm("Complete!"); break;
           case 'grep': if(cleanCmd.includes('^root')) addToTerm("root:x:0:0:root:/root:/bin/bash"); break;
           case 'nmtui': addToTerm("Opening NetworkManager TUI... [Graphic Interface Simulated]", 'success'); break;
@@ -447,7 +1272,7 @@ export default function App() {
           case 'semanage': addToTerm("Port label added."); break;
           case 'restorecon': addToTerm("Relabeled."); break;
           default: 
-            if (!['useradd','groupadd','usermod','tar','chmod','ln','find','setfacl','tuned-adm','nice','chronyc','journalctl','lvextend','mkswap','mount','crontab','firewall-cmd','ssh-keygen','chage','fdisk','scp','kill'].includes(base)) {
+            if (!['usermod','tar','chmod','ln','find','setfacl','tuned-adm','nice','chronyc','journalctl','lvextend','mkswap','mount','crontab','firewall-cmd','ssh-keygen','chage','fdisk','scp','kill'].includes(base)) {
                  addToTerm(`bash: ${base}: command not found`, 'error');
             } else {
                  addToTerm("Command executed (Simulated).");
@@ -457,6 +1282,7 @@ export default function App() {
   };
 
   const handleKeyDown = (e) => {
+    // ... (rest of logic remains unchanged)
     if (isPaging) {
         e.preventDefault();
         if (e.key === 'q' || e.key === 'Q' || (e.key === 'c' && e.ctrlKey)) {
@@ -515,11 +1341,13 @@ export default function App() {
     }
   };
 
-  const activeMission = missions.find(m => m.id === currentMissionId);
+  const activeMission = examMode 
+    ? examQuestions.find(m => m.id === currentMissionId) 
+    : missions.find(m => m.id === currentMissionId);
 
   return (
     <div className="flex h-screen bg-slate-50 font-sans text-slate-800">
-      
+      {/* ... (UI Rendering remains unchanged, just using the state variables defined above) */}
       {/* SIDEBAR */}
       <nav className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white transform transition-transform duration-300 md:relative md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-6 h-full flex flex-col">
@@ -533,9 +1361,25 @@ export default function App() {
              </div>
              <ProgressBar completed={completedMissions.length} total={MISSIONS.length} />
           </div>
+
+          <button onClick={startExamMode} disabled={examMode} className="w-full flex items-center justify-center gap-2 mb-6 px-3 py-2 rounded-md bg-red-600 text-white font-bold hover:bg-red-700 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+             <TimerIcon size={16}/> {examMode ? "Exam in Progress" : "Start Mock Exam"}
+          </button>
+          
+          <div className="grid grid-cols-2 gap-2 mb-6">
+             <button onClick={() => setShowTroubleshoot(true)} disabled={examMode} className="col-span-2 flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-teal-600 text-white font-bold hover:bg-teal-700 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                <WrenchIcon size={16}/> Troubleshooter
+             </button>
+             <button onClick={() => setShowFlashcards(true)} disabled={examMode} className="flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-indigo-600 text-white font-bold hover:bg-indigo-700 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                <CardIcon size={16}/> Cards
+             </button>
+             <button onClick={() => setShowCheatSheet(true)} disabled={examMode} className="flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-slate-700 text-white font-bold hover:bg-slate-600 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                <ListIcon size={16}/> Cheat Sheet
+             </button>
+          </div>
           
           <ul className="space-y-1 overflow-y-auto flex-1 scrollbar-hide">
-            <li><button onClick={() => { setCurrentMissionId(0); }} className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors w-full text-left"><TerminalIcon size={16}/> Practice Lab</button></li>
+            <li><button onClick={() => { setExamMode(false); setCurrentMissionId(0); }} className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors w-full text-left"><TerminalIcon size={16}/> Practice Lab</button></li>
             <div className="my-2 border-t border-slate-800"></div>
             <li className="text-xs text-slate-500 uppercase tracking-wider mt-4 mb-2 px-3">Quick Links</li>
             
@@ -547,13 +1391,28 @@ export default function App() {
           </ul>
 
           <div className="mt-auto pt-4 border-t border-slate-800">
-             <button onClick={resetLab} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-rose-400 font-bold hover:bg-slate-800 text-xs transition-colors">
+             <button onClick={resetLab} disabled={examMode} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-rose-400 font-bold hover:bg-slate-800 text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                 <RotateCcwIcon size={14}/> Reset Lab Environment
             </button>
           </div>
 
         </div>
       </nav>
+
+      {/* MODALS */}
+      {showFlashcards && (
+          <FlashcardDrill cards={FLASHCARDS} onClose={() => setShowFlashcards(false)} />
+      )}
+      {showCheatSheet && (
+          <CheatSheetModal bookmarks={bookmarkedMissions} missions={MISSIONS} onClose={() => setShowCheatSheet(false)} />
+      )}
+      {showTroubleshoot && (
+        <TroubleshootingModal onClose={() => setShowTroubleshoot(false)} />
+      )}
+      {/* Report Card Overlay */}
+      {showReportCard && (
+        <ReportCard results={examResults} total={examQuestions.length} onClose={() => setShowReportCard(false)} />
+      )}
 
       {/* MOBILE MENU TOGGLE */}
       <button onClick={() => setSidebarOpen(!sidebarOpen)} className="fixed top-4 right-4 z-50 p-2 bg-slate-900 text-white rounded-md md:hidden shadow-lg">
@@ -683,333 +1542,4 @@ export default function App() {
              <section id="pillar-3" className="mb-16 scroll-mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
                 <div className="p-3 bg-amber-100 text-amber-600 rounded-lg"><HardDriveIcon size={24} /></div>
-                <div><h2 className="text-2xl font-bold text-slate-900">Pillar 3: Storage</h2></div>
-              </div>
-              <div className="grid md:grid-cols-2 gap-6">
-                
-                {/* Dynamic LVM Visualizer - Replaced Static Component */}
-                <LVMVisualizer lvmState={lvmState} />
-
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800">FSTAB Anatomy</h3>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left border-collapse">
-                      <thead className="bg-slate-900 text-white">
-                        <tr>
-                          <th className="p-2 border border-slate-700">UUID/Device</th>
-                          <th className="p-2 border border-slate-700">Mount</th>
-                          <th className="p-2 border border-slate-700">Type</th>
-                        </tr>
-                      </thead>
-                      <tbody className="font-mono text-xs">
-                        <tr className="bg-amber-50">
-                          <td className="p-2 border border-amber-200">UUID="5b...a2"</td>
-                          <td className="p-2 border border-amber-200">/data</td>
-                          <td className="p-2 border border-amber-200">xfs</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">AutoFS</h3>
-                   <CodeBlock>/shares /etc/auto.shares</CodeBlock>
-                </div>
-                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Stratis & VDO</h3>
-                   <p className="text-xs text-slate-600 mb-2">Advanced storage layers.</p>
-                   <CodeBlock>stratis pool create mypool /dev/sdb</CodeBlock>
-                   <CodeBlock>stratis fs create mypool myfs</CodeBlock>
-                </div>
-                <FstabBuilder />
-              </div>
-            </section>
-            )}
-
-            {activeTab === 'pillar-4' && (
-             <section id="pillar-4" className="mb-16 scroll-mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
-                <div className="p-3 bg-purple-100 text-purple-600 rounded-lg"><SettingsIcon size={24} /></div>
-                <div><h2 className="text-2xl font-bold text-slate-900">Pillar 4: Deploy & Maintain</h2></div>
-              </div>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800">Software & Time</h3>
-                  <div className="space-y-3">
-                    <div className="text-sm">
-                      <p className="text-xs text-slate-600 mb-1 font-bold">DNF (Package Manager):</p>
-                      <CodeBlock>dnf install httpd</CodeBlock>
-                      <CodeBlock>dnf update</CodeBlock>
-                    </div>
-                    <div className="text-sm">
-                      <p className="text-xs text-slate-600 mb-1 font-bold">Chrony (NTP):</p>
-                      <CodeBlock>chronyc sources</CodeBlock>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800">Containerized Apps</h3>
-                   <p className="text-xs text-slate-600 mb-2">Flatpak is used for desktop applications.</p>
-                   <CodeBlock>flatpak remote-add --if-not-exists flathub ...</CodeBlock>
-                   <CodeBlock>flatpak install flathub org.gnome.gedit</CodeBlock>
-                </div>
-                
-                <CronBuilder />
-
-                 {/* NEW CARD */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Repositories</h3>
-                   <p className="text-xs text-slate-600 mb-2">Config in <code>/etc/yum.repos.d/</code></p>
-                   <CodeBlock>[repo_id]</CodeBlock>
-                   <CodeBlock>baseurl=http://server/repo</CodeBlock>
-                   <CodeBlock>gpgcheck=0</CodeBlock>
-                </div>
-              </div>
-            </section>
-            )}
-
-            {activeTab === 'pillar-5' && (
-             <section id="pillar-5" className="mb-24 scroll-mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
-                <div className="p-3 bg-emerald-100 text-emerald-600 rounded-lg"><ShieldIcon size={24} /></div>
-                <div><h2 className="text-2xl font-bold text-slate-900">Pillar 5: Security & Networking</h2></div>
-              </div>
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Visual: Security Layers */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><ShieldIcon size={16} className="text-emerald-500"/> Defense Layers</h3>
-                   <div className="relative flex items-center justify-center h-32">
-                        <div className="absolute w-32 h-32 bg-red-100 rounded-full flex items-center justify-center border-2 border-red-200 z-10">
-                            <span className="text-[10px] font-bold text-red-800 mt-[-20px]">Firewall</span>
-                        </div>
-                        <div className="absolute w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center border-2 border-emerald-200 z-20">
-                            <span className="text-[10px] font-bold text-emerald-800 mt-[-10px]">SELinux</span>
-                        </div>
-                        <div className="absolute w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center border-2 border-blue-200 z-30">
-                            <span className="text-[8px] font-bold text-blue-800">rwx</span>
-                        </div>
-                   </div>
-                   <div className="text-xs text-center text-slate-500 mt-1">If Firewall opens, SELinux can still block.</div>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800">SELinux</h3>
-                   <CodeBlock>restorecon -R /var/www/html</CodeBlock>
-                </div>
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Firewall</h3>
-                   <CodeBlock>firewall-cmd --permanent --add-service=http</CodeBlock>
-                </div>
-                 {/* NEW CARDS */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Access Control Lists</h3>
-                   <CodeBlock>setfacl -m u:student:rw file</CodeBlock>
-                   <CodeBlock>getfacl file</CodeBlock>
-                </div>
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">System Identity</h3>
-                   <p className="text-xs text-slate-600 mb-2">Set hostname persistently.</p>
-                   <CodeBlock>hostnamectl set-hostname name</CodeBlock>
-                </div>
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Privilege Escalation</h3>
-                   <p className="text-xs text-slate-600 mb-2">Configure sudo access.</p>
-                   <CodeBlock>/etc/sudoers.d/custom</CodeBlock>
-                   <CodeBlock>user ALL=(ALL) ALL</CodeBlock>
-                </div>
-                 
-                 <NetworkBuilder />
-                 <SELinuxReference />
-
-              </div>
-            </section>
-            )}
-            
-            {activeTab === 'tips' && (
-            <section className="mb-24 scroll-mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
-                 <div className="p-3 bg-indigo-100 text-indigo-600 rounded-lg"><BookOpenIcon size={24} /></div>
-                 <div><h2 className="text-2xl font-bold text-slate-900">Exam Strategy & Tips</h2></div>
-              </div>
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
-                   <div className="grid md:grid-cols-2 gap-6">
-                       <div>
-                           <h4 className="font-bold text-indigo-600 mb-2">During the Exam</h4>
-                           <ul className="list-disc pl-4 text-sm text-slate-600 space-y-1">
-                               <li><b>Reboot Often:</b> Verify your changes survive a reboot. If you break boot, fix it immediately using the recovery console.</li>
-                               <li><b>Read Carefully:</b> Does the question ask for a logical volume of 500MB or 500 extents?</li>
-                               <li><b>Use Man Pages:</b> Don't memorize flags. Type <code>man &lt;command&gt;</code> and search with <code>/</code>.</li>
-                               <li><b>Keyword Search:</b> Forgot a command? Use <code>man -k &lt;keyword&gt;</code> or <code>apropos &lt;keyword&gt;</code> to find it.</li>
-                               <li><b>Copy/Paste:</b> Mistyping a UUID in fstab is fatal. Use copy/paste from terminal output.</li>
-                           </ul>
-                       </div>
-                       <div>
-                           <h4 className="font-bold text-indigo-600 mb-2">Common Pitfalls</h4>
-                           <ul className="list-disc pl-4 text-sm text-slate-600 space-y-1">
-                               <li><b>Firewall:</b> Forgetting <code>--permanent</code> or <code>--reload</code>.</li>
-                               <li><b>SELinux:</b> Moving files instead of copying (preserves wrong context). Always use <code>restorecon</code>.</li>
-                               <li><b>Scripting:</b> Forgetting <code>chmod +x</code> to make scripts executable.</li>
-                               <li><b>LVM:</b> Forgetting to format the new logical volume before mounting (<code>mkfs</code>).</li>
-                               <li><b>Chronyd:</b> Forgetting to enable the service so it starts on boot.</li>
-                           </ul>
-                       </div>
-                   </div>
-                   
-                   <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                       <h4 className="font-bold text-red-700 mb-2 flex items-center gap-2"><AlertTriangleIcon size={18}/> Critical Failures (Zero Score Risks)</h4>
-                       <ul className="list-disc pl-4 text-sm text-red-800 space-y-1">
-                           <li><b>System Not Booting:</b> If your VM doesn't boot when the examiners restart it, you get a 0 for the entire exam. Test your reboots!</li>
-                           <li><b>Root Password:</b> If you cannot reset the root password successfully, they cannot grade your exam.</li>
-                           <li><b>Network Down:</b> If you mess up the network interface so the system is unreachable, they cannot grade it.</li>
-                       </ul>
-                   </div>
-              </div>
-            </section>
-            )}
-
-          </div>
-        </main>
-
-        {/* BOTTOM FIXED TERMINAL SECTION */}
-        <section id="practice-lab" className={`shrink-0 bg-slate-200 border-t border-slate-300 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] transition-all duration-300 ease-in-out flex flex-col ${isTerminalOpen ? 'h-80' : 'h-10'}`}>
-          <div 
-              className="h-10 bg-slate-300 border-b border-slate-400 flex items-center justify-between px-4 cursor-pointer hover:bg-slate-400 transition-colors shrink-0"
-              onClick={() => setIsTerminalOpen(!isTerminalOpen)}
-          >
-              <div className="flex items-center gap-2 font-bold text-slate-700 text-xs uppercase tracking-wider">
-                  <TerminalIcon size={16} /> Practice Lab & Missions
-              </div>
-              <div className="flex items-center gap-2 text-xs text-slate-600 font-bold">
-                  {isTerminalOpen ? "Minimize" : "Restore"}
-                  {isTerminalOpen ? <ChevronDownIcon size={16}/> : <ChevronUpIcon size={16}/>}
-              </div>
-          </div>
-
-          <div className={`flex-1 p-4 pt-0 overflow-hidden flex gap-4 ${!isTerminalOpen && 'invisible'}`}>
-            <div className="max-w-5xl mx-auto flex gap-4 w-full h-full pt-4">
-            
-            {/* Terminal Container */}
-            <div className={`flex-1 rounded-lg overflow-hidden flex flex-col shadow-lg border border-slate-700 relative bg-slate-900 ${successFlash ? 'animate-success-pulse' : ''}`}>
-              <div className={`p-2 flex items-center justify-between border-b border-slate-700 shrink-0 bg-slate-800`}>
-                <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
-                  <span className={`ml-2 text-xs font-mono text-slate-300`}>root@localhost:~</span>
-                </div>
-                <div className={`text-xs font-mono flex items-center gap-2 text-slate-300`}>
-                   <ShieldIcon size={12} className="text-green-400"/>
-                   <span className="text-[10px] uppercase">SSH Active</span>
-                </div>
-              </div>
-              
-              <div 
-                className={`flex-1 p-3 font-mono text-sm overflow-y-auto bg-slate-900 text-slate-300`}
-                onClick={() => inputRef.current?.focus()}
-              >
-                <div className="mb-2 opacity-70">Welcome to the RHCSA Practice Terminal v2.1</div>
-                
-                {terminalHistory.map((line, i) => (
-                  <div key={i} className={`whitespace-pre-wrap mb-1 break-words ${
-                    line.type === 'input' ? `text-slate-300 font-bold` : 
-                    line.type === 'success' ? 'text-green-400 font-bold' :
-                    line.type === 'error' ? 'text-red-400' : 
-                    line.type === 'system' ? 'text-yellow-400' : 'opacity-90'
-                  }`}>
-                    {line.text}
-                  </div>
-                ))}
-                <div ref={terminalEndRef} />
-                
-                <div className={`flex items-center mt-2 text-green-400`}>
-                  <span className="mr-2">[root@server ~]#</span>
-                  <input 
-                    ref={inputRef}
-                    type="text" 
-                    value={inputVal}
-                    onChange={(e) => setInputVal(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    className={`bg-transparent border-none outline-none flex-1 text-slate-300`}
-                    autoComplete="off" 
-                    spellCheck="false"
-                    maxLength={MAX_INPUT_LENGTH}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Mission/Lesson Side Panel */}
-            <div className="w-80 flex flex-col gap-3 shrink-0">
-              <div className="bg-white p-4 rounded-lg border border-slate-300 shadow-sm flex-1 overflow-y-auto relative">
-                {/* Visual indicator for completed missions */}
-                {activeMission && completedMissions.includes(activeMission.id) && (
-                    <div className="absolute top-2 right-2 text-green-500"><CheckIcon size={16} /></div>
-                )}
-                
-                {/* Bookmark Button (New Feature) */}
-                 {activeMission && (
-                    <button 
-                        onClick={() => toggleBookmark(activeMission.id)}
-                        className={`absolute top-2 left-2 ${bookmarkedMissions.includes(activeMission.id) ? 'text-yellow-400' : 'text-slate-300 hover:text-yellow-400'}`}
-                        title={bookmarkedMissions.includes(activeMission.id) ? "Remove Bookmark" : "Bookmark this Mission"}
-                    >
-                        <StarIcon size={18} className={bookmarkedMissions.includes(activeMission.id) ? "fill-current" : ""} />
-                    </button>
-                )}
-
-                <div className="flex items-center gap-2 mb-2 ml-6">
-                  <CrosshairIcon size={18} className="text-blue-600"/>
-                  <h3 className="font-bold text-slate-800 text-sm">
-                    {currentMissionId === 0 ? "Ready?" : `Mission ${currentMissionId}`}
-                  </h3>
-                </div>
-                <p className="text-xs text-slate-600 mb-3">
-                  {currentMissionId === 0 
-                    ? <span>Type <span className="bg-slate-100 px-1 rounded text-red-500 font-bold">start</span> to begin.</span>
-                    : missionComplete
-                      ? "All scenarios finished."
-                      : (activeMission ? activeMission.desc : "")
-                  }
-                </p>
-
-                {/* HINT TOGGLE (Disabled in Exam Mode) */}
-                {currentMissionId > 0 && !missionComplete && activeMission && (
-                   <div className="mt-2">
-                     {!showHint ? (
-                       <button 
-                         onClick={() => setShowHint(true)} 
-                         className="flex items-center gap-2 text-xs text-slate-500 hover:text-blue-600 transition-colors bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded w-full justify-center"
-                       >
-                         <EyeIcon size={12} /> Reveal Hint
-                       </button>
-                     ) : (
-                       <p className="text-xs text-blue-600 italic bg-blue-50 p-2 rounded border border-blue-100">
-                         Hint: {activeMission.hint}
-                       </p>
-                     )}
-                   </div>
-                )}
-              </div>
-              
-              <div className="bg-amber-50 p-3 rounded-lg border border-amber-200 shadow-sm h-24 overflow-y-auto">
-                <div className="flex items-center gap-2 mb-1 text-amber-700 font-bold text-[10px] uppercase tracking-wider">
-                  <BookOpenIcon size={10} /> Quick Lesson
-                </div>
-                {/* Fixed Lesson Display */}
-                <p className="text-[10px] text-amber-900 leading-relaxed">
-                {currentMissionId === 0 
-                    ? "Lessons appear here." 
-                    : (activeMission ? activeMission.lesson : "")
-                }
-                </p>
-              </div>
-            </div>
-            </div>
-          </div>
-        </section>
-
-      </div>
-    </div>
-  );
-}
+                <div><h2 className="text-2xl font-bold text-slate-90
