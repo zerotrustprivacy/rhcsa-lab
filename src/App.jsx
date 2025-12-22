@@ -91,6 +91,8 @@ const ProgressBar = ({ completed, total }) => {
     );
 };
 
+// --- VISUALIZERS & TOOLS ---
+
 const LVMVisualizer = ({ lvmState }) => {
     const getVgForPv = (pvName) => lvmState.vgs.find(vg => vg.pvs.includes(pvName));
 
@@ -367,6 +369,75 @@ const SELinuxReference = () => {
                 <div className="text-[9px] text-slate-400 font-bold uppercase mb-1">Fix Context</div>
                 <CodeBlock>semanage fcontext -a -t {ctx.file} "/dir(/.*)?"</CodeBlock>
                 <CodeBlock>restorecon -Rv /dir</CodeBlock>
+            </div>
+        </div>
+    );
+};
+
+// --- NEW: REPO FILE BUILDER ---
+const RepoBuilder = () => {
+    const [repoId, setRepoId] = useState('appstream');
+    const [name, setName] = useState('AppStream');
+    const [url, setUrl] = useState('http://content.example.com/rhel8.0/x86_64/appstream/os');
+    const [gpg, setGpg] = useState('0');
+    const [enabled, setEnabled] = useState('1');
+
+    const content = `[${repoId}]
+name=${name}
+baseurl=${url}
+enabled=${enabled}
+gpgcheck=${gpg}`;
+
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><SettingsIcon size={16} className="text-purple-500"/> Repo File Generator</h3>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Repo ID (No spaces)</label><input value={repoId} onChange={e=>setRepoId(e.target.value)} className="w-full border rounded p-1 text-sm"/></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Name</label><input value={name} onChange={e=>setName(e.target.value)} className="w-full border rounded p-1 text-sm"/></div>
+                <div className="col-span-2"><label className="text-[10px] uppercase font-bold text-slate-500">Base URL</label><input value={url} onChange={e=>setUrl(e.target.value)} className="w-full border rounded p-1 text-sm"/></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">GPG Check</label>
+                    <select value={gpg} onChange={e=>setGpg(e.target.value)} className="w-full border rounded p-1 text-sm bg-white">
+                        <option value="0">0 (Disabled)</option>
+                        <option value="1">1 (Enabled)</option>
+                    </select>
+                </div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Enabled</label>
+                    <select value={enabled} onChange={e=>setEnabled(e.target.value)} className="w-full border rounded p-1 text-sm bg-white">
+                        <option value="1">1 (Yes)</option>
+                        <option value="0">0 (No)</option>
+                    </select>
+                </div>
+            </div>
+            <div className="mt-2">
+                <p className="text-[10px] text-slate-500 mb-1 font-bold">/etc/yum.repos.d/{repoId}.repo</p>
+                <CodeBlock color="green">{content}</CodeBlock>
+            </div>
+        </div>
+    );
+};
+
+// --- NEW: SCRIPT SKELETON BUILDER ---
+const ScriptBuilder = () => {
+    const [name, setName] = useState('myscript.sh');
+    const [shebang, setShebang] = useState('/bin/bash');
+    const [desc, setDesc] = useState('My awesome script');
+
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><FileTextIcon size={16} className="text-blue-500"/> Script Starter</h3>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Filename</label><input value={name} onChange={e=>setName(e.target.value)} className="w-full border rounded p-1 text-sm"/></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Interpreter</label>
+                    <select value={shebang} onChange={e=>setShebang(e.target.value)} className="w-full border rounded p-1 text-sm bg-white">
+                        <option value="/bin/bash">/bin/bash</option>
+                        <option value="/usr/bin/python3">/usr/bin/python3</option>
+                    </select>
+                </div>
+                <div className="col-span-2"><label className="text-[10px] uppercase font-bold text-slate-500">Description</label><input value={desc} onChange={e=>setDesc(e.target.value)} className="w-full border rounded p-1 text-sm"/></div>
+            </div>
+            <div className="space-y-2">
+                <CodeBlock>{`#!${shebang}\n# ${desc}\n\necho "Starting script..."\n# Your code here\nexit 0`}</CodeBlock>
+                <CodeBlock color="green">{`chmod +x ${name}`}</CodeBlock>
             </div>
         </div>
     );
@@ -1421,6 +1492,7 @@ export default function App() {
                 <PermissionsCalculator />
                 <UserBuilder />
                 <FindBuilder />
+                <ScriptBuilder />
 
               </div>
             </section>
@@ -1549,6 +1621,7 @@ export default function App() {
                 </div>
                 
                 <CronBuilder />
+                <RepoBuilder />
 
                  {/* NEW CARD */}
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
