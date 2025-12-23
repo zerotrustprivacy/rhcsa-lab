@@ -32,7 +32,6 @@ const UserPlusIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.
 const ChevronDownIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="6 9 12 15 18 9"></polyline></svg>);
 const ChevronUpIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="18 15 12 9 6 15"></polyline></svg>);
 const RotateCcwIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>);
-const ActivityIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>);
 
 // --- 2. COMPONENTS (Defined BEFORE App) ---
 
@@ -293,6 +292,31 @@ const FstabBuilder = () => {
     );
 };
 
+// --- NEW: SWAP MANAGER (Exam Critical) ---
+const SwapBuilder = () => {
+    const [device, setDevice] = useState('/dev/vdb2');
+    
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><HardDriveIcon size={16} className="text-amber-500"/> Swap Space Manager</h3>
+            <div className="mb-4">
+                <label className="text-[10px] uppercase font-bold text-slate-500">Swap Partition/Device</label>
+                <input value={device} onChange={e=>setDevice(e.target.value)} className="w-full border rounded p-1 text-sm"/>
+            </div>
+            <div className="space-y-2">
+                <div className="text-[10px] uppercase font-bold text-slate-400">1. Initialize</div>
+                <CodeBlock color="green">{`mkswap ${device}`}</CodeBlock>
+                
+                <div className="text-[10px] uppercase font-bold text-slate-400">2. Activate (Temporary)</div>
+                <CodeBlock color="green">{`swapon ${device}`}</CodeBlock>
+                
+                <div className="text-[10px] uppercase font-bold text-slate-400">3. Persist (/etc/fstab)</div>
+                <CodeBlock color="blue">{`${device}  none  swap  defaults  0  0`}</CodeBlock>
+            </div>
+        </div>
+    );
+};
+
 const UserBuilder = () => {
     const [user, setUser] = useState('alex');
     const [uid, setUid] = useState('');
@@ -443,6 +467,30 @@ const ScriptBuilder = () => {
         </div>
     );
 };
+
+// --- NEW: NTP CONFIGURATOR ---
+const NTPBuilder = () => {
+    const [server, setServer] = useState('time.google.com');
+    
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><TimerIcon size={16} className="text-blue-500"/> NTP (Chrony) Config</h3>
+            <div className="mb-4">
+                <label className="text-[10px] uppercase font-bold text-slate-500">NTP Server Address</label>
+                <input value={server} onChange={e=>setServer(e.target.value)} className="w-full border rounded p-1 text-sm"/>
+            </div>
+            <div className="space-y-2">
+                <div className="text-[10px] uppercase font-bold text-slate-400">1. Edit Config</div>
+                <CodeBlock color="blue">{`echo "server ${server} iburst" >> /etc/chrony.conf`}</CodeBlock>
+                <div className="text-[10px] uppercase font-bold text-slate-400">2. Restart Service</div>
+                <CodeBlock color="green">{`systemctl restart chronyd`}</CodeBlock>
+                <div className="text-[10px] uppercase font-bold text-slate-400">3. Verify</div>
+                <CodeBlock color="green">{`chronyc sources`}</CodeBlock>
+            </div>
+        </div>
+    );
+};
+
 
 const ReportCard = ({ results, total, onClose }) => {
     const score = Math.round((results.filter(r => r.success).length / total) * 100);
@@ -623,77 +671,6 @@ const TroubleshootingModal = ({ onClose }) => {
         </div>
     );
 };
-
-// --- NEW DASHBOARD ---
-const SystemDashboard = ({ systemState }) => {
-    return (
-        <section id="dashboard" className="mb-16 scroll-mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-             <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
-                <div className="p-3 bg-teal-100 text-teal-600 rounded-lg"><ActivityIcon size={24} /></div>
-                <div><h2 className="text-2xl font-bold text-slate-900">Live System Status</h2></div>
-              </div>
-              
-              <div className="grid md:grid-cols-2 gap-6">
-                 {/* IDENTITY */}
-                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                     <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><CpuIcon size={16} className="text-blue-500"/> System Identity</h3>
-                     <div className="space-y-3">
-                         <div className="flex justify-between border-b pb-2">
-                             <span className="text-slate-500 text-sm">Hostname</span>
-                             <span className="font-mono font-bold text-slate-800">servera.lab.example.com</span>
-                         </div>
-                         <div className="flex justify-between border-b pb-2">
-                             <span className="text-slate-500 text-sm">OS Version</span>
-                             <span className="font-mono font-bold text-slate-800">RHEL 9.0 (Plow)</span>
-                         </div>
-                         <div className="flex justify-between pb-2">
-                             <span className="text-slate-500 text-sm">Kernel</span>
-                             <span className="font-mono font-bold text-slate-800">5.14.0-70.13.1.el9_0.x86_64</span>
-                         </div>
-                     </div>
-                 </div>
-
-                 {/* SERVICES */}
-                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                     <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><SettingsIcon size={16} className="text-purple-500"/> Service Health</h3>
-                     <div className="grid grid-cols-2 gap-3">
-                         {Object.entries(systemState.services).map(([svc, status]) => (
-                             <div key={svc} className={`p-3 rounded border flex items-center justify-between ${status === 'active' ? 'bg-green-50 border-green-200' : 'bg-slate-50 border-slate-200'}`}>
-                                 <span className="font-bold text-sm text-slate-700">{svc}.service</span>
-                                 <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${status === 'active' ? 'bg-green-200 text-green-800' : 'bg-slate-200 text-slate-500'}`}>{status}</span>
-                             </div>
-                         ))}
-                     </div>
-                 </div>
-
-                 {/* USERS */}
-                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                     <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><UserPlusIcon size={16} className="text-indigo-500"/> User Accounts</h3>
-                     <div className="flex flex-wrap gap-2">
-                         {systemState.users.map(user => (
-                             <div key={user} className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-full">
-                                 <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                                 <span className="text-sm font-bold text-slate-700">{user}</span>
-                             </div>
-                         ))}
-                     </div>
-                 </div>
-                 
-                 {/* NETWORK MOCK */}
-                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                     <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><NetworkIcon size={16} className="text-emerald-500"/> Network Interfaces</h3>
-                     <div className="space-y-3 font-mono text-xs">
-                         <div className="bg-slate-900 text-slate-300 p-3 rounded">
-                             <div className="mb-2"><span className="text-green-400">eth0:</span> &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500</div>
-                             <div className="pl-4">inet 172.25.250.10/24 brd 172.25.250.255 scope global eth0</div>
-                             <div className="pl-4">valid_lft forever preferred_lft forever</div>
-                         </div>
-                     </div>
-                 </div>
-              </div>
-        </section>
-    )
-}
 
 
 // --- 3. CONSTANTS & DATA ---
@@ -1456,506 +1433,4 @@ export default function App() {
           </div>
           
           <ul className="space-y-1 overflow-y-auto flex-1 scrollbar-hide">
-            <li><button onClick={() => { setExamMode(false); setCurrentMissionId(0); }} className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-slate-800 text-sm transition-colors w-full text-left"><TerminalIcon size={16}/> Practice Lab</button></li>
-            <div className="my-2 border-t border-slate-800"></div>
-            <li className="text-xs text-slate-500 uppercase tracking-wider mt-4 mb-2 px-3">Quick Links</li>
-            
-            <li><button onClick={() => setActiveTab('pillar-1')} className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors w-full text-left ${activeTab === 'pillar-1' ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 text-slate-400'}`}><FileTextIcon size={16}/> Tools & Scripting</button></li>
-            <li><button onClick={() => setActiveTab('pillar-2')} className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors w-full text-left ${activeTab === 'pillar-2' ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 text-slate-400'}`}><CpuIcon size={16}/> Running Systems</button></li>
-            <li><button onClick={() => setActiveTab('pillar-3')} className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors w-full text-left ${activeTab === 'pillar-3' ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 text-slate-400'}`}><HardDriveIcon size={16}/> Storage</button></li>
-            <li><button onClick={() => setActiveTab('pillar-4')} className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors w-full text-left ${activeTab === 'pillar-4' ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 text-slate-400'}`}><SettingsIcon size={16}/> Deploy & Maintain</button></li>
-            <li><button onClick={() => setActiveTab('pillar-5')} className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors w-full text-left ${activeTab === 'pillar-5' ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 text-slate-400'}`}><ShieldIcon size={16}/> Users & Security</button></li>
-            <li><button onClick={() => setActiveTab('dashboard')} className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors w-full text-left ${activeTab === 'dashboard' ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 text-slate-400'}`}><ActivityIcon size={16}/> System Status</button></li>
-          </ul>
-
-          <div className="mt-auto pt-4 border-t border-slate-800">
-             <button onClick={resetLab} disabled={examMode} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-rose-400 font-bold hover:bg-slate-800 text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                <RotateCcwIcon size={14}/> Reset Lab Environment
-            </button>
-          </div>
-
-        </div>
-      </nav>
-
-      {/* MODALS */}
-      {showFlashcards && (
-          <FlashcardDrill cards={FLASHCARDS} onClose={() => setShowFlashcards(false)} />
-      )}
-      {showCheatSheet && (
-          <CheatSheetModal bookmarks={bookmarkedMissions} missions={MISSIONS} onClose={() => setShowCheatSheet(false)} />
-      )}
-      {showTroubleshoot && (
-        <TroubleshootingModal onClose={() => setShowTroubleshoot(false)} />
-      )}
-      {/* Report Card Overlay */}
-      {showReportCard && (
-        <ReportCard results={examResults} total={examQuestions.length} onClose={() => setShowReportCard(false)} />
-      )}
-
-      {/* MOBILE MENU TOGGLE */}
-      <button onClick={() => setSidebarOpen(!sidebarOpen)} className="fixed top-4 right-4 z-50 p-2 bg-slate-900 text-white rounded-md md:hidden shadow-lg">
-        <MenuIcon size={24} />
-      </button>
-
-      {/* MAIN LAYOUT WRAPPER */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        
-        {/* TOP SCROLLABLE CONTENT */}
-        <main className="flex-1 overflow-y-auto p-6 scroll-smooth">
-          <div className="max-w-5xl mx-auto pb-6">
-            <header className="mb-12">
-              <h1 className="text-4xl font-bold text-slate-900 mb-4">The RHCSA Blueprint</h1>
-              <p className="text-lg text-slate-600">Study the concepts below, then test them in the terminal below.</p>
-            </header>
-
-            {/* TAB NAVIGATION */}
-            <div className="flex border-b border-slate-200 mb-8 overflow-x-auto">
-                {['pillar-1', 'pillar-2', 'pillar-3', 'pillar-4', 'pillar-5', 'tips', 'dashboard'].map((tab) => (
-                    <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={`px-4 py-2 text-sm font-medium whitespace-nowrap ${activeTab === tab ? 'border-b-2 border-red-500 text-red-600' : 'text-slate-500 hover:text-slate-700'}`}
-                    >
-                        {tab === 'tips' ? 'Exam Tips' : tab === 'dashboard' ? 'Live System Status' : tab.replace('-', ' ').toUpperCase().replace('PILLAR', 'PILLAR ')}
-                    </button>
-                ))}
-            </div>
-
-            {/* PILLARS CONTENT (CONDITIONAL RENDERING) */}
-            
-            {activeTab === 'pillar-1' && (
-            <section id="pillar-1" className="mb-16 scroll-mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
-                <div className="p-3 bg-blue-100 text-blue-600 rounded-lg"><TerminalIcon size={24} /></div>
-                <div><h2 className="text-2xl font-bold text-slate-900">Pillar 1: Tools & Scripting</h2></div>
-              </div>
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Visual: Tar Flags */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Command Anatomy: Tar</h3>
-                   <div className="flex flex-col gap-2 font-mono text-sm">
-                       <div className="flex items-center gap-2"><span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">-c</span> <span>Create Archive</span></div>
-                       <div className="flex items-center gap-2"><span className="bg-green-100 text-green-700 px-2 py-1 rounded">-z</span> <span>Gzip Compression</span></div>
-                       <div className="flex items-center gap-2"><span className="bg-amber-100 text-amber-700 px-2 py-1 rounded">-v</span> <span>Verbose (Show files)</span></div>
-                       <div className="flex items-center gap-2"><span className="bg-red-100 text-red-700 px-2 py-1 rounded">-f</span> <span>File Name (Required Last!)</span></div>
-                   </div>
-                   <div className="mt-4 pt-4 border-t border-slate-100">
-                      <CodeBlock>tar -czvf archive.tar.gz /path</CodeBlock>
-                   </div>
-                </div>
-
-                {/* Visual: Links */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Hard vs. Soft Links</h3>
-                   <div className="grid grid-cols-2 gap-4 text-center text-xs mb-4">
-                       <div className="bg-slate-50 p-2 rounded">
-                           <div className="font-bold text-slate-700 mb-1 flex items-center justify-center gap-1"><LinkIcon size={14}/> Hard Link</div>
-                           <p className="text-slate-500">Mirror Copy</p>
-                           <p className="text-[10px] text-slate-400 mt-1">Same Inode. Deleting original keeps link alive.</p>
-                       </div>
-                       <div className="bg-slate-50 p-2 rounded">
-                           <div className="font-bold text-slate-700 mb-1 flex items-center justify-center gap-1"><UnlinkIcon size={14}/> Soft Link</div>
-                           <p className="text-slate-500">Shortcut</p>
-                           <p className="text-[10px] text-slate-400 mt-1">Different Inode. Breaks if original moves.</p>
-                       </div>
-                   </div>
-                   <CodeBlock>ln -s /source /shortcut</CodeBlock>
-                </div>
-
-                <PermissionsCalculator />
-                <UserBuilder />
-                <FindBuilder />
-                <ScriptBuilder />
-
-              </div>
-            </section>
-            )}
-            
-            {activeTab === 'pillar-2' && (
-            <section id="pillar-2" className="mb-16 scroll-mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
-                <div className="p-3 bg-red-100 text-red-600 rounded-lg"><CpuIcon size={24} /></div>
-                <div><h2 className="text-2xl font-bold text-slate-900">Pillar 2: Operate Running Systems</h2></div>
-              </div>
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Visual: Boot Reset */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:col-span-2">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><SettingsIcon size={16} className="text-red-500"/> Root Password Reset Workflow</h3>
-                   <div className="flex flex-col md:flex-row gap-4 items-center justify-center text-xs text-center font-mono">
-                        <div className="bg-red-50 p-3 rounded-lg border border-red-100 w-full">
-                            <span className="block font-bold text-red-700 mb-1">1. GRUB</span>
-                            Hit 'e' to edit
-                        </div>
-                        <div className="text-slate-300">→</div>
-                        <div className="bg-red-50 p-3 rounded-lg border border-red-100 w-full">
-                            <span className="block font-bold text-red-700 mb-1">2. Edit Line</span>
-                            Append <code>rw init=/bin/bash</code>
-                        </div>
-                        <div className="text-slate-300">→</div>
-                        <div className="bg-red-50 p-3 rounded-lg border border-red-100 w-full">
-                            <span className="block font-bold text-red-700 mb-1">3. Reset</span>
-                            <code>passwd</code> root
-                        </div>
-                        <div className="text-slate-300">→</div>
-                        <div className="bg-red-50 p-3 rounded-lg border border-red-100 w-full">
-                            <span className="block font-bold text-red-700 mb-1">4. Relabel</span>
-                            <code>touch /.autorelabel</code>
-                        </div>
-                   </div>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800">Boot Targets</h3>
-                  <CodeBlock>systemctl isolate multi-user.target</CodeBlock>
-                </div>
-                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Systemd Units</h3>
-                   <CodeBlock>systemctl enable --now httpd</CodeBlock>
-                   <CodeBlock>systemctl list-units --type=service</CodeBlock>
-                </div>
-              </div>
-            </section>
-            )}
-
-            {activeTab === 'pillar-3' && (
-             <section id="pillar-3" className="mb-16 scroll-mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
-                <div className="p-3 bg-amber-100 text-amber-600 rounded-lg"><HardDriveIcon size={24} /></div>
-                <div><h2 className="text-2xl font-bold text-slate-900">Pillar 3: Storage</h2></div>
-              </div>
-              <div className="grid md:grid-cols-2 gap-6">
-                
-                {/* Dynamic LVM Visualizer - Replaced Static Component */}
-                <LVMVisualizer lvmState={lvmState} />
-
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800">FSTAB Anatomy</h3>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left border-collapse">
-                      <thead className="bg-slate-900 text-white">
-                        <tr>
-                          <th className="p-2 border border-slate-700">UUID/Device</th>
-                          <th className="p-2 border border-slate-700">Mount</th>
-                          <th className="p-2 border border-slate-700">Type</th>
-                        </tr>
-                      </thead>
-                      <tbody className="font-mono text-xs">
-                        <tr className="bg-amber-50">
-                          <td className="p-2 border border-amber-200">UUID="5b...a2"</td>
-                          <td className="p-2 border border-amber-200">/data</td>
-                          <td className="p-2 border border-amber-200">xfs</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">AutoFS</h3>
-                   <CodeBlock>/shares /etc/auto.shares</CodeBlock>
-                </div>
-                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Stratis & VDO</h3>
-                   <p className="text-xs text-slate-600 mb-2">Advanced storage layers.</p>
-                   <CodeBlock>stratis pool create mypool /dev/sdb</CodeBlock>
-                   <CodeBlock>stratis fs create mypool myfs</CodeBlock>
-                </div>
-                <FstabBuilder />
-              </div>
-            </section>
-            )}
-
-            {activeTab === 'pillar-4' && (
-             <section id="pillar-4" className="mb-16 scroll-mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
-                <div className="p-3 bg-purple-100 text-purple-600 rounded-lg"><SettingsIcon size={24} /></div>
-                <div><h2 className="text-2xl font-bold text-slate-900">Pillar 4: Deploy & Maintain</h2></div>
-              </div>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800">Software & Time</h3>
-                  <div className="space-y-3">
-                    <div className="text-sm">
-                      <p className="text-xs text-slate-600 mb-1 font-bold">DNF (Package Manager):</p>
-                      <CodeBlock>dnf install httpd</CodeBlock>
-                      <CodeBlock>dnf update</CodeBlock>
-                    </div>
-                    <div className="text-sm">
-                      <p className="text-xs text-slate-600 mb-1 font-bold">Chrony (NTP):</p>
-                      <CodeBlock>chronyc sources</CodeBlock>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800">Containerized Apps</h3>
-                   <p className="text-xs text-slate-600 mb-2">Flatpak is used for desktop applications.</p>
-                   <CodeBlock>flatpak remote-add --if-not-exists flathub ...</CodeBlock>
-                   <CodeBlock>flatpak install flathub org.gnome.gedit</CodeBlock>
-                </div>
-                
-                <CronBuilder />
-                <RepoBuilder />
-
-                 {/* NEW CARD */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Repositories</h3>
-                   <p className="text-xs text-slate-600 mb-2">Config in <code>/etc/yum.repos.d/</code></p>
-                   <CodeBlock>[repo_id]</CodeBlock>
-                   <CodeBlock>baseurl=http://server/repo</CodeBlock>
-                   <CodeBlock>gpgcheck=0</CodeBlock>
-                </div>
-              </div>
-            </section>
-            )}
-
-            {activeTab === 'pillar-5' && (
-             <section id="pillar-5" className="mb-24 scroll-mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
-                <div className="p-3 bg-emerald-100 text-emerald-600 rounded-lg"><ShieldIcon size={24} /></div>
-                <div><h2 className="text-2xl font-bold text-slate-900">Pillar 5: Security & Networking</h2></div>
-              </div>
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Visual: Security Layers */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><ShieldIcon size={16} className="text-emerald-500"/> Defense Layers</h3>
-                   <div className="relative flex items-center justify-center h-32">
-                        <div className="absolute w-32 h-32 bg-red-100 rounded-full flex items-center justify-center border-2 border-red-200 z-10">
-                            <span className="text-[10px] font-bold text-red-800 mt-[-20px]">Firewall</span>
-                        </div>
-                        <div className="absolute w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center border-2 border-emerald-200 z-20">
-                            <span className="text-[10px] font-bold text-emerald-800 mt-[-10px]">SELinux</span>
-                        </div>
-                        <div className="absolute w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center border-2 border-blue-200 z-30">
-                            <span className="text-[8px] font-bold text-blue-800">rwx</span>
-                        </div>
-                   </div>
-                   <div className="text-xs text-center text-slate-500 mt-1">If Firewall opens, SELinux can still block.</div>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="font-bold text-lg mb-4 text-slate-800">SELinux</h3>
-                   <CodeBlock>restorecon -R /var/www/html</CodeBlock>
-                </div>
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Firewall</h3>
-                   <CodeBlock>firewall-cmd --permanent --add-service=http</CodeBlock>
-                </div>
-                 {/* NEW CARDS */}
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Access Control Lists</h3>
-                   <CodeBlock>setfacl -m u:student:rw file</CodeBlock>
-                   <CodeBlock>getfacl file</CodeBlock>
-                </div>
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">System Identity</h3>
-                   <p className="text-xs text-slate-600 mb-2">Set hostname persistently.</p>
-                   <CodeBlock>hostnamectl set-hostname name</CodeBlock>
-                </div>
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                   <h3 className="font-bold text-lg mb-4 text-slate-800">Privilege Escalation</h3>
-                   <p className="text-xs text-slate-600 mb-2">Configure sudo access.</p>
-                   <CodeBlock>/etc/sudoers.d/custom</CodeBlock>
-                   <CodeBlock>user ALL=(ALL) ALL</CodeBlock>
-                </div>
-                 
-                 <NetworkBuilder />
-                 <SELinuxReference />
-
-              </div>
-            </section>
-            )}
-
-            {/* --- NEW: DASHBOARD TAB --- */}
-            {activeTab === 'dashboard' && <SystemDashboard systemState={systemState} />}
-            
-            {activeTab === 'tips' && (
-            <section className="mb-24 scroll-mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
-                 <div className="p-3 bg-indigo-100 text-indigo-600 rounded-lg"><BookOpenIcon size={24} /></div>
-                 <div><h2 className="text-2xl font-bold text-slate-900">Exam Strategy & Tips</h2></div>
-              </div>
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
-                   <div className="grid md:grid-cols-2 gap-6">
-                       <div>
-                           <h4 className="font-bold text-indigo-600 mb-2">During the Exam</h4>
-                           <ul className="list-disc pl-4 text-sm text-slate-600 space-y-1">
-                               <li><b>Reboot Often:</b> Verify your changes survive a reboot. If you break boot, fix it immediately using the recovery console.</li>
-                               <li><b>Read Carefully:</b> Does the question ask for a logical volume of 500MB or 500 extents?</li>
-                               <li><b>Use Man Pages:</b> Don't memorize flags. Type <code>man &lt;command&gt;</code> and search with <code>/</code>.</li>
-                               <li><b>Keyword Search:</b> Forgot a command? Use <code>man -k &lt;keyword&gt;</code> or <code>apropos &lt;keyword&gt;</code> to find it.</li>
-                               <li><b>Copy/Paste:</b> Mistyping a UUID in fstab is fatal. Use copy/paste from terminal output.</li>
-                           </ul>
-                       </div>
-                       <div>
-                           <h4 className="font-bold text-indigo-600 mb-2">Common Pitfalls</h4>
-                           <ul className="list-disc pl-4 text-sm text-slate-600 space-y-1">
-                               <li><b>Firewall:</b> Forgetting <code>--permanent</code> or <code>--reload</code>.</li>
-                               <li><b>SELinux:</b> Moving files instead of copying (preserves wrong context). Always use <code>restorecon</code>.</li>
-                               <li><b>Scripting:</b> Forgetting <code>chmod +x</code> to make scripts executable.</li>
-                               <li><b>LVM:</b> Forgetting to format the new logical volume before mounting (<code>mkfs</code>).</li>
-                               <li><b>Chronyd:</b> Forgetting to enable the service so it starts on boot.</li>
-                           </ul>
-                       </div>
-                   </div>
-                   
-                   <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                       <h4 className="font-bold text-red-700 mb-2 flex items-center gap-2"><AlertTriangleIcon size={18}/> Critical Failures (Zero Score Risks)</h4>
-                       <ul className="list-disc pl-4 text-sm text-red-800 space-y-1">
-                           <li><b>System Not Booting:</b> If your VM doesn't boot when the examiners restart it, you get a 0 for the entire exam. Test your reboots!</li>
-                           <li><b>Root Password:</b> If you cannot reset the root password successfully, they cannot grade your exam.</li>
-                           <li><b>Network Down:</b> If you mess up the network interface so the system is unreachable, they cannot grade it.</li>
-                       </ul>
-                   </div>
-              </div>
-            </section>
-            )}
-
-          </div>
-        </main>
-
-        {/* BOTTOM FIXED TERMINAL SECTION */}
-        <section id="practice-lab" className={`shrink-0 bg-slate-200 border-t border-slate-300 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] transition-all duration-300 ease-in-out flex flex-col ${isTerminalOpen ? 'h-80' : 'h-10'}`}>
-          <div 
-              className="h-10 bg-slate-300 border-b border-slate-400 flex items-center justify-between px-4 cursor-pointer hover:bg-slate-400 transition-colors shrink-0"
-              onClick={() => setIsTerminalOpen(!isTerminalOpen)}
-          >
-              <div className="flex items-center gap-2 font-bold text-slate-700 text-xs uppercase tracking-wider">
-                  <TerminalIcon size={16} /> Practice Lab & Missions
-              </div>
-              <div className="flex items-center gap-2 text-xs text-slate-600 font-bold">
-                  {isTerminalOpen ? "Minimize" : "Restore"}
-                  {isTerminalOpen ? <ChevronDownIcon size={16}/> : <ChevronUpIcon size={16}/>}
-              </div>
-          </div>
-
-          <div className={`flex-1 p-4 pt-0 overflow-hidden flex gap-4 ${!isTerminalOpen && 'invisible'}`}>
-            <div className="max-w-5xl mx-auto flex gap-4 w-full h-full pt-4">
-            
-            {/* Terminal Container */}
-            <div className={`flex-1 rounded-lg overflow-hidden flex flex-col shadow-lg border border-slate-700 relative bg-slate-900 ${successFlash ? 'animate-success-pulse' : ''}`}>
-              <div className={`p-2 flex items-center justify-between border-b border-slate-700 shrink-0 bg-slate-800`}>
-                <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
-                  <span className={`ml-2 text-xs font-mono text-slate-300`}>root@localhost:~</span>
-                </div>
-                <div className={`text-xs font-mono flex items-center gap-2 text-slate-300`}>
-                   <ShieldIcon size={12} className="text-green-400"/>
-                   <span className="text-[10px] uppercase">SSH Active</span>
-                </div>
-              </div>
-              
-              <div 
-                className={`flex-1 p-3 font-mono text-sm overflow-y-auto bg-slate-900 text-slate-300`}
-                onClick={() => inputRef.current?.focus()}
-              >
-                <div className="mb-2 opacity-70">Welcome to the RHCSA Practice Terminal v2.1</div>
-                
-                {terminalHistory.map((line, i) => (
-                  <div key={i} className={`whitespace-pre-wrap mb-1 break-words ${
-                    line.type === 'input' ? `text-slate-300 font-bold` : 
-                    line.type === 'success' ? 'text-green-400 font-bold' :
-                    line.type === 'error' ? 'text-red-400' : 
-                    line.type === 'system' ? 'text-yellow-400' : 'opacity-90'
-                  }`}>
-                    {line.text}
-                  </div>
-                ))}
-                <div ref={terminalEndRef} />
-                
-                <div className={`flex items-center mt-2 text-green-400`}>
-                  <span className="mr-2">[root@server ~]#</span>
-                  <input 
-                    ref={inputRef}
-                    type="text" 
-                    value={inputVal}
-                    onChange={(e) => setInputVal(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    className={`bg-transparent border-none outline-none flex-1 text-slate-300`}
-                    autoComplete="off" 
-                    spellCheck="false"
-                    maxLength={MAX_INPUT_LENGTH}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Mission/Lesson Side Panel */}
-            <div className="w-80 flex flex-col gap-3 shrink-0">
-              <div className="bg-white p-4 rounded-lg border border-slate-300 shadow-sm flex-1 overflow-y-auto relative">
-                {/* Visual indicator for completed missions */}
-                {activeMission && completedMissions.includes(activeMission.id) && !examMode && (
-                    <div className="absolute top-2 right-2 text-green-500"><CheckIcon size={16} /></div>
-                )}
-                
-                {/* Bookmark Button (New Feature) */}
-                 {activeMission && !examMode && (
-                    <button 
-                        onClick={() => toggleBookmark(activeMission.id)}
-                        className={`absolute top-2 left-2 ${bookmarkedMissions.includes(activeMission.id) ? 'text-yellow-400' : 'text-slate-300 hover:text-yellow-400'}`}
-                        title={bookmarkedMissions.includes(activeMission.id) ? "Remove Bookmark" : "Bookmark this Mission"}
-                    >
-                        <StarIcon size={18} className={bookmarkedMissions.includes(activeMission.id) ? "fill-current" : ""} />
-                    </button>
-                )}
-
-                <div className="flex items-center gap-2 mb-2 ml-6">
-                  <CrosshairIcon size={18} className={examMode ? "text-red-600 animate-pulse" : "text-blue-600"}/>
-                  <h3 className="font-bold text-slate-800 text-sm">
-                    {currentMissionId === 0 ? "Ready?" : examMode ? `Exam Task ${examQuestions.indexOf(activeMission) + 1}/15` : `Mission ${currentMissionId}`}
-                  </h3>
-                </div>
-                <p className="text-xs text-slate-600 mb-3">
-                  {currentMissionId === 0 
-                    ? <span>Type <span className="bg-slate-100 px-1 rounded text-red-500 font-bold">start</span> to begin or click Mock Exam.</span>
-                    : missionComplete
-                      ? "All scenarios finished."
-                      : (activeMission ? activeMission.desc : "")
-                  }
-                </p>
-
-                {/* HINT TOGGLE (Disabled in Exam Mode) */}
-                {currentMissionId > 0 && !missionComplete && activeMission && !examMode && (
-                   <div className="mt-2">
-                     {!showHint ? (
-                       <button 
-                         onClick={() => setShowHint(true)} 
-                         className="flex items-center gap-2 text-xs text-slate-500 hover:text-blue-600 transition-colors bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded w-full justify-center"
-                       >
-                         <EyeIcon size={12} /> Reveal Hint
-                       </button>
-                     ) : (
-                       <p className="text-xs text-blue-600 italic bg-blue-50 p-2 rounded border border-blue-100">
-                         Hint: {activeMission.hint}
-                       </p>
-                     )}
-                   </div>
-                )}
-              </div>
-              
-              <div className="bg-amber-50 p-3 rounded-lg border border-amber-200 shadow-sm h-24 overflow-y-auto">
-                <div className="flex items-center gap-2 mb-1 text-amber-700 font-bold text-[10px] uppercase tracking-wider">
-                  <BookOpenIcon size={10} /> Quick Lesson
-                </div>
-                {/* HIDE LESSON IF FLASHCARD MODE IS ON */}
-                {!showFlashcards && (
-                    <p className="text-[10px] text-amber-900 leading-relaxed">
-                    {currentMissionId === 0 
-                        ? "Lessons appear here." 
-                        : examMode 
-                        ? "No lessons during exam mode!"
-                        : (activeMission ? activeMission.lesson : "")
-                    }
-                    </p>
-                )}
-              </div>
-            </div>
-            </div>
-          </div>
-        </section>
-
-      </div>
-    </div>
-  );
-}
+            <li><button onClick={() => { setExamMode(false); setCurrentMissionId(0); }} className="flex items-center gap-3 px-3
