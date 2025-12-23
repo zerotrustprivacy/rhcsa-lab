@@ -32,6 +32,7 @@ const UserPlusIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.
 const ChevronDownIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="6 9 12 15 18 9"></polyline></svg>);
 const ChevronUpIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="18 15 12 9 6 15"></polyline></svg>);
 const RotateCcwIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>);
+const ActivityIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>);
 
 // --- 2. COMPONENTS (Defined BEFORE App) ---
 
@@ -622,6 +623,77 @@ const TroubleshootingModal = ({ onClose }) => {
         </div>
     );
 };
+
+// --- NEW DASHBOARD ---
+const SystemDashboard = ({ systemState }) => {
+    return (
+        <section id="dashboard" className="mb-16 scroll-mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+             <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-4">
+                <div className="p-3 bg-teal-100 text-teal-600 rounded-lg"><ActivityIcon size={24} /></div>
+                <div><h2 className="text-2xl font-bold text-slate-900">Live System Status</h2></div>
+              </div>
+              
+              <div className="grid md:grid-cols-2 gap-6">
+                 {/* IDENTITY */}
+                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                     <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><CpuIcon size={16} className="text-blue-500"/> System Identity</h3>
+                     <div className="space-y-3">
+                         <div className="flex justify-between border-b pb-2">
+                             <span className="text-slate-500 text-sm">Hostname</span>
+                             <span className="font-mono font-bold text-slate-800">servera.lab.example.com</span>
+                         </div>
+                         <div className="flex justify-between border-b pb-2">
+                             <span className="text-slate-500 text-sm">OS Version</span>
+                             <span className="font-mono font-bold text-slate-800">RHEL 9.0 (Plow)</span>
+                         </div>
+                         <div className="flex justify-between pb-2">
+                             <span className="text-slate-500 text-sm">Kernel</span>
+                             <span className="font-mono font-bold text-slate-800">5.14.0-70.13.1.el9_0.x86_64</span>
+                         </div>
+                     </div>
+                 </div>
+
+                 {/* SERVICES */}
+                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                     <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><SettingsIcon size={16} className="text-purple-500"/> Service Health</h3>
+                     <div className="grid grid-cols-2 gap-3">
+                         {Object.entries(systemState.services).map(([svc, status]) => (
+                             <div key={svc} className={`p-3 rounded border flex items-center justify-between ${status === 'active' ? 'bg-green-50 border-green-200' : 'bg-slate-50 border-slate-200'}`}>
+                                 <span className="font-bold text-sm text-slate-700">{svc}.service</span>
+                                 <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${status === 'active' ? 'bg-green-200 text-green-800' : 'bg-slate-200 text-slate-500'}`}>{status}</span>
+                             </div>
+                         ))}
+                     </div>
+                 </div>
+
+                 {/* USERS */}
+                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                     <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><UserPlusIcon size={16} className="text-indigo-500"/> User Accounts</h3>
+                     <div className="flex flex-wrap gap-2">
+                         {systemState.users.map(user => (
+                             <div key={user} className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-2 rounded-full">
+                                 <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                 <span className="text-sm font-bold text-slate-700">{user}</span>
+                             </div>
+                         ))}
+                     </div>
+                 </div>
+                 
+                 {/* NETWORK MOCK */}
+                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                     <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><NetworkIcon size={16} className="text-emerald-500"/> Network Interfaces</h3>
+                     <div className="space-y-3 font-mono text-xs">
+                         <div className="bg-slate-900 text-slate-300 p-3 rounded">
+                             <div className="mb-2"><span className="text-green-400">eth0:</span> &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500</div>
+                             <div className="pl-4">inet 172.25.250.10/24 brd 172.25.250.255 scope global eth0</div>
+                             <div className="pl-4">valid_lft forever preferred_lft forever</div>
+                         </div>
+                     </div>
+                 </div>
+              </div>
+        </section>
+    )
+}
 
 
 // --- 3. CONSTANTS & DATA ---
@@ -1393,6 +1465,7 @@ export default function App() {
             <li><button onClick={() => setActiveTab('pillar-3')} className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors w-full text-left ${activeTab === 'pillar-3' ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 text-slate-400'}`}><HardDriveIcon size={16}/> Storage</button></li>
             <li><button onClick={() => setActiveTab('pillar-4')} className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors w-full text-left ${activeTab === 'pillar-4' ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 text-slate-400'}`}><SettingsIcon size={16}/> Deploy & Maintain</button></li>
             <li><button onClick={() => setActiveTab('pillar-5')} className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors w-full text-left ${activeTab === 'pillar-5' ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 text-slate-400'}`}><ShieldIcon size={16}/> Users & Security</button></li>
+            <li><button onClick={() => setActiveTab('dashboard')} className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors w-full text-left ${activeTab === 'dashboard' ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 text-slate-400'}`}><ActivityIcon size={16}/> System Status</button></li>
           </ul>
 
           <div className="mt-auto pt-4 border-t border-slate-800">
@@ -1437,13 +1510,13 @@ export default function App() {
 
             {/* TAB NAVIGATION */}
             <div className="flex border-b border-slate-200 mb-8 overflow-x-auto">
-                {['pillar-1', 'pillar-2', 'pillar-3', 'pillar-4', 'pillar-5', 'tips'].map((tab) => (
+                {['pillar-1', 'pillar-2', 'pillar-3', 'pillar-4', 'pillar-5', 'tips', 'dashboard'].map((tab) => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
                         className={`px-4 py-2 text-sm font-medium whitespace-nowrap ${activeTab === tab ? 'border-b-2 border-red-500 text-red-600' : 'text-slate-500 hover:text-slate-700'}`}
                     >
-                        {tab === 'tips' ? 'Exam Tips' : tab.replace('-', ' ').toUpperCase().replace('PILLAR', 'PILLAR ')}
+                        {tab === 'tips' ? 'Exam Tips' : tab === 'dashboard' ? 'Live System Status' : tab.replace('-', ' ').toUpperCase().replace('PILLAR', 'PILLAR ')}
                     </button>
                 ))}
             </div>
@@ -1691,6 +1764,9 @@ export default function App() {
               </div>
             </section>
             )}
+
+            {/* --- NEW: DASHBOARD TAB --- */}
+            {activeTab === 'dashboard' && <SystemDashboard systemState={systemState} />}
             
             {activeTab === 'tips' && (
             <section className="mb-24 scroll-mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
