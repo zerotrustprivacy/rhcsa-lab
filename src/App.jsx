@@ -175,6 +175,103 @@ const PermissionsCalculator = () => {
     );
 };
 
+// --- NEW: UMASK CALCULATOR ---
+const UmaskCalculator = () => {
+    const [umask, setUmask] = useState('022');
+    const [type, setType] = useState('dir'); // dir or file
+
+    const calculate = (base, mask) => {
+        // Simple string based octal logic for visualization
+        // Real bitwise: (parseInt(base, 8) & ~parseInt(mask, 8)).toString(8)
+        const b = parseInt(base, 8);
+        const m = parseInt(mask, 8);
+        if (isNaN(b) || isNaN(m)) return '---';
+        const res = b & ~m;
+        return res.toString(8).padStart(3, '0');
+    };
+
+    const base = type === 'dir' ? '777' : '666';
+    const result = calculate(base, umask);
+    
+    // Helper to get rwx string
+    const toSymbolic = (octal) => {
+        const map = ['---','--x','-w-','-wx','r--','r-x','rw-','rwx'];
+        return octal.split('').map(d => map[parseInt(d)]).join('');
+    }
+
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><LockIcon size={16} className="text-pink-500"/> Umask Calculator</h3>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label className="text-[10px] uppercase font-bold text-slate-500">Type</label>
+                    <div className="flex gap-2 mt-1">
+                        <button onClick={() => setType('dir')} className={`px-2 py-1 text-xs rounded ${type === 'dir' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600'}`}>Directory (777)</button>
+                        <button onClick={() => setType('file')} className={`px-2 py-1 text-xs rounded ${type === 'file' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600'}`}>File (666)</button>
+                    </div>
+                </div>
+                <div>
+                    <label className="text-[10px] uppercase font-bold text-slate-500">Umask (Octal)</label>
+                    <input value={umask} onChange={e => setUmask(e.target.value)} maxLength={3} className="w-full border rounded p-1 text-sm font-mono text-center mt-1"/>
+                </div>
+            </div>
+            <div className="bg-slate-100 p-3 rounded text-center">
+                <div className="text-xs text-slate-500 mb-1">Resulting Permissions</div>
+                <div className="text-2xl font-mono font-bold text-slate-800">{result}</div>
+                <div className="text-sm font-mono text-pink-600">{toSymbolic(result)}</div>
+            </div>
+            <CodeBlock color="blue">{`umask ${umask}`}</CodeBlock>
+        </div>
+    )
+}
+
+// --- NEW: FIREWALL BUILDER ---
+const FirewallBuilder = () => {
+    const [zone, setZone] = useState('public');
+    const [type, setType] = useState('service'); // service or port
+    const [value, setValue] = useState('http');
+    const [perm, setPerm] = useState(true);
+
+    let cmd = `firewall-cmd`;
+    if (zone !== 'default') cmd += ` --zone=${zone}`;
+    if (perm) cmd += ` --permanent`;
+    
+    if (type === 'service') cmd += ` --add-service=${value}`;
+    else cmd += ` --add-port=${value}`;
+
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><ShieldIcon size={16} className="text-red-500"/> Firewall Rule Builder</h3>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Zone</label>
+                    <select value={zone} onChange={e=>setZone(e.target.value)} className="w-full border rounded p-1 text-sm bg-white">
+                        <option value="public">public (Default)</option>
+                        <option value="home">home</option>
+                        <option value="work">work</option>
+                        <option value="trusted">trusted</option>
+                    </select>
+                </div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Type</label>
+                    <select value={type} onChange={e=>setType(e.target.value)} className="w-full border rounded p-1 text-sm bg-white">
+                        <option value="service">Service Name</option>
+                        <option value="port">Port/Proto</option>
+                    </select>
+                </div>
+                <div className="col-span-2">
+                    <label className="text-[10px] uppercase font-bold text-slate-500">{type === 'service' ? 'Service (e.g. http, nfs)' : 'Port (e.g. 80/tcp)'}</label>
+                    <input value={value} onChange={e=>setValue(e.target.value)} className="w-full border rounded p-1 text-sm"/>
+                </div>
+                <div className="col-span-2 flex items-center gap-2">
+                    <input type="checkbox" checked={perm} onChange={e=>setPerm(e.target.checked)} className="accent-red-500"/>
+                    <span className="text-sm font-bold text-slate-600">Permanent (Survives Reboot)</span>
+                </div>
+            </div>
+            <CodeBlock color="green">{cmd}</CodeBlock>
+            {perm && <div className="text-[10px] text-slate-400 mt-1">Don't forget: <code className="bg-slate-100 px-1 rounded">firewall-cmd --reload</code></div>}
+        </div>
+    );
+};
+
 // --- NEW: REGEX PLAYGROUND ---
 const RegexPlayground = () => {
     const [pattern, setPattern] = useState('^root');
@@ -1821,6 +1918,8 @@ export default function App() {
                  
                  <NetworkBuilder />
                  <SELinuxReference />
+                 <UmaskCalculator />
+                 <FirewallBuilder />
 
               </div>
             </section>
@@ -1874,146 +1973,4 @@ export default function App() {
         {/* BOTTOM FIXED TERMINAL SECTION */}
         <section id="practice-lab" className={`shrink-0 bg-slate-200 border-t border-slate-300 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] transition-all duration-300 ease-in-out flex flex-col ${isTerminalOpen ? 'h-80' : 'h-10'}`}>
           <div 
-              className="h-10 bg-slate-300 border-b border-slate-400 flex items-center justify-between px-4 cursor-pointer hover:bg-slate-400 transition-colors shrink-0"
-              onClick={() => setIsTerminalOpen(!isTerminalOpen)}
-          >
-              <div className="flex items-center gap-2 font-bold text-slate-700 text-xs uppercase tracking-wider">
-                  <TerminalIcon size={16} /> Practice Lab & Missions
-              </div>
-              <div className="flex items-center gap-2 text-xs text-slate-600 font-bold">
-                  {isTerminalOpen ? "Minimize" : "Restore"}
-                  {isTerminalOpen ? <ChevronDownIcon size={16}/> : <ChevronUpIcon size={16}/>}
-              </div>
-          </div>
-
-          <div className={`flex-1 p-4 pt-0 overflow-hidden flex gap-4 ${!isTerminalOpen && 'invisible'}`}>
-            <div className="max-w-5xl mx-auto flex gap-4 w-full h-full pt-4">
-            
-            {/* Terminal Container */}
-            <div className={`flex-1 rounded-lg overflow-hidden flex flex-col shadow-lg border border-slate-700 relative bg-slate-900 ${successFlash ? 'animate-success-pulse' : ''}`}>
-              <div className={`p-2 flex items-center justify-between border-b border-slate-700 shrink-0 bg-slate-800`}>
-                <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
-                  <span className={`ml-2 text-xs font-mono text-slate-300`}>root@localhost:~</span>
-                </div>
-                <div className={`text-xs font-mono flex items-center gap-2 text-slate-300`}>
-                   <ShieldIcon size={12} className="text-green-400"/>
-                   <span className="text-[10px] uppercase">SSH Active</span>
-                </div>
-              </div>
-              
-              <div 
-                className={`flex-1 p-3 font-mono text-sm overflow-y-auto bg-slate-900 text-slate-300`}
-                onClick={() => inputRef.current?.focus()}
-              >
-                <div className="mb-2 opacity-70">Welcome to the RHCSA Practice Terminal v2.1</div>
-                
-                {terminalHistory.map((line, i) => (
-                  <div key={i} className={`whitespace-pre-wrap mb-1 break-words ${
-                    line.type === 'input' ? `text-slate-300 font-bold` : 
-                    line.type === 'success' ? 'text-green-400 font-bold' :
-                    line.type === 'error' ? 'text-red-400' : 
-                    line.type === 'system' ? 'text-yellow-400' : 'opacity-90'
-                  }`}>
-                    {line.text}
-                  </div>
-                ))}
-                <div ref={terminalEndRef} />
-                
-                <div className={`flex items-center mt-2 text-green-400`}>
-                  <span className="mr-2">[root@server ~]#</span>
-                  <input 
-                    ref={inputRef}
-                    type="text" 
-                    value={inputVal}
-                    onChange={(e) => setInputVal(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    className={`bg-transparent border-none outline-none flex-1 text-slate-300`}
-                    autoComplete="off" 
-                    spellCheck="false"
-                    maxLength={MAX_INPUT_LENGTH}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Mission/Lesson Side Panel */}
-            <div className="w-80 flex flex-col gap-3 shrink-0">
-              <div className="bg-white p-4 rounded-lg border border-slate-300 shadow-sm flex-1 overflow-y-auto relative">
-                {/* Visual indicator for completed missions */}
-                {activeMission && completedMissions.includes(activeMission.id) && !examMode && (
-                    <div className="absolute top-2 right-2 text-green-500"><CheckIcon size={16} /></div>
-                )}
-                
-                {/* Bookmark Button (New Feature) */}
-                 {activeMission && !examMode && (
-                    <button 
-                        onClick={() => toggleBookmark(activeMission.id)}
-                        className={`absolute top-2 left-2 ${bookmarkedMissions.includes(activeMission.id) ? 'text-yellow-400' : 'text-slate-300 hover:text-yellow-400'}`}
-                        title={bookmarkedMissions.includes(activeMission.id) ? "Remove Bookmark" : "Bookmark this Mission"}
-                    >
-                        <StarIcon size={18} className={bookmarkedMissions.includes(activeMission.id) ? "fill-current" : ""} />
-                    </button>
-                )}
-
-                <div className="flex items-center gap-2 mb-2 ml-6">
-                  <CrosshairIcon size={18} className={examMode ? "text-red-600 animate-pulse" : "text-blue-600"}/>
-                  <h3 className="font-bold text-slate-800 text-sm">
-                    {currentMissionId === 0 ? "Ready?" : examMode ? `Exam Task ${examQuestions.indexOf(activeMission) + 1}/15` : `Mission ${currentMissionId}`}
-                  </h3>
-                </div>
-                <p className="text-xs text-slate-600 mb-3">
-                  {currentMissionId === 0 
-                    ? <span>Type <span className="bg-slate-100 px-1 rounded text-red-500 font-bold">start</span> to begin or click Mock Exam.</span>
-                    : missionComplete
-                      ? "All scenarios finished."
-                      : (activeMission ? activeMission.desc : "")
-                  }
-                </p>
-
-                {/* HINT TOGGLE (Disabled in Exam Mode) */}
-                {currentMissionId > 0 && !missionComplete && activeMission && !examMode && (
-                   <div className="mt-2">
-                     {!showHint ? (
-                       <button 
-                         onClick={() => setShowHint(true)} 
-                         className="flex items-center gap-2 text-xs text-slate-500 hover:text-blue-600 transition-colors bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded w-full justify-center"
-                       >
-                         <EyeIcon size={12} /> Reveal Hint
-                       </button>
-                     ) : (
-                       <p className="text-xs text-blue-600 italic bg-blue-50 p-2 rounded border border-blue-100">
-                         Hint: {activeMission.hint}
-                       </p>
-                     )}
-                   </div>
-                )}
-              </div>
-              
-              <div className="bg-amber-50 p-3 rounded-lg border border-amber-200 shadow-sm h-24 overflow-y-auto">
-                <div className="flex items-center gap-2 mb-1 text-amber-700 font-bold text-[10px] uppercase tracking-wider">
-                  <BookOpenIcon size={10} /> Quick Lesson
-                </div>
-                {/* HIDE LESSON IF FLASHCARD MODE IS ON */}
-                {!showFlashcards && (
-                    <p className="text-[10px] text-amber-900 leading-relaxed">
-                    {currentMissionId === 0 
-                        ? "Lessons appear here." 
-                        : examMode 
-                        ? "No lessons during exam mode!"
-                        : (activeMission ? activeMission.lesson : "")
-                    }
-                    </p>
-                )}
-              </div>
-            </div>
-            </div>
-          </div>
-        </section>
-
-      </div>
-    </div>
-  );
-}
+              className="h-10 bg-slate-300 border-b border-slate-400 flex items-center justify-between px-4 cursor
