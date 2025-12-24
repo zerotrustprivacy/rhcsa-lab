@@ -868,6 +868,13 @@ export default function App() {
   const terminalEndRef = useRef(null);
   const inputRef = useRef(null);
 
+  // Helper to format seconds into MM:SS
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
+
   // Load state from local storage
   useEffect(() => {
       const savedProgress = localStorage.getItem('rhcsa_progress');
@@ -1465,7 +1472,7 @@ export default function App() {
           </div>
 
           <button onClick={startExamMode} disabled={examMode} className="w-full flex items-center justify-center gap-2 mb-6 px-3 py-2 rounded-md bg-red-600 text-white font-bold hover:bg-red-700 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-             <TimerIcon size={16}/> {examMode ? "Exam in Progress" : "Start Mock Exam"}
+             <TimerIcon size={16}/> {examMode ? `Time Left: ${formatTime(examTimeLeft)}` : "Start Mock Exam"}
           </button>
           
           <div className="grid grid-cols-2 gap-2 mb-6">
