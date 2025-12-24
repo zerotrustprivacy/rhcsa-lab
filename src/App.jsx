@@ -1838,4 +1838,162 @@ export default function App() {
                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                        <h4 className="font-bold text-red-700 mb-2 flex items-center gap-2"><AlertTriangleIcon size={18}/> Critical Failures (Zero Score Risks)</h4>
                        <ul className="list-disc pl-4 text-sm text-red-800 space-y-1">
-                           <li><b>System Not Booting:</b> If your VM doesn't boot when the examiners restart it, you get a
+                           <li><b>System Not Booting:</b> If your VM doesn't boot when the examiners restart it, you get a 0 for the entire exam. Test your reboots!</li>
+                           <li><b>Root Password:</b> If you cannot reset the root password successfully, they cannot grade your exam.</li>
+                           <li><b>Network Down:</b> If you mess up the network interface so the system is unreachable, they cannot grade it.</li>
+                       </ul>
+                   </div>
+              </div>
+            </section>
+            )}
+
+          </div>
+        </main>
+
+        {/* BOTTOM FIXED TERMINAL SECTION */}
+        <section id="practice-lab" className={`shrink-0 bg-slate-200 border-t border-slate-300 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] transition-all duration-300 ease-in-out flex flex-col ${isTerminalOpen ? 'h-80' : 'h-10'}`}>
+          <div 
+              className="h-10 bg-slate-300 border-b border-slate-400 flex items-center justify-between px-4 cursor-pointer hover:bg-slate-400 transition-colors shrink-0"
+              onClick={() => setIsTerminalOpen(!isTerminalOpen)}
+          >
+              <div className="flex items-center gap-2 font-bold text-slate-700 text-xs uppercase tracking-wider">
+                  <TerminalIcon size={16} /> Practice Lab & Missions
+              </div>
+              <div className="flex items-center gap-2 text-xs text-slate-600 font-bold">
+                  {isTerminalOpen ? "Minimize" : "Restore"}
+                  {isTerminalOpen ? <ChevronDownIcon size={16}/> : <ChevronUpIcon size={16}/>}
+              </div>
+          </div>
+
+          <div className={`flex-1 p-4 pt-0 overflow-hidden flex gap-4 ${!isTerminalOpen && 'invisible'}`}>
+            <div className="max-w-5xl mx-auto flex gap-4 w-full h-full pt-4">
+            
+            {/* Terminal Container */}
+            <div className={`flex-1 rounded-lg overflow-hidden flex flex-col shadow-lg border border-slate-700 relative bg-slate-900 ${successFlash ? 'animate-success-pulse' : ''}`}>
+              <div className={`p-2 flex items-center justify-between border-b border-slate-700 shrink-0 bg-slate-800`}>
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                  <span className={`ml-2 text-xs font-mono text-slate-300`}>root@localhost:~</span>
+                </div>
+                <div className={`text-xs font-mono flex items-center gap-2 text-slate-300`}>
+                   <ShieldIcon size={12} className="text-green-400"/>
+                   <span className="text-[10px] uppercase">SSH Active</span>
+                </div>
+              </div>
+              
+              <div 
+                className={`flex-1 p-3 font-mono text-sm overflow-y-auto bg-slate-900 text-slate-300`}
+                onClick={() => inputRef.current?.focus()}
+              >
+                <div className="mb-2 opacity-70">Welcome to the RHCSA Practice Terminal v2.1</div>
+                <div className="mb-2 opacity-50 text-xs">Type 'help' for commands. Try 'vi &lt;filename&gt;' to edit files!</div>
+                
+                {terminalHistory.map((line, i) => (
+                  <div key={i} className={`whitespace-pre-wrap mb-1 break-words ${
+                    line.type === 'input' ? `text-slate-300 font-bold` : 
+                    line.type === 'success' ? 'text-green-400 font-bold' :
+                    line.type === 'error' ? 'text-red-400' : 
+                    line.type === 'system' ? 'text-yellow-400' : 'opacity-90'
+                  }`}>
+                    {line.text}
+                  </div>
+                ))}
+                <div ref={terminalEndRef} />
+                
+                <div className={`flex items-center mt-2 text-green-400`}>
+                  <span className="mr-2">[root@server ~]#</span>
+                  <input 
+                    ref={inputRef}
+                    type="text" 
+                    value={inputVal}
+                    onChange={(e) => setInputVal(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className={`bg-transparent border-none outline-none flex-1 text-slate-300`}
+                    autoComplete="off" 
+                    spellCheck="false"
+                    maxLength={MAX_INPUT_LENGTH}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Mission/Lesson Side Panel */}
+            <div className="w-80 flex flex-col gap-3 shrink-0">
+              <div className="bg-white p-4 rounded-lg border border-slate-300 shadow-sm flex-1 overflow-y-auto relative">
+                {/* Visual indicator for completed missions */}
+                {activeMission && completedMissions.includes(activeMission.id) && !examMode && (
+                    <div className="absolute top-2 right-2 text-green-500"><CheckIcon size={16} /></div>
+                )}
+                
+                {/* Bookmark Button (New Feature) */}
+                 {activeMission && !examMode && (
+                    <button 
+                        onClick={() => toggleBookmark(activeMission.id)}
+                        className={`absolute top-2 left-2 ${bookmarkedMissions.includes(activeMission.id) ? 'text-yellow-400' : 'text-slate-300 hover:text-yellow-400'}`}
+                        title={bookmarkedMissions.includes(activeMission.id) ? "Remove Bookmark" : "Bookmark this Mission"}
+                    >
+                        <StarIcon size={18} className={bookmarkedMissions.includes(activeMission.id) ? "fill-current" : ""} />
+                    </button>
+                )}
+
+                <div className="flex items-center gap-2 mb-2 ml-6">
+                  <CrosshairIcon size={18} className={examMode ? "text-red-600 animate-pulse" : "text-blue-600"}/>
+                  <h3 className="font-bold text-slate-800 text-sm">
+                    {currentMissionId === 0 ? "Ready?" : examMode ? `Exam Task ${examQuestions.indexOf(activeMission) + 1}/15` : `Mission ${currentMissionId}`}
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-600 mb-3">
+                  {currentMissionId === 0 
+                    ? <span>Type <span className="bg-slate-100 px-1 rounded text-red-500 font-bold">start</span> to begin or click Mock Exam.</span>
+                    : missionComplete
+                      ? "All scenarios finished."
+                      : (activeMission ? activeMission.desc : "")
+                  }
+                </p>
+
+                {/* HINT TOGGLE (Disabled in Exam Mode) */}
+                {currentMissionId > 0 && !missionComplete && activeMission && !examMode && (
+                   <div className="mt-2">
+                     {!showHint ? (
+                       <button 
+                         onClick={() => setShowHint(true)} 
+                         className="flex items-center gap-2 text-xs text-slate-500 hover:text-blue-600 transition-colors bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded w-full justify-center"
+                       >
+                         <EyeIcon size={12} /> Reveal Hint
+                       </button>
+                     ) : (
+                       <p className="text-xs text-blue-600 italic bg-blue-50 p-2 rounded border border-blue-100">
+                         Hint: {activeMission.hint}
+                       </p>
+                     )}
+                   </div>
+                )}
+              </div>
+              
+              <div className="bg-amber-50 p-3 rounded-lg border border-amber-200 shadow-sm h-24 overflow-y-auto">
+                <div className="flex items-center gap-2 mb-1 text-amber-700 font-bold text-[10px] uppercase tracking-wider">
+                  <BookOpenIcon size={10} /> Quick Lesson
+                </div>
+                {/* HIDE LESSON IF FLASHCARD MODE IS ON */}
+                {!showFlashcards && (
+                    <p className="text-[10px] text-amber-900 leading-relaxed">
+                    {currentMissionId === 0 
+                        ? "Lessons appear here." 
+                        : examMode 
+                        ? "No lessons during exam mode!"
+                        : (activeMission ? activeMission.lesson : "")
+                    }
+                    </p>
+                )}
+              </div>
+            </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  );
+}
