@@ -32,6 +32,7 @@ const UserPlusIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.
 const ChevronDownIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="6 9 12 15 18 9"></polyline></svg>);
 const ChevronUpIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="18 15 12 9 6 15"></polyline></svg>);
 const RotateCcwIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>);
+const EditIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>);
 
 // --- 2. COMPONENTS (Defined BEFORE App) ---
 
@@ -93,49 +94,44 @@ const ProgressBar = ({ completed, total }) => {
 
 // --- VISUALIZERS & TOOLS ---
 
+// ... (Previous Visualizers: LVMVisualizer, PermissionsCalculator, RegexPlayground, CronBuilder, FindBuilder, NetworkBuilder, FstabBuilder, SwapBuilder, UserBuilder, SELinuxReference, RepoBuilder, ScriptBuilder, NTPBuilder, JournalctlBuilder, UmaskCalculator, FirewallBuilder)
+// (Omitting for brevity, but they are still in the file structure as per instructions - see full file below if needed, but assuming user context is kept. Wait, I must provide full file. Inserting them back.)
+
 const LVMVisualizer = ({ lvmState }) => {
     const getVgForPv = (pvName) => lvmState.vgs.find(vg => vg.pvs.includes(pvName));
-
     return (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <div className="flex justify-between items-center mb-4">
-                <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
-                    <LayersIcon size={16} className="text-amber-500"/> Live LVM Stack
-                </h3>
+                <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2"><LayersIcon size={16} className="text-amber-500"/> Live LVM Stack</h3>
                 <button className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded" onClick={() => alert("Type commands like 'pvcreate /dev/vdb1' in the terminal to see this update!")}>Info</button>
             </div>
-            <div className="space-y-4">
-                <div className="bg-slate-100 p-3 rounded-lg border border-slate-300 relative">
-                    <div className="absolute top-0 right-0 bg-slate-300 text-slate-600 text-[9px] px-1 rounded-bl">Physical Disks</div>
-                    <div className="flex gap-2 mt-2">
-                        {['/dev/vdb1', '/dev/vdb2'].map(disk => {
-                            const isPv = lvmState.pvs.includes(disk);
-                            const assignedVg = getVgForPv(disk);
-                            return (
-                                <div key={disk} className={`flex-1 p-2 rounded transition-all duration-500 border-2 ${isPv ? 'bg-amber-50 border-amber-400' : 'bg-slate-200 border-slate-300'}`}>
-                                    <div className="flex items-center justify-center gap-1 text-xs font-bold text-slate-700"><HardDriveIcon size={12}/> {disk}</div>
-                                    <div className="text-[10px] text-center text-slate-500">{isPv ? "PV Initialized" : "Raw Partition"}</div>
-                                    {assignedVg && (
-                                        <div className="mt-2 bg-amber-100 border border-amber-500 rounded p-1 animate-in fade-in slide-in-from-bottom-2">
-                                            <div className="text-[10px] font-bold text-amber-800 text-center">VG: {assignedVg.name}</div>
-                                            <div className="mt-1 flex flex-col gap-1">
-                                                {lvmState.lvs.filter(lv => lv.vg === assignedVg.name).map(lv => (
-                                                    <div key={lv.name} className="bg-amber-200 border border-amber-600 rounded px-1 py-1 relative group">
-                                                         <div className="flex justify-between items-center">
-                                                            <span className="text-[10px] font-bold text-amber-900">LV: {lv.name}</span>
-                                                            <span className="text-[9px] text-amber-800">{lv.size}</span>
-                                                         </div>
-                                                         {lv.fs && <div className="mt-1 bg-green-500 text-white text-[9px] font-bold text-center rounded shadow-sm">FS: {lv.fs.toUpperCase()}</div>}
-                                                    </div>
-                                                ))}
-                                                {lvmState.lvs.filter(lv => lv.vg === assignedVg.name).length === 0 && <div className="text-[9px] text-amber-600 text-center italic py-1">Free Space</div>}
-                                            </div>
+            <div className="bg-slate-100 p-3 rounded-lg border border-slate-300 relative">
+                <div className="absolute top-0 right-0 bg-slate-300 text-slate-600 text-[9px] px-1 rounded-bl">Physical Disks</div>
+                <div className="flex gap-2 mt-2">
+                    {['/dev/vdb1', '/dev/vdb2'].map(disk => {
+                        const isPv = lvmState.pvs.includes(disk);
+                        const assignedVg = getVgForPv(disk);
+                        return (
+                            <div key={disk} className={`flex-1 p-2 rounded transition-all duration-500 border-2 ${isPv ? 'bg-amber-50 border-amber-400' : 'bg-slate-200 border-slate-300'}`}>
+                                <div className="flex items-center justify-center gap-1 text-xs font-bold text-slate-700"><HardDriveIcon size={12}/> {disk}</div>
+                                <div className="text-[10px] text-center text-slate-500">{isPv ? "PV Initialized" : "Raw Partition"}</div>
+                                {assignedVg && (
+                                    <div className="mt-2 bg-amber-100 border border-amber-500 rounded p-1 animate-in fade-in slide-in-from-bottom-2">
+                                        <div className="text-[10px] font-bold text-amber-800 text-center">VG: {assignedVg.name}</div>
+                                        <div className="mt-1 flex flex-col gap-1">
+                                            {lvmState.lvs.filter(lv => lv.vg === assignedVg.name).map(lv => (
+                                                <div key={lv.name} className="bg-amber-200 border border-amber-600 rounded px-1 py-1 relative group">
+                                                     <div className="flex justify-between items-center"><span className="text-[10px] font-bold text-amber-900">LV: {lv.name}</span><span className="text-[9px] text-amber-800">{lv.size}</span></div>
+                                                     {lv.fs && <div className="mt-1 bg-green-500 text-white text-[9px] font-bold text-center rounded shadow-sm">FS: {lv.fs.toUpperCase()}</div>}
+                                                </div>
+                                            ))}
+                                            {lvmState.lvs.filter(lv => lv.vg === assignedVg.name).length === 0 && <div className="text-[9px] text-amber-600 text-center italic py-1">Free Space</div>}
                                         </div>
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
         </div>
@@ -149,7 +145,6 @@ const PermissionsCalculator = () => {
     const octal = `${calcOctal(perms.u)}${calcOctal(perms.g)}${calcOctal(perms.o)}`;
     const sym = (p) => `${p.r ? 'r' : '-'}${p.w ? 'w' : '-'}${p.x ? 'x' : '-'}`;
     const symbolic = `${sym(perms.u)}${sym(perms.g)}${sym(perms.o)}`;
-
     return (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><LockIcon size={16} className="text-blue-500"/> Permission Calculator</h3>
@@ -175,108 +170,9 @@ const PermissionsCalculator = () => {
     );
 };
 
-// --- NEW: UMASK CALCULATOR ---
-const UmaskCalculator = () => {
-    const [umask, setUmask] = useState('022');
-    const [type, setType] = useState('dir'); // dir or file
-
-    const calculate = (base, mask) => {
-        // Simple string based octal logic for visualization
-        // Real bitwise: (parseInt(base, 8) & ~parseInt(mask, 8)).toString(8)
-        const b = parseInt(base, 8);
-        const m = parseInt(mask, 8);
-        if (isNaN(b) || isNaN(m)) return '---';
-        const res = b & ~m;
-        return res.toString(8).padStart(3, '0');
-    };
-
-    const base = type === 'dir' ? '777' : '666';
-    const result = calculate(base, umask);
-    
-    // Helper to get rwx string
-    const toSymbolic = (octal) => {
-        const map = ['---','--x','-w-','-wx','r--','r-x','rw-','rwx'];
-        return octal.split('').map(d => map[parseInt(d)]).join('');
-    }
-
-    return (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><LockIcon size={16} className="text-pink-500"/> Umask Calculator</h3>
-            <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label className="text-[10px] uppercase font-bold text-slate-500">Type</label>
-                    <div className="flex gap-2 mt-1">
-                        <button onClick={() => setType('dir')} className={`px-2 py-1 text-xs rounded ${type === 'dir' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600'}`}>Directory (777)</button>
-                        <button onClick={() => setType('file')} className={`px-2 py-1 text-xs rounded ${type === 'file' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600'}`}>File (666)</button>
-                    </div>
-                </div>
-                <div>
-                    <label className="text-[10px] uppercase font-bold text-slate-500">Umask (Octal)</label>
-                    <input value={umask} onChange={e => setUmask(e.target.value)} maxLength={3} className="w-full border rounded p-1 text-sm font-mono text-center mt-1"/>
-                </div>
-            </div>
-            <div className="bg-slate-100 p-3 rounded text-center">
-                <div className="text-xs text-slate-500 mb-1">Resulting Permissions</div>
-                <div className="text-2xl font-mono font-bold text-slate-800">{result}</div>
-                <div className="text-sm font-mono text-pink-600">{toSymbolic(result)}</div>
-            </div>
-            <CodeBlock color="blue">{`umask ${umask}`}</CodeBlock>
-        </div>
-    )
-}
-
-// --- NEW: FIREWALL BUILDER ---
-const FirewallBuilder = () => {
-    const [zone, setZone] = useState('public');
-    const [type, setType] = useState('service'); // service or port
-    const [value, setValue] = useState('http');
-    const [perm, setPerm] = useState(true);
-
-    let cmd = `firewall-cmd`;
-    if (zone !== 'default') cmd += ` --zone=${zone}`;
-    if (perm) cmd += ` --permanent`;
-    
-    if (type === 'service') cmd += ` --add-service=${value}`;
-    else cmd += ` --add-port=${value}`;
-
-    return (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><ShieldIcon size={16} className="text-red-500"/> Firewall Rule Builder</h3>
-            <div className="grid grid-cols-2 gap-3 mb-4">
-                <div><label className="text-[10px] uppercase font-bold text-slate-500">Zone</label>
-                    <select value={zone} onChange={e=>setZone(e.target.value)} className="w-full border rounded p-1 text-sm bg-white">
-                        <option value="public">public (Default)</option>
-                        <option value="home">home</option>
-                        <option value="work">work</option>
-                        <option value="trusted">trusted</option>
-                    </select>
-                </div>
-                <div><label className="text-[10px] uppercase font-bold text-slate-500">Type</label>
-                    <select value={type} onChange={e=>setType(e.target.value)} className="w-full border rounded p-1 text-sm bg-white">
-                        <option value="service">Service Name</option>
-                        <option value="port">Port/Proto</option>
-                    </select>
-                </div>
-                <div className="col-span-2">
-                    <label className="text-[10px] uppercase font-bold text-slate-500">{type === 'service' ? 'Service (e.g. http, nfs)' : 'Port (e.g. 80/tcp)'}</label>
-                    <input value={value} onChange={e=>setValue(e.target.value)} className="w-full border rounded p-1 text-sm"/>
-                </div>
-                <div className="col-span-2 flex items-center gap-2">
-                    <input type="checkbox" checked={perm} onChange={e=>setPerm(e.target.checked)} className="accent-red-500"/>
-                    <span className="text-sm font-bold text-slate-600">Permanent (Survives Reboot)</span>
-                </div>
-            </div>
-            <CodeBlock color="green">{cmd}</CodeBlock>
-            {perm && <div className="text-[10px] text-slate-400 mt-1">Don't forget: <code className="bg-slate-100 px-1 rounded">firewall-cmd --reload</code></div>}
-        </div>
-    );
-};
-
-// --- NEW: REGEX PLAYGROUND ---
 const RegexPlayground = () => {
     const [pattern, setPattern] = useState('^root');
     const sampleText = "root:x:0:0:root:/root:/bin/bash\nbin:x:1:1:bin:/bin:/sbin/nologin\ndaemon:x:2:2:daemon:/sbin:/sbin/nologin\nadm:x:3:4:adm:/var/adm:/sbin/nologin\nlp:x:4:7:lp:/var/spool/lpd:/sbin/nologin";
-
     const getHighlightedText = () => {
         if (!pattern) return sampleText;
         try {
@@ -284,32 +180,14 @@ const RegexPlayground = () => {
             const parts = sampleText.split(regex);
             const matches = sampleText.match(regex);
             if (!matches) return sampleText;
-            
-            return parts.reduce((acc, part, i) => {
-                if (i < parts.length - 1) {
-                    return [...acc, part, <span key={i} className="bg-yellow-200 text-black font-bold">{matches[i]}</span>];
-                }
-                return [...acc, part];
-            }, []);
-        } catch (e) {
-            return sampleText;
-        }
+            return parts.reduce((acc, part, i) => i < parts.length - 1 ? [...acc, part, <span key={i} className="bg-yellow-200 text-black font-bold">{matches[i]}</span>] : [...acc, part], []);
+        } catch (e) { return sampleText; }
     };
-
     return (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><SearchIcon size={16} className="text-pink-500"/> Regex Playground (grep)</h3>
-            <div className="mb-4">
-                <input 
-                    value={pattern} 
-                    onChange={(e) => setPattern(e.target.value)} 
-                    placeholder="Enter regex (e.g. ^root, nologin$)"
-                    className="w-full border rounded p-2 font-mono text-sm border-slate-300 focus:border-pink-500 outline-none"
-                />
-            </div>
-            <div className="bg-slate-900 p-3 rounded text-slate-300 font-mono text-xs whitespace-pre-wrap">
-                {getHighlightedText()}
-            </div>
+            <div className="mb-4"><input value={pattern} onChange={(e) => setPattern(e.target.value)} placeholder="Enter regex (e.g. ^root, nologin$)" className="w-full border rounded p-2 font-mono text-sm border-slate-300 focus:border-pink-500 outline-none"/></div>
+            <div className="bg-slate-900 p-3 rounded text-slate-300 font-mono text-xs whitespace-pre-wrap">{getHighlightedText()}</div>
             <p className="text-[10px] text-slate-400 mt-2">Try: <code>^root</code>, <code>nologin$</code>, <code>[0-9]</code></p>
         </div>
     );
@@ -323,10 +201,7 @@ const CronBuilder = () => {
              <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><TimerIcon size={16} className="text-purple-500"/> Cron Builder</h3>
             <div className="grid grid-cols-5 gap-2 mb-4 text-center">
                 {['m','h','dom','mon','dow'].map(k => (
-                    <div key={k}>
-                        <input value={val[k]} onChange={(e) => update(k, e.target.value)} className="w-full border border-slate-300 rounded p-1 text-center font-mono text-sm focus:border-purple-500 outline-none"/>
-                        <div className="text-[9px] text-slate-400 mt-1 uppercase font-bold">{k}</div>
-                    </div>
+                    <div key={k}><input value={val[k]} onChange={(e) => update(k, e.target.value)} className="w-full border border-slate-300 rounded p-1 text-center font-mono text-sm focus:border-purple-500 outline-none"/><div className="text-[9px] text-slate-400 mt-1 uppercase font-bold">{k}</div></div>
                 ))}
             </div>
             <CodeBlock>{`${val.m} ${val.h} ${val.dom} ${val.mon} ${val.dow} /path/to/script`}</CodeBlock>
@@ -340,14 +215,12 @@ const FindBuilder = () => {
     const [user, setUser] = useState('');
     const [size, setSize] = useState('+10M');
     const [action, setAction] = useState('print');
-
     let cmd = `find ${path}`;
     if (name) cmd += ` -name "${name}"`;
     if (user) cmd += ` -user ${user}`;
     if (size) cmd += ` -size ${size}`;
     if (action === 'delete') cmd += ` -exec rm -f {} \\;`;
     if (action === 'exec') cmd += ` -exec cp {} /tmp \\;`;
-
     return (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><SearchIcon size={16} className="text-blue-500"/> Find Command Builder</h3>
@@ -356,13 +229,7 @@ const FindBuilder = () => {
                 <div><label className="text-[10px] uppercase font-bold text-slate-500">Name Pattern</label><input value={name} onChange={e=>setName(e.target.value)} className="w-full border rounded p-1 text-sm"/></div>
                 <div><label className="text-[10px] uppercase font-bold text-slate-500">User (Optional)</label><input value={user} onChange={e=>setUser(e.target.value)} placeholder="root" className="w-full border rounded p-1 text-sm"/></div>
                 <div><label className="text-[10px] uppercase font-bold text-slate-500">Size (Optional)</label><input value={size} onChange={e=>setSize(e.target.value)} placeholder="+10M" className="w-full border rounded p-1 text-sm"/></div>
-                <div className="col-span-2"><label className="text-[10px] uppercase font-bold text-slate-500">Action</label>
-                    <select value={action} onChange={e=>setAction(e.target.value)} className="w-full border rounded p-1 text-sm bg-white">
-                        <option value="print">Print (Default)</option>
-                        <option value="delete">Delete (-exec rm)</option>
-                        <option value="exec">Copy to /tmp (-exec cp)</option>
-                    </select>
-                </div>
+                <div className="col-span-2"><label className="text-[10px] uppercase font-bold text-slate-500">Action</label><select value={action} onChange={e=>setAction(e.target.value)} className="w-full border rounded p-1 text-sm bg-white"><option value="print">Print (Default)</option><option value="delete">Delete (-exec rm)</option><option value="exec">Copy to /tmp (-exec cp)</option></select></div>
             </div>
             <CodeBlock>{cmd}</CodeBlock>
         </div>
@@ -375,9 +242,7 @@ const NetworkBuilder = () => {
     const [ip, setIp] = useState('172.25.250.10');
     const [gw, setGw] = useState('172.25.250.254');
     const [dns, setDns] = useState('172.25.250.220');
-
     const cmd = `nmcli con add con-name ${con} ifname ${iface} type ethernet ipv4.method manual ipv4.addresses ${ip}/24 ipv4.gateway ${gw} ipv4.dns ${dns}`;
-
     return (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><NetworkIcon size={16} className="text-emerald-500"/> Network Configurator</h3>
@@ -401,30 +266,16 @@ const FstabBuilder = () => {
     const [opts, setOpts] = useState('defaults');
     const [dump, setDump] = useState('0');
     const [pass, setPass] = useState('0');
-
     const line = `UUID=${uuid}  ${mount}  ${type}  ${opts}  ${dump}  ${pass}`;
-
     return (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><HardDriveIcon size={16} className="text-amber-500"/> FSTAB Generator</h3>
             <div className="grid grid-cols-3 gap-3 mb-4">
                 <div className="col-span-2"><label className="text-[10px] uppercase font-bold text-slate-500">UUID (blkid)</label><input value={uuid} onChange={e=>setUuid(e.target.value)} className="w-full border rounded p-1 text-sm font-mono"/></div>
-                <div><label className="text-[10px] uppercase font-bold text-slate-500">Type</label>
-                    <select value={type} onChange={e=>setType(e.target.value)} className="w-full border rounded p-1 text-sm bg-white">
-                        <option value="xfs">xfs</option>
-                        <option value="ext4">ext4</option>
-                        <option value="vfat">vfat</option>
-                        <option value="swap">swap</option>
-                    </select>
-                </div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Type</label><select value={type} onChange={e=>setType(e.target.value)} className="w-full border rounded p-1 text-sm bg-white"><option value="xfs">xfs</option><option value="ext4">ext4</option><option value="vfat">vfat</option><option value="swap">swap</option></select></div>
                 <div><label className="text-[10px] uppercase font-bold text-slate-500">Mount Point</label><input value={mount} onChange={e=>setMount(e.target.value)} className="w-full border rounded p-1 text-sm font-mono"/></div>
                 <div><label className="text-[10px] uppercase font-bold text-slate-500">Options</label><input value={opts} onChange={e=>setOpts(e.target.value)} className="w-full border rounded p-1 text-sm font-mono"/></div>
-                <div><label className="text-[10px] uppercase font-bold text-slate-500">Dump / Pass</label>
-                    <div className="flex gap-1">
-                        <input value={dump} onChange={e=>setDump(e.target.value)} className="w-1/2 border rounded p-1 text-sm font-mono text-center"/>
-                        <input value={pass} onChange={e=>setPass(e.target.value)} className="w-1/2 border rounded p-1 text-sm font-mono text-center"/>
-                    </div>
-                </div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Dump / Pass</label><div className="flex gap-1"><input value={dump} onChange={e=>setDump(e.target.value)} className="w-1/2 border rounded p-1 text-sm font-mono text-center"/><input value={pass} onChange={e=>setPass(e.target.value)} className="w-1/2 border rounded p-1 text-sm font-mono text-center"/></div></div>
             </div>
             <CodeBlock color="blue">{line}</CodeBlock>
             <p className="text-[10px] text-slate-400 mt-2">Add this to <code>/etc/fstab</code>. Use <code>mount -a</code> to test.</p>
@@ -432,27 +283,13 @@ const FstabBuilder = () => {
     );
 };
 
-// --- NEW: SWAP MANAGER (Exam Critical) ---
 const SwapBuilder = () => {
     const [device, setDevice] = useState('/dev/vdb2');
-    
     return (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><HardDriveIcon size={16} className="text-amber-500"/> Swap Space Manager</h3>
-            <div className="mb-4">
-                <label className="text-[10px] uppercase font-bold text-slate-500">Swap Partition/Device</label>
-                <input value={device} onChange={e=>setDevice(e.target.value)} className="w-full border rounded p-1 text-sm"/>
-            </div>
-            <div className="space-y-2">
-                <div className="text-[10px] uppercase font-bold text-slate-400">1. Initialize</div>
-                <CodeBlock color="green">{`mkswap ${device}`}</CodeBlock>
-                
-                <div className="text-[10px] uppercase font-bold text-slate-400">2. Activate (Temporary)</div>
-                <CodeBlock color="green">{`swapon ${device}`}</CodeBlock>
-                
-                <div className="text-[10px] uppercase font-bold text-slate-400">3. Persist (/etc/fstab)</div>
-                <CodeBlock color="blue">{`${device}  none  swap  defaults  0  0`}</CodeBlock>
-            </div>
+            <div className="mb-4"><label className="text-[10px] uppercase font-bold text-slate-500">Swap Partition/Device</label><input value={device} onChange={e=>setDevice(e.target.value)} className="w-full border rounded p-1 text-sm"/></div>
+            <div className="space-y-2"><div className="text-[10px] uppercase font-bold text-slate-400">1. Initialize</div><CodeBlock color="green">{`mkswap ${device}`}</CodeBlock><div className="text-[10px] uppercase font-bold text-slate-400">2. Activate (Temporary)</div><CodeBlock color="green">{`swapon ${device}`}</CodeBlock><div className="text-[10px] uppercase font-bold text-slate-400">3. Persist (/etc/fstab)</div><CodeBlock color="blue">{`${device}  none  swap  defaults  0  0`}</CodeBlock></div>
         </div>
     );
 };
@@ -463,26 +300,18 @@ const UserBuilder = () => {
     const [gid, setGid] = useState('');
     const [groups, setGroups] = useState('');
     const [shell, setShell] = useState('/bin/bash');
-
     let cmd = `useradd`;
     if (uid) cmd += ` -u ${uid}`;
     if (gid) cmd += ` -g ${gid}`;
     if (groups) cmd += ` -G ${groups}`;
     if (shell !== '/bin/bash') cmd += ` -s ${shell}`;
     cmd += ` ${user}`;
-
     return (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><UserPlusIcon size={16} className="text-blue-500"/> User Wizard</h3>
             <div className="grid grid-cols-2 gap-3 mb-4">
                 <div><label className="text-[10px] uppercase font-bold text-slate-500">Username</label><input value={user} onChange={e=>setUser(e.target.value)} className="w-full border rounded p-1 text-sm font-mono"/></div>
-                <div><label className="text-[10px] uppercase font-bold text-slate-500">Shell</label>
-                    <select value={shell} onChange={e=>setShell(e.target.value)} className="w-full border rounded p-1 text-sm bg-white">
-                        <option value="/bin/bash">/bin/bash</option>
-                        <option value="/sbin/nologin">/sbin/nologin</option>
-                        <option value="/bin/sh">/bin/sh</option>
-                    </select>
-                </div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Shell</label><select value={shell} onChange={e=>setShell(e.target.value)} className="w-full border rounded p-1 text-sm bg-white"><option value="/bin/bash">/bin/bash</option><option value="/sbin/nologin">/sbin/nologin</option><option value="/bin/sh">/bin/sh</option></select></div>
                 <div><label className="text-[10px] uppercase font-bold text-slate-500">UID (Optional)</label><input value={uid} onChange={e=>setUid(e.target.value)} placeholder="1001" className="w-full border rounded p-1 text-sm font-mono"/></div>
                 <div><label className="text-[10px] uppercase font-bold text-slate-500">Primary GID (Optional)</label><input value={gid} onChange={e=>setGid(e.target.value)} placeholder="1001" className="w-full border rounded p-1 text-sm font-mono"/></div>
                 <div className="col-span-2"><label className="text-[10px] uppercase font-bold text-slate-500">Secondary Groups (Comma sep)</label><input value={groups} onChange={e=>setGroups(e.target.value)} placeholder="wheel,devops" className="w-full border rounded p-1 text-sm font-mono"/></div>
@@ -494,65 +323,25 @@ const UserBuilder = () => {
 
 const SELinuxReference = () => {
     const [service, setService] = useState('httpd');
-    
-    const data = {
-        httpd: { file: 'httpd_sys_content_t', port: 'http_port_t', bool: 'httpd_enable_homedirs' },
-        samba: { file: 'samba_share_t', port: 'smbd_port_t', bool: 'samba_enable_home_dirs' },
-        ssh: { file: 'ssh_home_t', port: 'ssh_port_t', bool: 'N/A' },
-        ftp: { file: 'public_content_t', port: 'ftp_port_t', bool: 'ftpd_anon_write' }
-    };
-
+    const data = { httpd: { file: 'httpd_sys_content_t', port: 'http_port_t', bool: 'httpd_enable_homedirs' }, samba: { file: 'samba_share_t', port: 'smbd_port_t', bool: 'samba_enable_home_dirs' }, ssh: { file: 'ssh_home_t', port: 'ssh_port_t', bool: 'N/A' }, ftp: { file: 'public_content_t', port: 'ftp_port_t', bool: 'ftpd_anon_write' } };
     const ctx = data[service];
-
     return (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><ShieldIcon size={16} className="text-emerald-500"/> SELinux Quick Ref</h3>
-            <div className="mb-4">
-                <label className="text-[10px] uppercase font-bold text-slate-500">Select Service</label>
-                <select value={service} onChange={e=>setService(e.target.value)} className="w-full border rounded p-2 text-sm bg-white font-bold text-slate-700">
-                    <option value="httpd">Apache Web Server (httpd)</option>
-                    <option value="samba">Samba File Share (smb)</option>
-                    <option value="ssh">SSH Server</option>
-                    <option value="ftp">FTP Server</option>
-                </select>
-            </div>
-            <div className="space-y-2 text-sm">
-                <div className="flex justify-between border-b pb-1">
-                    <span className="text-slate-600">File Context:</span>
-                    <span className="font-mono text-emerald-600 font-bold">{ctx.file}</span>
-                </div>
-                <div className="flex justify-between border-b pb-1">
-                    <span className="text-slate-600">Port Type:</span>
-                    <span className="font-mono text-emerald-600 font-bold">{ctx.port}</span>
-                </div>
-                <div className="flex justify-between pb-1">
-                    <span className="text-slate-600">Common Boolean:</span>
-                    <span className="font-mono text-emerald-600 font-bold">{ctx.bool}</span>
-                </div>
-            </div>
-            <div className="mt-4 pt-4 border-t border-slate-100">
-                <div className="text-[9px] text-slate-400 font-bold uppercase mb-1">Fix Context</div>
-                <CodeBlock>semanage fcontext -a -t {ctx.file} "/dir(/.*)?"</CodeBlock>
-                <CodeBlock>restorecon -Rv /dir</CodeBlock>
-            </div>
+            <div className="mb-4"><label className="text-[10px] uppercase font-bold text-slate-500">Select Service</label><select value={service} onChange={e=>setService(e.target.value)} className="w-full border rounded p-2 text-sm bg-white font-bold text-slate-700"><option value="httpd">Apache Web Server (httpd)</option><option value="samba">Samba File Share (smb)</option><option value="ssh">SSH Server</option><option value="ftp">FTP Server</option></select></div>
+            <div className="space-y-2 text-sm"><div className="flex justify-between border-b pb-1"><span className="text-slate-600">File Context:</span><span className="font-mono text-emerald-600 font-bold">{ctx.file}</span></div><div className="flex justify-between border-b pb-1"><span className="text-slate-600">Port Type:</span><span className="font-mono text-emerald-600 font-bold">{ctx.port}</span></div><div className="flex justify-between pb-1"><span className="text-slate-600">Common Boolean:</span><span className="font-mono text-emerald-600 font-bold">{ctx.bool}</span></div></div>
+            <div className="mt-4 pt-4 border-t border-slate-100"><div className="text-[9px] text-slate-400 font-bold uppercase mb-1">Fix Context</div><CodeBlock>semanage fcontext -a -t {ctx.file} "/dir(/.*)?"</CodeBlock><CodeBlock>restorecon -Rv /dir</CodeBlock></div>
         </div>
     );
 };
 
-// --- NEW: REPO FILE BUILDER ---
 const RepoBuilder = () => {
     const [repoId, setRepoId] = useState('appstream');
     const [name, setName] = useState('AppStream');
     const [url, setUrl] = useState('http://content.example.com/rhel8.0/x86_64/appstream/os');
     const [gpg, setGpg] = useState('0');
     const [enabled, setEnabled] = useState('1');
-
-    const content = `[${repoId}]
-name=${name}
-baseurl=${url}
-enabled=${enabled}
-gpgcheck=${gpg}`;
-
+    const content = `[${repoId}]\nname=${name}\nbaseurl=${url}\nenabled=${enabled}\ngpgcheck=${gpg}`;
     return (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><SettingsIcon size={16} className="text-purple-500"/> Repo File Generator</h3>
@@ -560,115 +349,113 @@ gpgcheck=${gpg}`;
                 <div><label className="text-[10px] uppercase font-bold text-slate-500">Repo ID (No spaces)</label><input value={repoId} onChange={e=>setRepoId(e.target.value)} className="w-full border rounded p-1 text-sm"/></div>
                 <div><label className="text-[10px] uppercase font-bold text-slate-500">Name</label><input value={name} onChange={e=>setName(e.target.value)} className="w-full border rounded p-1 text-sm"/></div>
                 <div className="col-span-2"><label className="text-[10px] uppercase font-bold text-slate-500">Base URL</label><input value={url} onChange={e=>setUrl(e.target.value)} className="w-full border rounded p-1 text-sm"/></div>
-                <div><label className="text-[10px] uppercase font-bold text-slate-500">GPG Check</label>
-                    <select value={gpg} onChange={e=>setGpg(e.target.value)} className="w-full border rounded p-1 text-sm bg-white">
-                        <option value="0">0 (Disabled)</option>
-                        <option value="1">1 (Enabled)</option>
-                    </select>
-                </div>
-                <div><label className="text-[10px] uppercase font-bold text-slate-500">Enabled</label>
-                    <select value={enabled} onChange={e=>setEnabled(e.target.value)} className="w-full border rounded p-1 text-sm bg-white">
-                        <option value="1">1 (Yes)</option>
-                        <option value="0">0 (No)</option>
-                    </select>
-                </div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">GPG Check</label><select value={gpg} onChange={e=>setGpg(e.target.value)} className="w-full border rounded p-1 text-sm bg-white"><option value="0">0 (Disabled)</option><option value="1">1 (Enabled)</option></select></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Enabled</label><select value={enabled} onChange={e=>setEnabled(e.target.value)} className="w-full border rounded p-1 text-sm bg-white"><option value="1">1 (Yes)</option><option value="0">0 (No)</option></select></div>
             </div>
-            <div className="mt-2">
-                <p className="text-[10px] text-slate-500 mb-1 font-bold">/etc/yum.repos.d/{repoId}.repo</p>
-                <CodeBlock color="green">{content}</CodeBlock>
-            </div>
+            <div className="mt-2"><p className="text-[10px] text-slate-500 mb-1 font-bold">/etc/yum.repos.d/{repoId}.repo</p><CodeBlock color="green">{content}</CodeBlock></div>
         </div>
     );
 };
 
-// --- NEW: SCRIPT SKELETON BUILDER ---
 const ScriptBuilder = () => {
     const [name, setName] = useState('myscript.sh');
     const [shebang, setShebang] = useState('/bin/bash');
     const [desc, setDesc] = useState('My awesome script');
-
     return (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><FileTextIcon size={16} className="text-blue-500"/> Script Starter</h3>
             <div className="grid grid-cols-2 gap-3 mb-4">
                 <div><label className="text-[10px] uppercase font-bold text-slate-500">Filename</label><input value={name} onChange={e=>setName(e.target.value)} className="w-full border rounded p-1 text-sm"/></div>
-                <div><label className="text-[10px] uppercase font-bold text-slate-500">Interpreter</label>
-                    <select value={shebang} onChange={e=>setShebang(e.target.value)} className="w-full border rounded p-1 text-sm bg-white">
-                        <option value="/bin/bash">/bin/bash</option>
-                        <option value="/usr/bin/python3">/usr/bin/python3</option>
-                    </select>
-                </div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Interpreter</label><select value={shebang} onChange={e=>setShebang(e.target.value)} className="w-full border rounded p-1 text-sm bg-white"><option value="/bin/bash">/bin/bash</option><option value="/usr/bin/python3">/usr/bin/python3</option></select></div>
                 <div className="col-span-2"><label className="text-[10px] uppercase font-bold text-slate-500">Description</label><input value={desc} onChange={e=>setDesc(e.target.value)} className="w-full border rounded p-1 text-sm"/></div>
             </div>
-            <div className="space-y-2">
-                <CodeBlock>{`#!${shebang}\n# ${desc}\n\necho "Starting script..."\n# Your code here\nexit 0`}</CodeBlock>
-                <CodeBlock color="green">{`chmod +x ${name}`}</CodeBlock>
-            </div>
+            <div className="space-y-2"><CodeBlock>{`#!${shebang}\n# ${desc}\n\necho "Starting script..."\n# Your code here\nexit 0`}</CodeBlock><CodeBlock color="green">{`chmod +x ${name}`}</CodeBlock></div>
         </div>
     );
 };
 
-// --- NEW: NTP CONFIGURATOR ---
 const NTPBuilder = () => {
     const [server, setServer] = useState('time.google.com');
-    
     return (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><TimerIcon size={16} className="text-blue-500"/> NTP (Chrony) Config</h3>
-            <div className="mb-4">
-                <label className="text-[10px] uppercase font-bold text-slate-500">NTP Server Address</label>
-                <input value={server} onChange={e=>setServer(e.target.value)} className="w-full border rounded p-1 text-sm"/>
-            </div>
-            <div className="space-y-2">
-                <div className="text-[10px] uppercase font-bold text-slate-400">1. Edit Config</div>
-                <CodeBlock color="blue">{`echo "server ${server} iburst" >> /etc/chrony.conf`}</CodeBlock>
-                <div className="text-[10px] uppercase font-bold text-slate-400">2. Restart Service</div>
-                <CodeBlock color="green">{`systemctl restart chronyd`}</CodeBlock>
-                <div className="text-[10px] uppercase font-bold text-slate-400">3. Verify</div>
-                <CodeBlock color="green">{`chronyc sources`}</CodeBlock>
-            </div>
+            <div className="mb-4"><label className="text-[10px] uppercase font-bold text-slate-500">NTP Server Address</label><input value={server} onChange={e=>setServer(e.target.value)} className="w-full border rounded p-1 text-sm"/></div>
+            <div className="space-y-2"><div className="text-[10px] uppercase font-bold text-slate-400">1. Edit Config</div><CodeBlock color="blue">{`echo "server ${server} iburst" >> /etc/chrony.conf`}</CodeBlock><div className="text-[10px] uppercase font-bold text-slate-400">2. Restart Service</div><CodeBlock color="green">{`systemctl restart chronyd`}</CodeBlock><div className="text-[10px] uppercase font-bold text-slate-400">3. Verify</div><CodeBlock color="green">{`chronyc sources`}</CodeBlock></div>
         </div>
     );
 };
 
-// --- NEW: JOURNALCTL BUILDER ---
 const JournalctlBuilder = () => {
     const [unit, setUnit] = useState('sshd');
     const [since, setSince] = useState('1 hour ago');
     const [priority, setPriority] = useState('err');
     const [follow, setFollow] = useState(false);
-
     let cmd = `journalctl -u ${unit}`;
     if (since) cmd += ` --since "${since}"`;
     if (priority) cmd += ` -p ${priority}`;
     if (follow) cmd += ` -f`;
-
     return (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><ListIcon size={16} className="text-slate-600"/> Log Hunter (journalctl)</h3>
             <div className="grid grid-cols-2 gap-3 mb-4">
                 <div><label className="text-[10px] uppercase font-bold text-slate-500">Service Unit</label><input value={unit} onChange={e=>setUnit(e.target.value)} className="w-full border rounded p-1 text-sm"/></div>
                 <div><label className="text-[10px] uppercase font-bold text-slate-500">Since</label><input value={since} onChange={e=>setSince(e.target.value)} className="w-full border rounded p-1 text-sm"/></div>
-                <div><label className="text-[10px] uppercase font-bold text-slate-500">Priority</label>
-                    <select value={priority} onChange={e=>setPriority(e.target.value)} className="w-full border rounded p-1 text-sm bg-white">
-                        <option value="">(All)</option>
-                        <option value="err">Error (err)</option>
-                        <option value="warning">Warning (warning)</option>
-                        <option value="info">Info (info)</option>
-                    </select>
-                </div>
-                <div className="flex items-end pb-2">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" checked={follow} onChange={e=>setFollow(e.target.checked)} className="accent-blue-600"/>
-                        <span className="text-sm font-bold text-slate-600">Follow Live (-f)</span>
-                    </label>
-                </div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Priority</label><select value={priority} onChange={e=>setPriority(e.target.value)} className="w-full border rounded p-1 text-sm bg-white"><option value="">(All)</option><option value="err">Error (err)</option><option value="warning">Warning (warning)</option><option value="info">Info (info)</option></select></div>
+                <div className="flex items-end pb-2"><label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={follow} onChange={e=>setFollow(e.target.checked)} className="accent-blue-600"/><span className="text-sm font-bold text-slate-600">Follow Live (-f)</span></label></div>
             </div>
             <CodeBlock>{cmd}</CodeBlock>
         </div>
     );
 };
 
+const UmaskCalculator = () => {
+    const [umask, setUmask] = useState('022');
+    const [type, setType] = useState('dir');
+    const calculate = (base, mask) => {
+        const b = parseInt(base, 8); const m = parseInt(mask, 8);
+        if (isNaN(b) || isNaN(m)) return '---';
+        return (b & ~m).toString(8).padStart(3, '0');
+    };
+    const base = type === 'dir' ? '777' : '666';
+    const result = calculate(base, umask);
+    const toSymbolic = (octal) => { const map = ['---','--x','-w-','-wx','r--','r-x','rw-','rwx']; return octal.split('').map(d => map[parseInt(d)]).join(''); }
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><LockIcon size={16} className="text-pink-500"/> Umask Calculator</h3>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Type</label><div className="flex gap-2 mt-1"><button onClick={() => setType('dir')} className={`px-2 py-1 text-xs rounded ${type === 'dir' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600'}`}>Directory (777)</button><button onClick={() => setType('file')} className={`px-2 py-1 text-xs rounded ${type === 'file' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600'}`}>File (666)</button></div></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Umask (Octal)</label><input value={umask} onChange={e => setUmask(e.target.value)} maxLength={3} className="w-full border rounded p-1 text-sm font-mono text-center mt-1"/></div>
+            </div>
+            <div className="bg-slate-100 p-3 rounded text-center"><div className="text-xs text-slate-500 mb-1">Resulting Permissions</div><div className="text-2xl font-mono font-bold text-slate-800">{result}</div><div className="text-sm font-mono text-pink-600">{toSymbolic(result)}</div></div>
+            <CodeBlock color="blue">{`umask ${umask}`}</CodeBlock>
+        </div>
+    )
+}
+
+const FirewallBuilder = () => {
+    const [zone, setZone] = useState('public');
+    const [type, setType] = useState('service');
+    const [value, setValue] = useState('http');
+    const [perm, setPerm] = useState(true);
+    let cmd = `firewall-cmd`;
+    if (zone !== 'default') cmd += ` --zone=${zone}`;
+    if (perm) cmd += ` --permanent`;
+    if (type === 'service') cmd += ` --add-service=${value}`;
+    else cmd += ` --add-port=${value}`;
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2"><ShieldIcon size={16} className="text-red-500"/> Firewall Rule Builder</h3>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Zone</label><select value={zone} onChange={e=>setZone(e.target.value)} className="w-full border rounded p-1 text-sm bg-white"><option value="public">public (Default)</option><option value="home">home</option><option value="work">work</option><option value="trusted">trusted</option></select></div>
+                <div><label className="text-[10px] uppercase font-bold text-slate-500">Type</label><select value={type} onChange={e=>setType(e.target.value)} className="w-full border rounded p-1 text-sm bg-white"><option value="service">Service Name</option><option value="port">Port/Proto</option></select></div>
+                <div className="col-span-2"><label className="text-[10px] uppercase font-bold text-slate-500">{type === 'service' ? 'Service (e.g. http, nfs)' : 'Port (e.g. 80/tcp)'}</label><input value={value} onChange={e=>setValue(e.target.value)} className="w-full border rounded p-1 text-sm"/></div>
+                <div className="col-span-2 flex items-center gap-2"><input type="checkbox" checked={perm} onChange={e=>setPerm(e.target.checked)} className="accent-red-500"/><span className="text-sm font-bold text-slate-600">Permanent (Survives Reboot)</span></div>
+            </div>
+            <CodeBlock color="green">{cmd}</CodeBlock>
+            {perm && <div className="text-[10px] text-slate-400 mt-1">Don't forget: <code className="bg-slate-100 px-1 rounded">firewall-cmd --reload</code></div>}
+        </div>
+    );
+};
 
 const ReportCard = ({ results, total, onClose }) => {
     const score = Math.round((results.filter(r => r.success).length / total) * 100);
@@ -850,11 +637,44 @@ const TroubleshootingModal = ({ onClose }) => {
     );
 };
 
+// --- NEW: FILE EDITOR (VI/NANO SIMULATOR) ---
+const FileEditor = ({ filename, initialContent, onSave, onClose }) => {
+    const [content, setContent] = useState(initialContent || "");
+    const textareaRef = useRef(null);
+
+    useEffect(() => {
+        if(textareaRef.current) textareaRef.current.focus();
+    }, []);
+
+    return (
+        <div className="absolute inset-0 bg-black/95 z-50 flex flex-col font-mono text-green-400 p-2">
+            <div className="flex justify-between items-center border-b border-green-800 pb-2 mb-2">
+                <span className="font-bold uppercase tracking-widest text-xs">VIM - {filename}</span>
+                <div className="flex gap-2">
+                    <button onClick={() => onSave(content)} className="bg-green-700 text-black px-3 py-1 rounded text-xs font-bold hover:bg-green-600">Write & Quit (:wq)</button>
+                    <button onClick={onClose} className="bg-red-900 text-white px-3 py-1 rounded text-xs font-bold hover:bg-red-800">Quit! (:q!)</button>
+                </div>
+            </div>
+            <textarea
+                ref={textareaRef}
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                className="flex-1 bg-transparent border-none outline-none resize-none text-sm p-2 w-full h-full text-slate-300 focus:ring-0"
+                spellCheck="false"
+            />
+            <div className="mt-2 text-xs text-slate-500 border-t border-slate-800 pt-2 flex justify-between">
+                <span>INSERT MODE</span>
+                <span>{content.length} characters</span>
+            </div>
+        </div>
+    );
+};
+
 
 // --- 3. CONSTANTS & DATA ---
 const MAX_INPUT_LENGTH = 256; 
 const ILLEGAL_CHARS = /<script\b[^>]*>([\s\S]*?)<\/script>/gm; 
-const UTILITY_COMMANDS = ['clear', 'help', 'ls', 'pwd', 'whoami', 'history', 'id', 'exit', 'man', 'cat', 'touch', 'mkdir', 'rm', 'cd', 'cp', 'mv', 'chgrp', 'echo'];
+const UTILITY_COMMANDS = ['clear', 'help', 'ls', 'pwd', 'whoami', 'history', 'id', 'exit', 'man', 'cat', 'touch', 'mkdir', 'rm', 'cd', 'cp', 'mv', 'chgrp', 'echo', 'vi', 'vim', 'nano'];
 
 const THEMES = [
     { id: 'rhel', name: 'RHEL (Default)', bg: 'bg-slate-900', text: 'text-slate-300', prompt: 'text-green-400', cursor: 'bg-green-400' },
@@ -1002,6 +822,9 @@ export default function App() {
   const [cwd, setCwd] = useState('/root');
   const [isTerminalOpen, setIsTerminalOpen] = useState(true);
   
+  // NEW: Editor State
+  const [editorState, setEditorState] = useState({ open: false, filename: '', content: '' });
+
   // NEW: System State for Realism
   const [systemState, setSystemState] = useState({
       users: ['root', 'student'],
@@ -1239,6 +1062,7 @@ export default function App() {
     if (base !== 'man') {
         switch (base) {
           case 'clear': setTerminalHistory([]); break;
+          case 'history': addToTerm(inputHistory.map((c,i) => `${i+1}  ${c}`).join('\n')); break;
           case 'exit': 
              if (currentServer !== 'servera') {
                  setCurrentServer('servera');
@@ -1255,6 +1079,29 @@ export default function App() {
                 setLvmState({ pvs: [], vgs: [], lvs: [], mounts: [] }); // Reset LVM on logout
             }
             break;
+          // --- EDITOR SIMULATION ---
+          case 'vi':
+          case 'vim':
+          case 'nano':
+              if (args[1]) {
+                  const path = resolvePath(cwd, args[1]);
+                  const existingFile = fs[path] || (fs[cwd] && fs[cwd].children && fs[cwd].children[args[1]]);
+                  let initialContent = "";
+                  if (existingFile && existingFile.type === 'file') {
+                      initialContent = existingFile.content;
+                  }
+                  setEditorState({ open: true, filename: args[1], content: initialContent });
+              } else {
+                  addToTerm(`Usage: ${base} filename`, 'error');
+              }
+              break;
+          case 'crontab':
+              if (args[1] === '-e') {
+                  setEditorState({ open: true, filename: 'crontab', content: '# Edit cron jobs here\n' });
+              } else if (args[1] === '-l') {
+                  addToTerm('no crontab for root', 'error'); 
+              }
+              break;
           // --- USER MGMT SIMULATION ---
           case 'useradd':
               const newUser = args[args.length - 1];
@@ -1514,6 +1361,29 @@ export default function App() {
     }
   };
 
+  // Handle saving file from the editor
+  const handleEditorSave = (newContent) => {
+      const path = resolvePath(cwd, editorState.filename);
+      // Determine if we are updating a child of CWD or a root path
+      if (path.startsWith('/')) {
+          setFs(prev => ({
+              ...prev,
+              [path]: { type: 'file', content: newContent }
+          }));
+      } else {
+          // Relative to CWD
+          setFs(prev => ({
+              ...prev,
+              [cwd]: {
+                  ...prev[cwd],
+                  children: { ...prev[cwd].children, [editorState.filename]: { type: 'file', content: newContent } }
+              }
+          }));
+      }
+      setEditorState({ open: false, filename: '', content: '' });
+      addToTerm(`"${editorState.filename}" [New] ${newContent.length}L, ${newContent.length}C written`, 'success');
+  };
+
   const handleKeyDown = (e) => {
     if (isPaging) {
         e.preventDefault();
@@ -1644,6 +1514,16 @@ export default function App() {
       {/* Report Card Overlay */}
       {showReportCard && (
         <ReportCard results={examResults} total={examQuestions.length} onClose={() => setShowReportCard(false)} />
+      )}
+      
+      {/* FILE EDITOR MODAL */}
+      {editorState.open && (
+          <FileEditor 
+            filename={editorState.filename} 
+            initialContent={editorState.content} 
+            onSave={handleEditorSave} 
+            onClose={() => setEditorState({ open: false, filename: '', content: '' })} 
+          />
       )}
 
       {/* MOBILE MENU TOGGLE */}
@@ -1958,19 +1838,4 @@ export default function App() {
                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                        <h4 className="font-bold text-red-700 mb-2 flex items-center gap-2"><AlertTriangleIcon size={18}/> Critical Failures (Zero Score Risks)</h4>
                        <ul className="list-disc pl-4 text-sm text-red-800 space-y-1">
-                           <li><b>System Not Booting:</b> If your VM doesn't boot when the examiners restart it, you get a 0 for the entire exam. Test your reboots!</li>
-                           <li><b>Root Password:</b> If you cannot reset the root password successfully, they cannot grade your exam.</li>
-                           <li><b>Network Down:</b> If you mess up the network interface so the system is unreachable, they cannot grade it.</li>
-                       </ul>
-                   </div>
-              </div>
-            </section>
-            )}
-
-          </div>
-        </main>
-
-        {/* BOTTOM FIXED TERMINAL SECTION */}
-        <section id="practice-lab" className={`shrink-0 bg-slate-200 border-t border-slate-300 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] transition-all duration-300 ease-in-out flex flex-col ${isTerminalOpen ? 'h-80' : 'h-10'}`}>
-          <div 
-              className="h-10 bg-slate-300 border-b border-slate-400 flex items-center justify-between px-4 cursor
+                           <li><b>System Not Booting:</b> If your VM doesn't boot when the examiners restart it, you get a
