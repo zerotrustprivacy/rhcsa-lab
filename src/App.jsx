@@ -94,9 +94,6 @@ const ProgressBar = ({ completed, total }) => {
 
 // --- VISUALIZERS & TOOLS ---
 
-// ... (Previous Visualizers: LVMVisualizer, PermissionsCalculator, RegexPlayground, CronBuilder, FindBuilder, NetworkBuilder, FstabBuilder, SwapBuilder, UserBuilder, SELinuxReference, RepoBuilder, ScriptBuilder, NTPBuilder, JournalctlBuilder, UmaskCalculator, FirewallBuilder)
-// (Omitting for brevity, but they are still in the file structure as per instructions - see full file below if needed, but assuming user context is kept. Wait, I must provide full file. Inserting them back.)
-
 const LVMVisualizer = ({ lvmState }) => {
     const getVgForPv = (pvName) => lvmState.vgs.find(vg => vg.pvs.includes(pvName));
     return (
@@ -824,6 +821,8 @@ export default function App() {
   
   // NEW: Editor State
   const [editorState, setEditorState] = useState({ open: false, filename: '', content: '' });
+  // NEW: Processing State for long commands
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // NEW: System State for Realism
   const [systemState, setSystemState] = useState({
@@ -1351,7 +1350,35 @@ export default function App() {
               }
               break;
           case 'nmcli': addToTerm("Connection successfully added."); break;
-          case 'dnf': addToTerm("Complete!"); break;
+          // --- UPDATED DNF SIMULATION ---
+          case 'dnf':
+              if (args[1] === 'install' || args[1] === 'update') {
+                  setIsProcessing(true);
+                  addToTerm("Updating Subscription Management repositories...", 'system');
+                  addToTerm("Dependencies resolved.", 'system');
+                  
+                  setTimeout(() => {
+                      addToTerm("Downloading packages...", 'system');
+                      
+                      setTimeout(() => {
+                          addToTerm("Running transaction check...");
+                          addToTerm("Installing: " + (args[2] || "updates"));
+                          addToTerm("Complete!", 'success');
+                          setIsProcessing(false);
+                          
+                          // Focus back on input
+                          setTimeout(() => inputRef.current?.focus(), 10);
+                      }, 1000);
+                  }, 800);
+              } else if (args[1] === 'search') {
+                  addToTerm(`Searching for ${args[2] || 'packages'}... found matches.`);
+              } else if (args[1] === 'history') {
+                  addToTerm("ID | Command line | Date and time");
+                  addToTerm("1  | dnf install httpd | 2023-10-01 10:00");
+              } else {
+                  addToTerm("Complete!");
+              }
+              break;
           case 'grep': if(cleanCmd.includes('^root')) addToTerm("root:x:0:0:root:/root:/bin/bash"); break;
           case 'nmtui': addToTerm("Opening NetworkManager TUI... [Graphic Interface Simulated]", 'success'); break;
           case 'flatpak': if (args[1] === 'install') addToTerm("Installing... Complete."); else addToTerm("Flatpak remote added."); break;
@@ -1410,6 +1437,12 @@ export default function App() {
         e.preventDefault();
         addToTerm(`[root@server ~]# ${inputVal}^C`, 'input');
         setInputVal('');
+        return;
+    }
+
+    // --- STOP INPUT DURING PROCESSING ---
+    if (isProcessing) {
+        e.preventDefault();
         return;
     }
 
@@ -1917,10 +1950,11 @@ export default function App() {
                     value={inputVal}
                     onChange={(e) => setInputVal(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    className={`bg-transparent border-none outline-none flex-1 text-slate-300`}
+                    className={`bg-transparent border-none outline-none flex-1 text-slate-300 ${isProcessing ? 'cursor-wait' : ''}`}
                     autoComplete="off" 
                     spellCheck="false"
                     maxLength={MAX_INPUT_LENGTH}
+                    disabled={isProcessing}
                   />
                 </div>
               </div>
