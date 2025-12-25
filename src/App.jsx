@@ -32,9 +32,8 @@ const UserPlusIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.
 const ChevronDownIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="6 9 12 15 18 9"></polyline></svg>);
 const ChevronUpIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="18 15 12 9 6 15"></polyline></svg>);
 const RotateCcwIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>);
-const EditIcon = ({ size = 24, className = "" }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>);
 
-// --- 2. COMPONENTS (Defined BEFORE App) ---
+// --- 2. COMPONENTS ---
 
 const CopyButton = ({ text }) => {
   const [copied, setCopied] = useState(false);
@@ -46,6 +45,7 @@ const CopyButton = ({ text }) => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     } catch (err) {
+        // Fallback
         try {
             const textArea = document.createElement("textarea");
             textArea.value = textToCopy;
@@ -92,7 +92,7 @@ const ProgressBar = ({ completed, total }) => {
     );
 };
 
-// --- VISUALIZERS & TOOLS ---
+// --- VISUALIZERS ---
 
 const LVMVisualizer = ({ lvmState }) => {
     const getVgForPv = (pvName) => lvmState.vgs.find(vg => vg.pvs.includes(pvName));
@@ -668,140 +668,6 @@ const FileEditor = ({ filename, initialContent, onSave, onClose }) => {
 };
 
 
-// --- 3. CONSTANTS & DATA ---
-const MAX_INPUT_LENGTH = 256; 
-const ILLEGAL_CHARS = /<script\b[^>]*>([\s\S]*?)<\/script>/gm; 
-const UTILITY_COMMANDS = ['clear', 'help', 'ls', 'pwd', 'whoami', 'history', 'id', 'exit', 'man', 'cat', 'touch', 'mkdir', 'rm', 'cd', 'cp', 'mv', 'chgrp', 'echo', 'vi', 'vim', 'nano'];
-
-const THEMES = [
-    { id: 'rhel', name: 'RHEL (Default)', bg: 'bg-slate-900', text: 'text-slate-300', prompt: 'text-green-400', cursor: 'bg-green-400' },
-    { id: 'matrix', name: 'Hacker Green', bg: 'bg-black', text: 'text-green-500', prompt: 'text-green-400', cursor: 'bg-green-500' },
-    { id: 'dracula', name: 'Dracula', bg: 'bg-[#282a36]', text: 'text-[#f8f8f2]', prompt: 'text-[#ff79c6]', cursor: 'bg-[#bd93f9]' },
-    { id: 'amber', name: 'Retro Amber', bg: 'bg-[#1a1200]', text: 'text-[#ffb000]', prompt: 'text-[#ffb000]', cursor: 'bg-[#ffb000]' }
-];
-
-const MAN_PAGES = {
-    useradd: "NAME\n  useradd - create a new user\nSYNOPSIS\n  useradd [options] LOGIN\nOPTIONS\n  -u UID\n  -g GID\n  -G GROUPS",
-    tar: "NAME\n  tar - archive utility\nOPTIONS\n  -c Create\n  -x Extract\n  -f File\n  -v Verbose\n  -z Gzip",
-    chmod: "NAME\n  chmod - change file mode bits\nEXAMPLES\n  chmod 755 file",
-    grep: "NAME\n  grep - print lines matching a pattern\nSYNOPSIS\n  grep [OPTIONS] PATTERN [FILE...]\nOPTIONS\n  -i, --ignore-case\n  -v, --invert-match\n  -r, --recursive",
-    systemctl: "NAME\n  systemctl - Control the systemd system and service manager\nCOMMANDS\n  start\n  stop\n  restart\n  status\n  enable\n  disable\n  isolate",
-    default: "No manual entry found. Try 'help'."
-};
-
-const FLASHCARDS = [
-    { id: 1, front: "Exact command to add a DNF repository", back: "dnf config-manager --add-repo <url>" },
-    { id: 2, front: "nmcli command to add a static Ethernet connection", back: "nmcli con add con-name <name> type ethernet ifname <interface> ip4 <ip/mask> gw4 <gateway>" },
-    { id: 3, front: "Octal Permission: Read + Execute", back: "5 (4+1)" },
-    { id: 4, front: "Octal Permission: Read + Write", back: "6 (4+2)" },
-    { id: 5, front: "Kernel argument to interrupt boot for password reset", back: "rd.break OR init=/bin/bash (Recommended: init=/bin/bash)" },
-    { id: 6, front: "Step to ensure SELinux relabeling after password reset", back: "touch /.autorelabel" },
-    { id: 7, front: "Command to make a firewall rule persistent", back: "--permanent" },
-    { id: 8, front: "Command to reload firewall configuration", back: "firewall-cmd --reload" },
-    { id: 9, front: "LVM command to extend a volume and resize FS together", back: "lvextend -r -L +<size> <lv_path>" }
-];
-
-const INITIAL_FS = {
-    '/root': { type: 'dir', children: { 'anaconda-ks.cfg': { type: 'file', content: 'kickstart config...' }, 'original-ks.cfg': { type: 'file', content: 'backup config...' } } },
-    '/home': { type: 'dir', children: { 'student': { type: 'dir', children: {} } } },
-    '/etc': { type: 'dir', children: { 'passwd': { type: 'file', content: 'root:x:0:0:root:/root:/bin/bash\nstudent:x:1000:1000:Student User:/home/student:/bin/bash' }, 'hosts': { type: 'file', content: '127.0.0.1   localhost\n::1         localhost' }, 'os-release': { type: 'file', content: 'NAME="Red Hat Enterprise Linux"\nVERSION="9.0 (Plow)"' } } },
-};
-
-// FULL MISSION LIST
-const MISSIONS = [
-  // PILLAR 1: TOOLS & SCRIPTING
-  { id: 1, category: "Tools", tool: "useradd", title: "User Management", desc: "Create user 'student' with UID 2000.", lesson: "RHEL user creation.", hint: "useradd -u 2000 student", check: (cmd) => /^useradd\s+/.test(cmd) && /\s-u\s+2000\b/.test(cmd) },
-  { id: 2, category: "Tools", tool: "groupadd", title: "Group Management", desc: "Create group 'devops' with GID 5000.", lesson: "Static GIDs.", hint: "groupadd -g 5000 devops", check: (cmd) => /^groupadd\s+/.test(cmd) && /-g\s+5000/.test(cmd) },
-  { id: 3, category: "Tools", tool: "usermod", title: "Modify User", desc: "Add 'student' to 'devops' group.", lesson: "Append groups.", hint: "usermod -aG devops student", check: (cmd) => /^usermod\s+/.test(cmd) && /-aG\s+devops/.test(cmd) },
-  { id: 4, category: "Tools", tool: "tar", title: "Archiving", desc: "Create gzip archive 'backup.tar.gz' of '/home'.", lesson: "Tar with gzip.", hint: "tar -czvf backup.tar.gz /home", check: (cmd) => /^tar\s+/.test(cmd) && /-[a-zA-Z]*z/.test(cmd) && /-[a-zA-Z]*c/.test(cmd) },
-  { id: 5, category: "Tools", tool: "chmod", title: "Permissions", desc: "Set 'script.sh' permissions: Owner=All, Group=RX, Other=None.", lesson: "Octal 750.", hint: "chmod 750 script.sh", check: (cmd) => /^chmod\s+750\s+script\.sh$/.test(cmd) },
-  { id: 6, category: "Tools", tool: "grep", title: "Grep", desc: "Search for lines starting with 'root' in '/etc/passwd'.", lesson: "Regex anchors.", hint: "grep \"^root\" /etc/passwd", check: (cmd) => /^grep\s+/.test(cmd) && /\^root/.test(cmd) },
-  { id: 7, category: "Tools", tool: "ln", title: "Soft Link", desc: "Create soft link 'mylink' to '/etc/hosts'.", lesson: "Symbolic links.", hint: "ln -s /etc/hosts mylink", check: (cmd) => /^ln\s+/.test(cmd) && /\s-s\s/.test(cmd) },
-  { id: 8, category: "Tools", tool: "find", title: "Find Files", desc: "Find files in '/etc' ending with '.conf'.", lesson: "Find by name.", hint: "find /etc -name \"*.conf\"", check: (cmd) => /^find\s+/.test(cmd) && /-name/.test(cmd) },
-  { id: 9, category: "Tools", tool: "setfacl", title: "ACLs", desc: "Grant 'student' RW access to 'file.txt' via ACL.", lesson: "Extended permissions.", hint: "setfacl -m u:student:rw file.txt", check: (cmd) => /^setfacl\s+/.test(cmd) && /-m/.test(cmd) },
-  { id: 10, category: "Tools", tool: "man", title: "Documentation", desc: "Open the manual for 'grep'.", lesson: "man pages are your best friend in the exam.", hint: "man grep", check: (cmd) => /^man\s+grep$/.test(cmd) },
-  { id: 11, category: "Tools", tool: "touch", title: "Create Script", desc: "Create an empty shell script named 'myscript.sh'.", lesson: "Scripts automate tasks.", hint: "touch myscript.sh", check: (cmd) => /^touch\s+myscript\.sh$/.test(cmd) },
-  { id: 12, category: "Tools", tool: "chmod", title: "Make Executable", desc: "Make 'myscript.sh' executable.", lesson: "chmod +x adds execution bit.", hint: "chmod +x myscript.sh", check: (cmd) => /^chmod\s+\+x\s+myscript\.sh$/.test(cmd) },
-  { id: 13, category: "Tools", tool: "echo", title: "Script Inputs", desc: "Echo the first argument ($1).", lesson: "$1, $2 are positional arguments.", hint: "echo $1", check: (cmd) => /^echo\s+\$1$/.test(cmd) },
-  // EXAM PREP: NEW TOOLS QUESTIONS
-  { id: 101, category: "Exam Prep", tool: "useradd", title: "User Sarah (No Login)", desc: "Create user 'sarah' with no login shell.", lesson: "Exam Q4", hint: "useradd -s /sbin/nologin sarah", check: (cmd) => /^useradd\s+/.test(cmd) && /-s\s+\/sbin\/nologin\s+sarah/.test(cmd) },
-  { id: 102, category: "Exam Prep", tool: "useradd", title: "User Alex (UID)", desc: "Create user 'alex' with UID 3456.", lesson: "Exam Q10", hint: "useradd -u 3456 alex", check: (cmd) => /^useradd\s+/.test(cmd) && /-u\s+3456\s+alex/.test(cmd) },
-  { id: 103, category: "Exam Prep", tool: "find", title: "Find & Copy (Exec)", desc: "Find 'harry' files and copy to /root/harry-files.", lesson: "Exam Q11", hint: "find / -user harry -type f -exec cp ...", check: (cmd) => /^find\s+/.test(cmd) && /-user\s+harry/.test(cmd) && /-exec\s+cp/.test(cmd) },
-
-  // PILLAR 2: SYSTEMS
-  { id: 14, category: "Systems", tool: "systemctl", title: "Service Status", desc: "Check status of 'httpd'.", lesson: "Systemd control.", hint: "systemctl status httpd", check: (cmd) => /^systemctl\s+status\s+httpd$/.test(cmd) },
-  { id: 15, category: "Systems", tool: "systemctl", title: "Default Target", desc: "Set default boot to text-mode.", lesson: "Multi-user target.", hint: "systemctl set-default multi-user.target", check: (cmd) => /^systemctl\s+set-default\s+multi-user\.target$/.test(cmd) },
-  { id: 16, category: "Systems", tool: "tuned-adm", title: "Tuning", desc: "Set profile to 'virtual-guest'.", lesson: "Performance profiles.", hint: "tuned-adm profile virtual-guest", check: (cmd) => /^tuned-adm\s+profile\s+virtual-guest$/.test(cmd) },
-  { id: 17, category: "Systems", tool: "nice", title: "Process Priority", desc: "Start 'tar' with priority 5.", lesson: "Process niceness.", hint: "nice -n 5 tar", check: (cmd) => /^nice\s+/.test(cmd) && /-n\s+5/.test(cmd) },
-  { id: 18, category: "Systems", tool: "chronyc", title: "NTP", desc: "Verify NTP sources.", lesson: "Time sync.", hint: "chronyc sources", check: (cmd) => /^chronyc\s+sources/.test(cmd) },
-  { id: 19, category: "Systems", tool: "journalctl", title: "Logging", desc: "Show logs for 'sshd'.", lesson: "Systemd journal.", hint: "journalctl -u sshd", check: (cmd) => /^journalctl\s+/.test(cmd) && /-u\s+sshd/.test(cmd) },
-  { id: 20, category: "Systems", tool: "systemctl", title: "Reboot System", desc: "Reboot the machine.", lesson: "System power state.", hint: "systemctl reboot", check: (cmd) => /^systemctl\s+reboot$/.test(cmd) },
-  { id: 21, category: "Systems", tool: "systemctl", title: "Boot Target", desc: "Isolate 'multi-user.target' now.", lesson: "Switch to text mode without rebooting.", hint: "systemctl isolate multi-user.target", check: (cmd) => /^systemctl\s+isolate\s+multi-user\.target$/.test(cmd) },
-  { id: 22, category: "Systems", tool: "touch", title: "Root Pass Reset", desc: "Create the autorelabel file (Simulated).", lesson: "Essential for resetting root pass.", hint: "touch /.autorelabel", check: (cmd) => /^touch\s+\/\.autorelabel$/.test(cmd) },
-  { id: 23, category: "Systems", tool: "kill", title: "Kill Process", desc: "Force kill PID 1234.", lesson: "-9 sends SIGKILL.", hint: "kill -9 1234", check: (cmd) => /^kill\s+-9\s+1234$/.test(cmd) },
-  { id: 24, category: "Systems", tool: "renice", title: "Scheduling", desc: "Renice PID 1234 to priority 10.", lesson: "Adjust running process priority.", hint: "renice -n 10 1234", check: (cmd) => /^renice\s+-n\s+10\s+1234$/.test(cmd) },
-  { id: 25, category: "Systems", tool: "mkdir", title: "Preserve Logs", desc: "Create '/var/log/journal'.", lesson: "Makes journald logs persistent.", hint: "mkdir /var/log/journal", check: (cmd) => /^mkdir\s+(\/var\/log\/journal)/.test(cmd) },
-  { id: 26, category: "Systems", tool: "systemctl", title: "Network Svc", desc: "Check status of 'NetworkManager'.", lesson: "Service management.", hint: "systemctl status NetworkManager", check: (cmd) => /^systemctl\s+status\s+NetworkManager$/.test(cmd) },
-  { id: 27, category: "Systems", tool: "scp", title: "Transfer File", desc: "Copy 'file' to 'serverb:/tmp'.", lesson: "Secure Copy.", hint: "scp file serverb:/tmp", check: (cmd) => /^scp\s+file\s+serverb:\/tmp$/.test(cmd) },
-
-  // PILLAR 3: STORAGE
-  { id: 28, category: "Storage", tool: "pvcreate", title: "PV Creation", desc: "Init '/dev/vdb1' as PV.", lesson: "LVM Layer 1.", hint: "pvcreate /dev/vdb1", check: (cmd) => /^pvcreate\s+\/dev\/vdb1$/.test(cmd) },
-  { id: 29, category: "Storage", tool: "vgcreate", title: "VG Creation", desc: "Create VG 'myvg' using '/dev/vdb1'.", lesson: "LVM Layer 2.", hint: "vgcreate myvg /dev/vdb1", check: (cmd) => /^vgcreate\s+myvg\s+\/dev\/vdb1$/.test(cmd) },
-  { id: 30, category: "Storage", tool: "lvcreate", title: "LV Creation", desc: "Create 500MB LV 'mylv' in 'myvg'.", lesson: "LVM Layer 3.", hint: "lvcreate -L 500M -n mylv myvg", check: (cmd) => /^lvcreate\s+/.test(cmd) && /-L\s+500M/.test(cmd) },
-  { id: 31, category: "Storage", tool: "lvextend", title: "Extend LV", desc: "Add 200MB to 'mylv' and resize FS.", lesson: "Resize fs flag.", hint: "lvextend -L +200M -r /dev/myvg/mylv", check: (cmd) => /^lvextend\s+/.test(cmd) && /-r/.test(cmd) },
-  { id: 32, category: "Storage", tool: "mkfs.xfs", title: "Format FS", desc: "Format '/dev/myvg/mylv' as XFS.", lesson: "Filesystem creation.", hint: "mkfs.xfs /dev/myvg/mylv", check: (cmd) => /^mkfs\.xfs\s+/.test(cmd) },
-  { id: 33, category: "Storage", tool: "mkswap", title: "Swap", desc: "Format '/dev/vdb2' as swap.", lesson: "Swap space.", hint: "mkswap /dev/vdb2", check: (cmd) => /^mkswap\s+\/dev\/vdb2$/.test(cmd) },
-  { id: 34, category: "Storage", tool: "mount", title: "Mounting", desc: "Mount NFS share 'server:/share' to '/mnt'.", lesson: "Mount command.", hint: "mount -t nfs server:/share /mnt", check: (cmd) => /^mount\s+/.test(cmd) && /-t\s+nfs/.test(cmd) },
-  { id: 35, category: "Storage", tool: "fdisk", title: "Partitioning", desc: "Manage partitions on '/dev/vdb'.", lesson: "MBR/GPT management.", hint: "fdisk /dev/vdb", check: (cmd) => /^fdisk\s+\/dev\/vdb$/.test(cmd) },
-  { id: 36, category: "Storage", tool: "blkid", title: "UUID", desc: "Find UUIDs for block devices.", lesson: "Persistent mounting identifier.", hint: "blkid", check: (cmd) => /^blkid$/.test(cmd) },
-  { id: 37, category: "Storage", tool: "swapon", title: "Enable Swap", desc: "Activate swap on '/dev/vdb2'.", lesson: "Enable swap.", hint: "swapon /dev/vdb2", check: (cmd) => /^swapon\s+\/dev\/vdb2$/.test(cmd) },
-  { id: 38, category: "Storage", tool: "mkfs.ext4", title: "Format Ext4", desc: "Format '/dev/myvg/mylv' as Ext4.", lesson: "Filesystem creation.", hint: "mkfs.ext4 /dev/myvg/mylv", check: (cmd) => /^mkfs\.ext4\s+\/dev\/myvg\/mylv$/.test(cmd) },
-  { id: 39, category: "Storage", tool: "mount", title: "Mount FS", desc: "Mount '/dev/myvg/mylv' to '/mnt'.", lesson: "Manual mounting.", hint: "mount /dev/myvg/mylv /mnt", check: (cmd) => /^mount\s+\/dev\/myvg\/mylv\s+\/mnt$/.test(cmd) },
-  { id: 40, category: "Storage", tool: "dnf", title: "AutoFS", desc: "Install 'autofs'.", lesson: "Automounting utility.", hint: "dnf install autofs", check: (cmd) => /^dnf\s+install\s+autofs$/.test(cmd) },
-  // EXAM PREP: STORAGE QUESTIONS
-  { id: 104, category: "Exam Prep", tool: "lvresize", title: "Resize LV (Exact)", desc: "Resize wshare to 300MB (Exact).", lesson: "Exam Q20", hint: "lvresize -r -L 300M /dev/wgroup/wshare", check: (cmd) => /^lv(resize|extend|reduce)\s+/.test(cmd) && /-L\s+300M/.test(cmd) },
-  { id: 109, category: "Exam Prep", tool: "lvcreate", title: "LVM Extents", desc: "Create LV 'wshare' with 50 extents in 'wgroup'.", lesson: "Exam Q18 (-l is for extents, -L for size)", hint: "lvcreate -l 50 -n wshare wgroup", check: (cmd) => /^lvcreate\s+/.test(cmd) && /-l\s+50/.test(cmd) && /wshare/.test(cmd) },
-
-  // PILLAR 4: DEPLOY
-  { id: 41, category: "Deploy", tool: "dnf", title: "Install Software", desc: "Install 'httpd'.", lesson: "Package manager.", hint: "dnf install httpd", check: (cmd) => /^dnf\s+install\s+httpd$/.test(cmd) },
-  { id: 42, category: "Deploy", tool: "crontab", title: "Cron", desc: "List current cron jobs.", lesson: "Scheduling.", hint: "crontab -l", check: (cmd) => /^crontab\s+-l$/.test(cmd) },
-  { id: 43, category: "Deploy", tool: "flatpak", title: "Flatpak", desc: "Install 'gedit' from flathub.", lesson: "Container apps.", hint: "flatpak install flathub org.gnome.gedit", check: (cmd) => /^flatpak\s+install/.test(cmd) },
-  { id: 44, category: "Deploy", tool: "hostnamectl", title: "Hostname", desc: "Set hostname to 'server1'.", lesson: "System identity.", hint: "hostnamectl set-hostname server1", check: (cmd) => /^hostnamectl\s+set-hostname\s+server1/.test(cmd) },
-  { id: 45, category: "Deploy", tool: "dnf", title: "Repos", desc: "Add repo 'http://repo.com/app.repo'.", lesson: "Repo management.", hint: "dnf config-manager --add-repo http://repo.com/app.repo", check: (cmd) => /^dnf\s+config-manager\s+--add-repo/.test(cmd) },
-  { id: 46, category: "Deploy", tool: "systemctl", title: "Enable Boot", desc: "Enable 'httpd' to start at boot.", lesson: "Service persistence.", hint: "systemctl enable httpd", check: (cmd) => /^systemctl\s+enable\s+httpd$/.test(cmd) },
-  { id: 47, category: "Deploy", tool: "dnf", title: "Update Pkg", desc: "Update all packages.", lesson: "System maintenance.", hint: "dnf update", check: (cmd) => /^dnf\s+update$/.test(cmd) },
-  { id: 48, category: "Deploy", tool: "grub2-mkconfig", title: "Bootloader", desc: "Regenerate GRUB config.", lesson: "Bootloader updates.", hint: "grub2-mkconfig -o /boot/grub2/grub.cfg", check: (cmd) => /^grub2-mkconfig\s+/.test(cmd) },
-  { id: 49, category: "Deploy", tool: "firewall-cmd", title: "Firewall Service", desc: "Allow 'http' permanently.", lesson: "Network security.", hint: "firewall-cmd --add-service=http --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-service=http/.test(cmd) && /--permanent/.test(cmd) },
-  { id: 50, category: "Deploy", tool: "dnf", title: "Module Streams", desc: "Install the 'nodejs:18' module stream.", lesson: "AppStream allows different versions of software. Syntax: `module:stream`.", hint: "dnf module install nodejs:18", check: (cmd) => /^dnf\s+module\s+install\s+nodejs:18$/.test(cmd) },
-  { id: 51, category: "Deploy", tool: "tuned-adm", title: "Recommended Tuning", desc: "Apply the recommended tuning profile for this system.", lesson: "`recommend` asks TuneD to detect the best profile.", hint: "tuned-adm recommend", check: (cmd) => /^tuned-adm\s+recommend$/.test(cmd) },
-  // EXAM PREP: DEPLOY QUESTIONS
-  { id: 105, category: "Exam Prep", tool: "crontab", title: "Cron (Natasha)", desc: "User natasha: echo 'hiya' daily at 14:23.", lesson: "Exam Q6", hint: "crontab -e -u natasha", check: (cmd) => /^crontab\s+/.test(cmd) && /-u\s+natasha/.test(cmd) },
-  // ADDED MISSIONS (Full coverage)
-  { id: 111, category: "Exam Prep", tool: "chgrp", title: "Change Group", desc: "Change group of '/home/manager' to 'sysadmin'.", lesson: "File ownership.", hint: "chgrp sysadmin /home/manager", check: (cmd) => /^chgrp\s+sysadmin\s+\/home\/manager/.test(cmd) },
-  { id: 112, category: "Exam Prep", tool: "grep", title: "IO Redirection", desc: "Save lines containing 'root' from /etc/passwd to root_users.txt.", lesson: "Redirect stdout (>).", hint: "grep root /etc/passwd > root_users.txt", check: (cmd) => /^grep\s+root\s+\/etc\/passwd\s+>\s+root_users\.txt/.test(cmd) },
-  { id: 113, category: "Exam Prep", tool: "dnf", title: "System Roles", desc: "Install RHEL System Roles.", lesson: "Ansible automation.", hint: "dnf install rhel-system-roles", check: (cmd) => /^dnf\s+install\s+rhel-system-roles/.test(cmd) },
-
-
-  // PILLAR 5: SECURITY
-  { id: 52, category: "Security", tool: "nmcli", title: "Network", desc: "Add ethernet connection 'static-eth0'.", lesson: "NetworkManager.", hint: "nmcli con add con-name static-eth0 type ethernet ifname eth0", check: (cmd) => /^nmcli\s+con\s+add/.test(cmd) },
-  { id: 53, category: "Security", tool: "firewall-cmd", title: "Firewall", desc: "Permanently allow 'ftp'.", lesson: "Firewalld.", hint: "firewall-cmd --add-service=ftp --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-service=ftp/.test(cmd) && /--permanent/.test(cmd) },
-  { id: 54, category: "Security", tool: "ssh-keygen", title: "SSH", desc: "Generate SSH keys.", lesson: "Secure shell.", hint: "ssh-keygen", check: (cmd) => /^ssh-keygen/.test(cmd) },
-  { id: 55, category: "Security", tool: "ls", title: "SELinux List", desc: "List file contexts.", lesson: "Context labels.", hint: "ls -Z", check: (cmd) => /^ls\s+/.test(cmd) && /-[a-zA-Z]*Z/.test(cmd) },
-  { id: 56, category: "Security", tool: "restorecon", title: "SELinux Restore", desc: "Fix contexts on '/var/www/html'.", lesson: "Context repair.", hint: "restorecon -R /var/www/html", check: (cmd) => /^restorecon\s+/.test(cmd) && /-R/.test(cmd) },
-  { id: 57, category: "Security", tool: "chage", title: "Passwords", desc: "Set max password age to 90 days for 'student'.", lesson: "Aging policies.", hint: "chage -M 90 student", check: (cmd) => /^chage\s+/.test(cmd) && /-M\s+90/.test(cmd) },
-  { id: 58, category: "Security", tool: "firewall-cmd", title: "Firewall Port", desc: "Open port 8080/tcp permanently.", lesson: "Port security.", hint: "firewall-cmd --add-port=8080/tcp --permanent", check: (cmd) => /^firewall-cmd\s+/.test(cmd) && /--add-port=8080\/tcp/.test(cmd) },
-  { id: 59, category: "Security", tool: "umask", title: "Umask", desc: "Set umask to 027.", lesson: "Default permissions.", hint: "umask 027", check: (cmd) => /^umask\s+027$/.test(cmd) },
-  { id: 60, category: "Security", tool: "setenforce", title: "Enforcing", desc: "Set SELinux to Enforcing.", lesson: "MAC mode.", hint: "setenforce 1", check: (cmd) => /^setenforce\s+1$/.test(cmd) },
-  { id: 61, category: "Security", tool: "semanage", title: "Port Label", desc: "Add port 81 to http_port_t.", lesson: "SELinux ports.", hint: "semanage port -a -t http_port_t -p tcp 81", check: (cmd) => /^semanage\s+port\s+/.test(cmd) && /-a/.test(cmd) },
-  { id: 62, category: "Security", tool: "setsebool", title: "Boolean", desc: "Enable httpd home dirs.", lesson: "SELinux booleans.", hint: "setsebool -P httpd_enable_homedirs 1", check: (cmd) => /^setsebool\s+/.test(cmd) && /-P/.test(cmd) },
-  { id: 63, category: "Users", tool: "userdel", title: "Delete User", desc: "Delete user 'harry'.", lesson: "User mgmt.", hint: "userdel harry", check: (cmd) => /^userdel\s+harry$/.test(cmd) },
-  { id: 64, category: "Users", tool: "groupdel", title: "Delete Group", desc: "Delete group 'sales'.", lesson: "Group mgmt.", hint: "groupdel sales", check: (cmd) => /^groupdel\s+sales$/.test(cmd) },
-  // EXAM PREP: SECURITY QUESTIONS
-  { id: 106, category: "Exam Prep", tool: "chmod", title: "Collab Dir (2770)", desc: "Set permission 2770 on /home/manager.", lesson: "Exam Q5", hint: "chmod 2770 /home/manager", check: (cmd) => /^chmod\s+2770\s+/.test(cmd) },
-  { id: 107, category: "Exam Prep", tool: "nmcli", title: "Static IP (Exam)", desc: "Set IP 172.25.250.10 for 'System eth0'.", lesson: "Exam Q1", hint: "nmcli con mod \"System eth0\" ipv4.addresses 172.25.250.10/24 ...", check: (cmd) => /^nmcli\s+con\s+mod\s+/.test(cmd) && /172\.25\.250\.10\/24/.test(cmd) },
-  { id: 108, category: "Exam Prep", tool: "semanage", title: "SELinux Port 82", desc: "Allow httpd to listen on tcp port 82.", lesson: "Exam Q3", hint: "semanage port -a -t http_port_t -p tcp 82", check: (cmd) => /^semanage\s+port\s+/.test(cmd) && /-p\s+tcp\s+82/.test(cmd) }
-];
-
 // --- 4. MAIN APP COMPONENT ---
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -992,7 +858,7 @@ export default function App() {
     setInputHistory(prev => [...prev, cleanCmd]);
     setHistoryIndex(-1);
 
-    const args = cleanCmd.split(' ');
+    const args = cleanCmd.split(/\s+/); // Robust splitting
     const base = args[0];
 
     // MAN PAGE with Paging
@@ -1366,10 +1232,13 @@ export default function App() {
                           addToTerm("Complete!", 'success');
                           setIsProcessing(false);
                           
-                          // Focus back on input
-                          setTimeout(() => inputRef.current?.focus(), 10);
-                      }, 1000);
-                  }, 800);
+                          // Focus back on input and scroll
+                          setTimeout(() => {
+                            inputRef.current?.focus();
+                            terminalEndRef.current?.scrollIntoView();
+                          }, 50);
+                      }, 800); // Shorter duration
+                  }, 600); // Shorter duration
               } else if (args[1] === 'search') {
                   addToTerm(`Searching for ${args[2] || 'packages'}... found matches.`);
               } else if (args[1] === 'history') {
@@ -1381,7 +1250,7 @@ export default function App() {
               break;
           case 'grep': 
               // Improved Grep Simulation
-              const pattern = args[1] ? args[1].replace(/"/g, '') : '';
+              const pattern = args[1] ? args[1].replace(/['"]/g, '') : '';
               const target = args[2];
               
               if (!pattern) {
@@ -1396,11 +1265,12 @@ export default function App() {
                       "student:x:1000:1000:Student User:/home/student:/bin/bash"
                   ];
                   
-                  const isRegex = pattern.startsWith('^') || pattern.endsWith('$');
+                  const cleanPat = pattern.replace('^','').replace('$','');
+                  
                   const matches = mockLines.filter(line => {
-                      if (pattern.startsWith('^')) return line.startsWith(pattern.substring(1));
-                      if (pattern.endsWith('$')) return line.endsWith(pattern.substring(0, pattern.length - 1));
-                      return line.includes(pattern);
+                      if (pattern.startsWith('^')) return line.startsWith(cleanPat);
+                      if (pattern.endsWith('$')) return line.endsWith(cleanPat);
+                      return line.includes(cleanPat);
                   });
                   
                   if (matches.length > 0) {
