@@ -1379,7 +1379,38 @@ export default function App() {
                   addToTerm("Complete!");
               }
               break;
-          case 'grep': if(cleanCmd.includes('^root')) addToTerm("root:x:0:0:root:/root:/bin/bash"); break;
+          case 'grep': 
+              // Improved Grep Simulation
+              const pattern = args[1] ? args[1].replace(/"/g, '') : '';
+              const target = args[2];
+              
+              if (!pattern) {
+                  addToTerm("Usage: grep [OPTION]... PATTERN [FILE]...", 'error');
+              } else if (target === '/etc/passwd' || !target) {
+                  const mockLines = [
+                      "root:x:0:0:root:/root:/bin/bash",
+                      "bin:x:1:1:bin:/bin:/sbin/nologin",
+                      "daemon:x:2:2:daemon:/sbin:/sbin/nologin",
+                      "adm:x:3:4:adm:/var/adm:/sbin/nologin",
+                      "lp:x:4:7:lp:/var/spool/lpd:/sbin/nologin",
+                      "student:x:1000:1000:Student User:/home/student:/bin/bash"
+                  ];
+                  
+                  const isRegex = pattern.startsWith('^') || pattern.endsWith('$');
+                  const matches = mockLines.filter(line => {
+                      if (pattern.startsWith('^')) return line.startsWith(pattern.substring(1));
+                      if (pattern.endsWith('$')) return line.endsWith(pattern.substring(0, pattern.length - 1));
+                      return line.includes(pattern);
+                  });
+                  
+                  if (matches.length > 0) {
+                      matches.forEach(m => addToTerm(m));
+                  }
+                  // Silent on no match (standard grep behavior)
+              } else {
+                  addToTerm(`grep: ${target}: No such file or directory`, 'error');
+              }
+              break;
           case 'nmtui': addToTerm("Opening NetworkManager TUI... [Graphic Interface Simulated]", 'success'); break;
           case 'flatpak': if (args[1] === 'install') addToTerm("Installing... Complete."); else addToTerm("Flatpak remote added."); break;
           case 'hostnamectl': addToTerm("Hostname set."); break;
@@ -1504,7 +1535,11 @@ export default function App() {
              <ProgressBar completed={completedMissions.length} total={MISSIONS.length} />
           </div>
 
-          <button onClick={startExamMode} disabled={examMode} className="w-full flex items-center justify-center gap-2 mb-6 px-3 py-2 rounded-md bg-red-600 text-white font-bold hover:bg-red-700 text-sm transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+          <button 
+            onClick={startExamMode} 
+            disabled={examMode} 
+            className={`w-full flex items-center justify-center gap-2 mb-6 px-3 py-2 rounded-md font-bold text-sm transition-colors shadow-lg ${examMode ? 'bg-slate-800 text-red-400 cursor-default ring-2 ring-red-500/50' : 'bg-red-600 text-white hover:bg-red-700'}`}
+          >
              <TimerIcon size={16}/> {examMode ? `Time Left: ${formatTime(examTimeLeft)}` : "Start Mock Exam"}
           </button>
           
