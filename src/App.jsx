@@ -1536,8 +1536,7 @@ export default function App() {
           </div>
 
           <button 
-            onClick={startExamMode} 
-            disabled={examMode} 
+            onClick={!examMode ? startExamMode : undefined} 
             className={`w-full flex items-center justify-center gap-2 mb-6 px-3 py-2 rounded-md font-bold text-sm transition-colors shadow-lg ${examMode ? 'bg-slate-800 text-red-400 cursor-default ring-2 ring-red-500/50' : 'bg-red-600 text-white hover:bg-red-700'}`}
           >
              <TimerIcon size={16}/> {examMode ? `Time Left: ${formatTime(examTimeLeft)}` : "Start Mock Exam"}
